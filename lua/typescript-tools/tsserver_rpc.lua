@@ -61,6 +61,11 @@ function TsserverRpc:new(path, server_type, on_exit)
     obj:add_spawn_arg("--cancellationPipeName", obj.cancellation_file .. "*")
   end
 
+  if config.enable_styled_components_plugin then
+    obj:add_spawn_arg("--globalPlugins", "typescript-styled-plugin")
+    obj:add_spawn_arg("--pluginProbeLocations", Path:new(config.global_npm_path, "lib"):absolute())
+  end
+
   local logs = config.tsserver_logs
 
   if logs then

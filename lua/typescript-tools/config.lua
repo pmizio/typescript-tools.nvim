@@ -58,6 +58,11 @@ M.load_and_validate = function(settings)
     },
     ["settings.debug"] = { settings.debug, "boolean", true },
     ["settings.enable_formatting"] = { settings.enable_formatting, "boolean", true },
+    ["settings.enable_styled_components_plugin"] = {
+      settings.enable_styled_components_plugin,
+      "boolean",
+      true,
+    },
   }
 
   local logs = settings.tsserver_logs
@@ -71,6 +76,10 @@ M.load_and_validate = function(settings)
   end
 
   __store = vim.tbl_deep_extend("force", __store, settings)
+end
+
+M.set_global_npm_path = function(path)
+  __store.global_npm_path = path
 end
 
 setmetatable(M, {

@@ -7,13 +7,11 @@ local configure = function()
     command = constants.CommandTypes.Configure,
     arguments = {
       hostInfo = "neovim",
-      -- TODO: expose as configuration
       preferences = {
         providePrefixAndSuffixTextForRename = true,
         allowRenameOfImportPath = true,
         includePackageJsonAutoImports = "auto",
       },
-      plugins = {},
       watchOptions = {},
     },
   }

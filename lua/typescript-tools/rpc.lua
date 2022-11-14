@@ -37,15 +37,14 @@ M.start = function(server_name, dispatchers)
   local root_dir = config.get_root_dir(util.path.sanitize(bufname), bufnr)
   local tsserver_path = Path:new(root_dir, "node_modules", "typescript", "lib", "tsserver.js")
 
+  local npm_global_path = vim.fn.system(
+    [[node -p "require('path').resolve(process.execPath, '../..')"]]
+  ):match "^%s*(.-)%s*$"
+  plugin_config.set_global_npm_path(npm_global_path)
+
   -- INFO: if we can't find local tsserver try to use global installed one
   if not tsserver_path:exists() then
-    local npm_global_bin = vim.fn.system "npm bin -g"
-    local eol = npm_global_bin:find("\n", 1, true)
-    if eol then
-      tsserver_path = Path:new(npm_global_bin:sub(1, eol - 1), "tsserver")
-    else
-      tsserver_path = Path:new(npm_global_bin, "tsserver")
-    end
+    tsserver_path = Path:new(npm_global_path, "bin", "tsserver")
   end
 
   -- INFO: if there is no local or global tsserver just error out
