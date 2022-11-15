@@ -62,7 +62,8 @@ Useful links:
 
 ### Run tests
 
-Running tests requires [plenary.nvim][plenary] to be checked out in the parent directory of _this_ repository.
+Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) to be checked out in the parent directory of _this_ repository.
+Make sure you have [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin.
 You can then run:
 
 ```bash
@@ -72,5 +73,5 @@ make test
 Or if you want to run a single test file:
 
 ```bash
-nvim --headless --noplugin -u tests/minimal.vim -c "PlenaryBustedDirectory tests/path_to_file.lua {minimal_init = 'tests/minimal.vim'}"
+make file=test_spec.lua test
 ```

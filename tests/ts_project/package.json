@@ -1,0 +1,11 @@
+{
+  "name": "ts_project",
+  "version": "0.0.1",
+  "description": "example typescript project for tests",
+  "scripts": {},
+  "author": "pmizio",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "4.8.4"
+  }
+}
