@@ -122,7 +122,7 @@ end
 ---
 --- @param header_string string
 --- @return number
-function TsserverRpc:parse_content_length(header_string)
+local function parse_content_length(header_string)
   return tonumber(header_string:sub(17))
 end
 
@@ -139,7 +139,7 @@ function TsserverRpc:on_message(callback)
 
       if header_end then
         local header = buffer:sub(1, header_end - 1)
-        local content_length = self:parse_content_length(header)
+        local content_length = parse_content_length(header)
         local body = buffer:sub(body_start + 1)
         local body_chunks = { body }
         local body_length = #body
@@ -164,7 +164,7 @@ function TsserverRpc:on_message(callback)
   self.stdout:read_start(function(err, chunk)
     if err then
       -- TODO: any error handling
-      P "error on stdout"
+      print "error on stdout"
       return
     end
 

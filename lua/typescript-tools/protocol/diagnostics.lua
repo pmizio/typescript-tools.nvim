@@ -1,4 +1,5 @@
 local api = vim.api
+local log = require "vim.lsp.log"
 local constants = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 local debounce = require("typescript-tools.utils").debounce
@@ -61,8 +62,28 @@ function DiagnosticsService:new(server_type, tsserver, dispatchers)
     })
   end
 
+  --- @private
+  --- @return string[]
+  local function get_attached_buffers()
+    local client = vim.lsp.get_active_clients({ name = config.NAME })[1]
+
+    if client then
+      local attached_bufs = {}
+
+      for _, bufnr in pairs(vim.api.nvim_list_bufs()) do
+        if vim.lsp.buf_is_attached(bufnr, client.id) then
+          table.insert(attached_bufs, vim.api.nvim_buf_get_name(bufnr))
+        end
+      end
+
+      return attached_bufs
+    end
+
+    return {}
+  end
+
   obj.debounced_request, obj.timer_handle = debounce(200, function()
-    local attached_bufs = obj:get_attached_buffers()
+    local attached_bufs = get_attached_buffers()
 
     if #attached_bufs <= 0 then
       return
@@ -99,26 +120,6 @@ function DiagnosticsService:request()
   end
 
   self.debounced_request()
-end
-
---- @private
---- @return string[]
-function DiagnosticsService:get_attached_buffers()
-  local client = vim.lsp.get_active_clients({ name = config.NAME })[1]
-
-  if client then
-    local attached_bufs = {}
-
-    for _, bufnr in pairs(vim.api.nvim_list_bufs()) do
-      if vim.lsp.buf_is_attached(bufnr, client.id) then
-        table.insert(attached_bufs, vim.api.nvim_buf_get_name(bufnr))
-      end
-    end
-
-    return attached_bufs
-  end
-
-  return {}
 end
 
 --- @private

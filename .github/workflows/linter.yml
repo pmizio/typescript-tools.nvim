@@ -22,3 +22,4 @@ jobs:
           LINTER_RULES_PATH: /
           VALIDATE_JSCPD: false
           VALIDATE_PYTHON_BLACK: false
+          VALIDATE_TYPESCRIPT_STANDARD: false
