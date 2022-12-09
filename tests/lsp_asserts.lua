@@ -1,5 +1,15 @@
 local M = {}
 
+function M.response(resp)
+  assert.is.table(resp)
+  assert.are.same(#resp, 1)
+
+  local result = resp[1].result
+  assert.is.table(result)
+
+  return result
+end
+
 function M.position(position, line, character)
   assert.is.table(position)
   assert.are.same(position.line, line)
