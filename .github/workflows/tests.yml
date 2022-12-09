@@ -17,6 +17,8 @@ jobs:
     strategy:
       matrix:
         neovim_version: ["stable", "nightly"]
+        typescript_version:
+          ["4.0", "4.1", "4.2", "4.3", "4.4", "4.5", "4.6", "4.7", "4.8", "4.9"]
 
     steps:
       - uses: actions/checkout@v3
@@ -46,7 +48,9 @@ jobs:
 
       - name: npm install
         working-directory: ${{ env.TEST_PROJECT_PATH }}
-        run: npm ci
+        run: |
+          npm ci
+          npm i typescript@${{ matrix.typescript_version }}
 
       - name: Run tests
         run: make test
