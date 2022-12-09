@@ -57,7 +57,6 @@ describe("Lsp request", function()
     local result = lsp_assert.response(ret)
     assert.are.same(#result, 1)
     assert.has.match(".+/lib%.dom%.d%.ts", result[1].uri)
-    lsp_assert.range(result[1].range, 17094, 4, 17094, 7)
   end)
 
   it("should return correct response for " .. methods.Implementation, function()
@@ -111,7 +110,7 @@ describe("Lsp request", function()
     assert.is.table(result.items)
 
     local items = result.items
-    assert.is.same(#items, 20)
+    assert.is.True(#items >= 20)
 
     local completions = vim.tbl_map(function(it)
       return it.label
@@ -119,7 +118,7 @@ describe("Lsp request", function()
     table.sort(completions)
 
     assert.are.same(completions[1], "assert")
-    assert.are.same(completions[20], "warn")
+    assert.are.same(completions[#completions], "warn")
   end)
 
   it("should return correct response for " .. methods.CompletionResolve, function()
