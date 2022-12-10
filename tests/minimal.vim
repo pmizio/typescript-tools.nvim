@@ -15,7 +15,10 @@ vim.lsp.handlers["$/progress"] = function(...)
 end
 
 require("typescript-tools").setup {
-  on_attach = on_attach,
+  on_attach = function() end,
+  settings = {
+    enable_formatting = true,
+  },
 }
 
 function P(arg)

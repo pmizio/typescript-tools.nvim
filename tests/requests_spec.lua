@@ -165,4 +165,42 @@ describe("Lsp request", function()
     assert.is.table(signatures[1])
     assert.are.same(signatures[1].label, "log(...data: any[]): void")
   end)
+
+  it("should return correct response for " .. methods.Formatting, function()
+    utils.open_file "src/formatting.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.Formatting, {
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.same(#result, 5)
+  end)
+
+  it("should return correct response for " .. methods.RangeFormatting, function()
+    utils.open_file "src/formatting.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.RangeFormatting, {
+      textDocument = utils.get_text_document(),
+      range = utils.make_range(2, 0, 2, 50),
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.same(
+      #result,
+      utils.tsv {
+        ["4.0"] = 2,
+        ["4.1"] = 2,
+        ["4.2"] = 2,
+        ["4.3"] = 2,
+        ["4.4"] = 2,
+        ["4.5"] = 2,
+        default = 3,
+      }
+    )
+  end)
 end)

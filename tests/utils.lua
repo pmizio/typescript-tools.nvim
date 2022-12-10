@@ -28,4 +28,15 @@ function M.make_position(line, character)
   return { line = line, character = character }
 end
 
+function M.make_range(startLine, startCharacter, endLine, endCharacter)
+  return {
+    start = M.make_position(startLine, startCharacter),
+    ["end"] = M.make_position(endLine, endCharacter),
+  }
+end
+
+function M.tsv(options)
+  return options[vim.env.TEST_TYPESCRIPT_VERSION] or options.default
+end
+
 return M

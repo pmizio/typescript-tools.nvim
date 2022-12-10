@@ -53,4 +53,4 @@ jobs:
           npm i typescript@${{ matrix.typescript_version }}
 
       - name: Run tests
-        run: make test
+        run: TEST_TYPESCRIPT_VERSION=${{ matrix.typescript_version }} make test
