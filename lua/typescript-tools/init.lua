@@ -1,4 +1,3 @@
-local log = require "vim.lsp.log"
 local lspconfig = require "lspconfig"
 local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
@@ -15,14 +14,7 @@ M.setup = function(config)
   configs[plugin_config.NAME] = {
     default_config = {
       cmd = function(...)
-        local ok, tsserver_rpc = pcall(rpc.start, plugin_config.NAME, ...)
-        if ok then
-          return tsserver_rpc
-        else
-          log.error(tsserver_rpc)
-        end
-
-        return nil
+        return rpc.start(plugin_config.NAME, ...)
       end,
       filetypes = {
         "javascript",
