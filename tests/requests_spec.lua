@@ -203,4 +203,89 @@ describe("Lsp request", function()
       }
     )
   end)
+
+  it("should return correct response for " .. methods.WorkspaceSymbol, function()
+    utils.open_file "src/index.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.WorkspaceSymbol, {
+      query = "exampleFn",
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.same(#result, 1)
+    lsp_assert.range(result[1].location.range, 0, 13, 0, 33)
+  end)
+
+  it("should return correct response for " .. methods.PrepareCallHierarchy, function()
+    utils.open_file "src/other.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.PrepareCallHierarchy, {
+      textDocument = utils.get_text_document(),
+      position = utils.make_position(0, 13),
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.same(#result, 1)
+    assert.is.same(result[1].name, "exampleFn")
+  end)
+
+  it("should return correct response for " .. methods.IncomingCalls, function()
+    utils.open_file "src/other.ts"
+    utils.wait_for_lsp_initialization()
+
+    -- INFO: PrepareCallHierarchy request is required to get incomming calls
+    local call_hierarchy = vim.lsp.buf_request_sync(0, methods.PrepareCallHierarchy, {
+      textDocument = utils.get_text_document(),
+      position = utils.make_position(0, 13),
+    })
+    local call_hierarchy_item = lsp_assert.response(call_hierarchy)[1]
+    local ret = vim.lsp.buf_request_sync(0, methods.IncomingCalls, {
+      textDocument = utils.get_text_document(),
+      item = call_hierarchy_item,
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.same(#result, 2)
+
+    local call_uris = vim.tbl_map(function(it)
+      return it.from.uri
+    end, result)
+    table.sort(call_uris)
+
+    assert.has.match(".+/src/index%.ts", call_uris[1])
+    assert.has.match(".+/src/other%.ts", call_uris[2])
+  end)
+
+  it("should return correct response for " .. methods.OutgoingCalls, function()
+    utils.open_file "src/index.ts"
+    utils.wait_for_lsp_initialization()
+
+    -- INFO: PrepareCallHierarchy request is required to get outgoing calls
+    local call_hierarchy = vim.lsp.buf_request_sync(0, methods.PrepareCallHierarchy, {
+      textDocument = utils.get_text_document(),
+      position = utils.make_position(2, 9),
+    })
+    local call_hierarchy_item = lsp_assert.response(call_hierarchy)[1]
+    local ret = vim.lsp.buf_request_sync(0, methods.OutgoingCalls, {
+      textDocument = utils.get_text_document(),
+      item = call_hierarchy_item,
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.same(#result, 2)
+
+    local call_uris = vim.tbl_map(function(it)
+      return it.to.uri
+    end, result)
+    table.sort(call_uris)
+
+    assert.has.match(".+/lib%.dom%.d%.ts", call_uris[1])
+    assert.has.match(".+/src/other%.ts", call_uris[2])
+  end)
 end)

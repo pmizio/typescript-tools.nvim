@@ -28,10 +28,10 @@ function M.make_position(line, character)
   return { line = line, character = character }
 end
 
-function M.make_range(startLine, startCharacter, endLine, endCharacter)
+function M.make_range(start_line, start_character, end_line, end_character)
   return {
-    start = M.make_position(startLine, startCharacter),
-    ["end"] = M.make_position(endLine, endCharacter),
+    start = M.make_position(start_line, start_character),
+    ["end"] = M.make_position(end_line, end_character),
   }
 end
 
