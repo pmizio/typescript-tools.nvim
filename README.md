@@ -3,10 +3,10 @@
 ## TODO: description
 
 ```lua
- NeoVim                                                    Tsserver Magic
+ NeoVim                                                    Tsserver Instance
 ┌────────────────────────────────────────────┐            ┌────────────────┐
 │                                            │            │                │
-│  LSP Loop              Tsserver Loop       │            │                │
+│  LSP Handlers          Tsserver LSP Loop   │            │                │
 │ ┌─────────┐           ┌──────────────────┐ │            │                │
 │ │         │           │                  │ │            │                │
 │ │         │ Request   │ ┌──────────────┐ │ │            │                │

@@ -16,4 +16,16 @@ M.debounce = function(ms, fn)
   return wrapped_fn, timer
 end
 
+--- @param bufnr number
+--- @return boolean
+M.is_buf_hidden = function(bufnr)
+  local bufinfo = vim.fn.getbufinfo(bufnr)[1]
+
+  if bufinfo == nil then
+    return true
+  end
+
+  return bufinfo.hidden == 1
+end
+
 return M

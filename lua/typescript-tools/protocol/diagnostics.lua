@@ -1,8 +1,8 @@
 local api = vim.api
 local log = require "vim.lsp.log"
 local constants = require "typescript-tools.protocol.constants"
-local utils = require "typescript-tools.protocol.utils"
-local debounce = require("typescript-tools.utils").debounce
+local lspUtils = require "typescript-tools.protocol.utils"
+local utils = require "typescript-tools.utils"
 local config = require "typescript-tools.config"
 
 local SOURCE = "tsserver"
@@ -71,7 +71,7 @@ function DiagnosticsService:new(server_type, tsserver, dispatchers)
       local attached_bufs = {}
 
       for _, bufnr in pairs(vim.api.nvim_list_bufs()) do
-        if vim.lsp.buf_is_attached(bufnr, client.id) then
+        if vim.lsp.buf_is_attached(bufnr, client.id) and not utils.is_buf_hidden(bufnr) then
           table.insert(attached_bufs, vim.api.nvim_buf_get_name(bufnr))
         end
       end
@@ -82,7 +82,7 @@ function DiagnosticsService:new(server_type, tsserver, dispatchers)
     return {}
   end
 
-  obj.debounced_request, obj.timer_handle = debounce(200, function()
+  obj.debounced_request, obj.timer_handle = utils.debounce(200, function()
     local attached_bufs = get_attached_buffers()
 
     if #attached_bufs <= 0 then
@@ -211,7 +211,7 @@ local convert_related_information = function(related_information)
       message = info.message,
       location = {
         uri = vim.uri_from_fname(info.span.file),
-        range = utils.convert_tsserver_range_to_lsp(info.span),
+        range = lspUtils.convert_tsserver_range_to_lsp(info.span),
       },
     }
   end, related_information)
@@ -226,7 +226,7 @@ function DiagnosticsService:collect_diagnostics(response)
       source = SOURCE,
       code = diagnostic.code,
       severity = category_to_severity(diagnostic.category),
-      range = utils.convert_tsserver_range_to_lsp(diagnostic),
+      range = lspUtils.convert_tsserver_range_to_lsp(diagnostic),
       relatedInformation = diagnostic.relatedInformation and convert_related_information(
         diagnostic.relatedInformation
       ),
