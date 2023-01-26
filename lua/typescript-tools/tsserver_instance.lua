@@ -160,6 +160,8 @@ function TsserverInstance:handle_request(method, params, callback, notify_reply_
 
     seq = self.request_queue:enqueue(args)
     self.diagnostics_service:handle_request(message)
+  elseif method == constants.LspMethods.CodeAction then
+    seq = self.code_actions_service:request(params, callback, notify_reply_callback)
   end
 
   self:send_queued_requests()
@@ -219,10 +221,6 @@ function TsserverInstance:get_lsp_interface()
       if method == constants.LspMethods.Initialize then
         -- INFO: this is additional request not handled by lsp it is pointless to return it's id
         self.request_queue:enqueue { message = global_initialize.configure() }
-      end
-
-      if method == constants.LspMethods.CodeAction then
-        return self.code_actions_service:request(params, callback, notify_reply_callback)
       end
 
       return self:handle_request(method, params, callback, notify_reply_callback)

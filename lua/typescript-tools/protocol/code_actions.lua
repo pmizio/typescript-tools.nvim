@@ -75,7 +75,7 @@ function CodeActionsService:request(params, callback, notify_reply_callback)
     },
   }
 
-  return true, self.request_id
+  return self.request_id
 end
 
 --- @private
