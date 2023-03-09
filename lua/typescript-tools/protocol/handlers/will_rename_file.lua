@@ -26,13 +26,15 @@ local make_text_edits = function(code_edits)
   return changes
 end
 
-local function getRequestForFileRename(sourceUri, targetUri)
-  local newFilePath = vim.uri_to_fname(targetUri)
-  local oldFilePath = vim.uri_to_fname(sourceUri)
-
-  if not newFilePath or not oldFilePath then
-    return {}
-  end
+-- tsserver protocol reference:
+-- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L511
+local request_handler = function(_, params)
+  -- in params there could be multiple files but in order fulfill request
+  -- with multiple files we would need to send multiple requests to tsserver
+  -- at the moment there is no abstraction to do that so we just take first file
+  local firstFile = params.files[1]
+  local oldFilePath = vim.uri_to_fname(firstFile.oldUri)
+  local newFilePath = vim.uri_to_fname(firstFile.newUri)
 
   return {
     command = constants.CommandTypes.GetEditsForFileRename,
@@ -44,13 +46,7 @@ local function getRequestForFileRename(sourceUri, targetUri)
 end
 
 -- tsserver protocol reference:
--- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L930
-local request_handler = function(_, params)
-  return getRequestForFileRename(params.files[1].oldUri, params.files[1].newUri)
-end
-
--- tsserver protocol reference:
--- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L930
+-- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L511
 local response_handler = function(_, params)
   return {
     changes = make_text_edits(params),
