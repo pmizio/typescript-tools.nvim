@@ -288,4 +288,32 @@ describe("Lsp request", function()
     assert.has.match(".+/lib%.dom%.d%.ts", call_uris[1])
     assert.has.match(".+/src/other%.ts", call_uris[2])
   end)
+
+  it("should return correct response for " .. methods.WillRenameFiles, function()
+    utils.open_file "src/imported.ts"
+    utils.wait_for_lsp_initialization()
+
+    local oldUri = "file://" .. vim.fn.getcwd() .. "/src/other.ts"
+    local newUri = "file://" .. vim.fn.getcwd() .. "/src/other2.ts"
+    local ret = vim.lsp.buf_request_sync(0, methods.WillRenameFiles, {
+      files = {
+        {
+          oldUri = oldUri,
+          newUri = newUri,
+        },
+      },
+    })
+
+    local result = lsp_assert.response(ret)
+    local changes = result.changes
+
+    assert.is.table(changes)
+
+    local uriWithChangedImport = "file://" .. vim.fn.getcwd() .. "/src/index.ts"
+    local fileTextEdits = changes[uriWithChangedImport]
+
+    assert.is.table(fileTextEdits)
+    assert.is.same(1, #fileTextEdits)
+    assert.are.same("./other2", fileTextEdits[1].newText)
+  end)
 end)
