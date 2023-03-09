@@ -211,6 +211,7 @@ return {
     WorkspaceSymbol = "workspace/symbol",
     Progress = "$/progress",
     ExecuteCommand = "workspace/executeCommand",
+    WillRenameFiles = "workspace/willRenameFiles",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",

@@ -44,6 +44,7 @@ local make_protocol_handlers = function()
   assign_handlers(require "typescript-tools.protocol.handlers.prepare_call_hierarchy")
   assign_handlers(require "typescript-tools.protocol.handlers.hierarchy_calls")
   assign_handlers(require "typescript-tools.protocol.handlers.workspace_symbol")
+  assign_handlers(require "typescript-tools.protocol.handlers.will_rename")
 
   assign_handlers(require "typescript-tools.protocol.handlers.shutdown")
 

@@ -45,7 +45,19 @@ local function make_capabilities(settings)
       },
       resolveProvider = true,
     },
-    documentFormattingProvider = settings.enable_formatting,
+    workspace = {
+      fileOperations = {
+        willRename = {
+          filters = {
+            {
+              scheme = "file",
+              pattern = { glob = "**/*.{ts,js,jsx,tsx,mjs,mts,cjs,cts}", matches = "file" },
+            },
+          },
+        },
+      },
+    },
+    ormattingProvider = settings.enable_formatting,
     documentRangeFormattingProvider = settings.enable_formatting,
     callHierarchyProvider = true,
     workspaceSymbolProvider = true,
