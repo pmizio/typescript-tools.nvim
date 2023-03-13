@@ -57,7 +57,7 @@ local function make_capabilities(settings)
         },
       },
     },
-    ormattingProvider = settings.enable_formatting,
+    documentFormattingProvider = settings.enable_formatting,
     documentRangeFormattingProvider = settings.enable_formatting,
     callHierarchyProvider = true,
     workspaceSymbolProvider = true,
