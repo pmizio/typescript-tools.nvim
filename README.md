@@ -47,6 +47,7 @@
 | ✅     | callHierarchy/incomingCalls     |
 | ✅     | callHierarchy/outgoingCalls     |
 | ✅     | workspace/symbol                |
+| ✅     | workspace/willRenameFiles       |
 | ❌     | workspace/applyEdit - N/A       |
 | ❌     | textDocument/declaration - N/A  |
 | ❌     | window/logMessage - N/A         |
