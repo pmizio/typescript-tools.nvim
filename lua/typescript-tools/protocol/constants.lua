@@ -213,6 +213,9 @@ return {
     ExecuteCommand = "workspace/executeCommand",
     WillRenameFiles = "workspace/willRenameFiles",
   },
+  CustomMethods = {
+    OrganizeImports = "typescriptTools/organizeImports",
+  },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
     ProjectLoadingFinish = "projectLoadingFinish",
