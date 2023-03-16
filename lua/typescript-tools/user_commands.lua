@@ -37,7 +37,7 @@ M.setup_user_commands = function()
     {}
   )
   vim.api.nvim_create_user_command(
-    "TSToolsRemoveUnused",
+    "TSToolsRemoveUnusedImports",
     send_organize_import_request(constants.OrganizeImportsMode.RemoveUnused),
     {}
   )
