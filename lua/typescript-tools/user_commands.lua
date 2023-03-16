@@ -12,13 +12,12 @@ local function apply_workspace_edit(workspace_edit)
   vim.lsp.util.apply_workspace_edit(workspace_edit, "utf-8")
 end
 
---- @param skipDestructiveCodeActions boolean
+--- @param mode string
 --- @return function
-local function send_organize_import_request(skipDestructiveCodeActions)
-  local params =
-    { file = vim.fn.expand "%p", skipDestructiveCodeActions = skipDestructiveCodeActions }
-
+local function send_organize_import_request(mode)
   return function()
+    local params = { file = vim.fn.expand "%p", mode = mode }
+
     vim.lsp.buf_request(0, constants.CustomMethods.OrganizeImports, params, function(_, result)
       apply_workspace_edit(result)
     end)
@@ -29,11 +28,19 @@ end
 M.setup_user_commands = function()
   vim.api.nvim_create_user_command(
     "TSToolsOrganizeImports",
-    send_organize_import_request(false),
+    send_organize_import_request(constants.OrganizeImportsMode.All),
     {}
   )
-
-  vim.api.nvim_create_user_command("TSToolsSortImports", send_organize_import_request(true), {})
+  vim.api.nvim_create_user_command(
+    "TSToolsSortImports",
+    send_organize_import_request(constants.OrganizeImportsMode.SortAndCombine),
+    {}
+  )
+  vim.api.nvim_create_user_command(
+    "TSToolsRemoveUnused",
+    send_organize_import_request(constants.OrganizeImportsMode.RemoveUnused),
+    {}
+  )
 end
 
 return M

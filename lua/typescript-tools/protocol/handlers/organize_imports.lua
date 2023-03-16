@@ -1,12 +1,16 @@
 local constants = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
+local function map_mode_to_skipDestructiveCodeActions(mode)
+  return mode == constants.OrganizeImportsMode.SortAndCombine
+end
+
 -- tsserver protocol reference:
--- OrganizeImports:
--- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L499
+-- https://github.com/microsoft/TypeScript/blob/7f292bf2a19aa14ed69a55e646111af9533d8f1c/src/server/protocol.ts#L692
 local code_action_resolve_request_handler = function(_, params)
   local file = params.file
-  local skipDestructiveCodeActions = params.skipDestructiveCodeActions
+  -- OrganizeImportsMode was introduced in tsserver 4.9.0 - keeping skipDestructiveCodeActions for backwards compatibility
+  local skipDestructiveCodeActions = map_mode_to_skipDestructiveCodeActions(params.mode)
   local request = {
     arguments = {
       scope = {
@@ -16,6 +20,7 @@ local code_action_resolve_request_handler = function(_, params)
         type = "file",
       },
       skipDestructiveCodeActions = skipDestructiveCodeActions,
+      mode = params.mode,
     },
     command = constants.CommandTypes.OrganizeImports,
   }
@@ -24,9 +29,8 @@ local code_action_resolve_request_handler = function(_, params)
 end
 
 -- tsserver protocol reference:
--- OrganizeImports:
--- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L508
-local code_action_resolve_response_handler = function(_, body, request_param)
+-- https://github.com/microsoft/TypeScript/blob/7f292bf2a19aa14ed69a55e646111af9533d8f1c/src/server/protocol.ts#L712
+local code_action_resolve_response_handler = function(_, body)
   return {
     changes = utils.convert_tsserver_edits_to_lsp(body),
   }
