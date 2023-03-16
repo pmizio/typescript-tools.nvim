@@ -1,3 +1,3 @@
-import { exampleFn2, exampleFn } from './other'
+import {export2, export1} from './exports'
 
-exampleFn()
+export1()

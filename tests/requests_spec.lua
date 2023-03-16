@@ -337,6 +337,6 @@ describe("Lsp request", function()
 
     assert.is.table(fileTextEdits)
     assert.is.same(1, #fileTextEdits)
-    assert.are.same("import { exampleFn } from './other'\n", fileTextEdits[1].newText)
+    assert.are.same("import { export1 } from './exports'\n", fileTextEdits[1].newText)
   end)
 end)
