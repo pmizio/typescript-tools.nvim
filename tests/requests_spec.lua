@@ -325,7 +325,7 @@ describe("Lsp request", function()
     local file = vim.fs.dirname(vim.api.nvim_buf_get_name(0)) .. "/imports.ts"
     local ret = vim.lsp.buf_request_sync(0, customMethods.OrganizeImports, {
       file = file,
-      skipDestructiveCodeActions = false,
+      mode = "All",
     })
     local result = lsp_assert.response(ret)
     local changes = result.changes
