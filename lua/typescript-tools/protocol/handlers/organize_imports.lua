@@ -1,7 +1,7 @@
 local constants = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
-local function map_mode_to_skipDestructiveCodeActions(mode)
+local function map_mode_to_skip_destructions(mode)
   return mode == constants.OrganizeImportsMode.SortAndCombine
 end
 
@@ -10,7 +10,7 @@ end
 local organize_imports_request_handler = function(_, params)
   local file = params.file
   -- OrganizeImportsMode was introduced in tsserver 4.9.0 - keeping skipDestructiveCodeActions for backwards compatibility
-  local skipDestructiveCodeActions = map_mode_to_skipDestructiveCodeActions(params.mode)
+  local skipDestructiveCodeActions = map_mode_to_skip_destructions(params.mode)
   local request = {
     arguments = {
       scope = {
