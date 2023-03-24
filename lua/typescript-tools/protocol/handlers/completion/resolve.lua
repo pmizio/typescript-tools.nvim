@@ -13,9 +13,7 @@ local completion_resolve_request_handler = function(_, params)
         file = data.file,
         entryNames = data.entryNames,
         source = data.source,
-      }, utils.convert_lsp_position_to_tsserver(
-        data
-      )),
+      }, utils.convert_lsp_position_to_tsserver(data)),
     }
   end
 
@@ -57,8 +55,16 @@ local completion_resolve_response_handler = function(_, body, request_params)
       table.insert(documentation, { text = utils.tsserver_make_tags(details.tags) })
     end
 
+    local detail = utils.tsserver_docs_to_plain_text(details.displayParts)
+
+    -- copied behavior from https://github.com/typescript-language-server/typescript-language-server/blob/70eae7e0885d9b5b7841cad3ba033f3c9c6955d2/src/completion.ts#LL496C18-L496C18
+    local source = details.sourceDisplay or details.deprecatedSource
+    if source and detail then
+      detail = "Auto import from " .. utils.tsserver_docs_to_plain_text(source) .. "\n" .. detail
+    end
+
     return vim.tbl_extend("force", request_params, {
-      detail = utils.tsserver_docs_to_plain_text(details.displayParts),
+      detail = detail,
       documentation = {
         kind = constants.MarkupKind.Markdown,
         value = utils.tsserver_docs_to_plain_text(documentation, "\n"),
