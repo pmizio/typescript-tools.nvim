@@ -328,7 +328,6 @@ describe("Lsp request", function()
       },
     })
     local result = lsp_assert.response(ret)
-    print([[[requests_spec.lua:353] -- result: ]] .. vim.inspect(result))
 
     assert.is.table(result)
 
