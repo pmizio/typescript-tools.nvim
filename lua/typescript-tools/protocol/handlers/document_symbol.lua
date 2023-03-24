@@ -22,50 +22,25 @@ local function remove_aliases(symbols)
   end, symbols)
 end
 
---- @param rest function
---- @return function
-local function map_symbol(rest)
-  return function(symbol)
-    return vim.tbl_extend("force", {
-      name = symbol.text,
-      kind = utils.get_lsp_symbol_kind(symbol.kind),
-    }, rest(
-      symbol
-    ))
-  end
+local function map_document_symbol(item)
+  return {
+    name = item.text,
+    kind = utils.get_lsp_symbol_kind(item.kind),
+    children = vim.tbl_map(map_document_symbol, remove_aliases(item.childItems or {})),
+    range = utils.convert_tsserver_range_to_lsp(item.spans[1]),
+    selectionRange = item.nameSpan and utils.convert_tsserver_range_to_lsp(item.nameSpan)
+      or utils.convert_tsserver_range_to_lsp(item.spans[1]),
+  }
 end
 
 -- tsserver protocol reference:
 -- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L2561
-local document_symbol_response_handler = function(_, body, request_param)
-  local text_document = request_param.textDocument
-
+local document_symbol_response_handler = function(_, body)
   if #body.childItems == 0 then
     return nil
   end
 
-  return vim.tbl_map(
-    map_symbol(function(item)
-      return {
-        selectionRange = item.nameSpan and utils.convert_tsserver_range_to_lsp(item.nameSpan)
-          or utils.convert_tsserver_range_to_lsp(item.spans[1]),
-        range = utils.convert_tsserver_range_to_lsp(item.spans[1]),
-        children = vim.tbl_map(
-          map_symbol(function(child)
-            return {
-              containerName = item.text,
-              location = {
-                uri = text_document.uri,
-                range = utils.convert_tsserver_range_to_lsp(child.spans[1]),
-              },
-            }
-          end),
-          remove_aliases(item.childItems or {})
-        ),
-      }
-    end),
-    remove_aliases(body.childItems)
-  )
+  return vim.tbl_map(map_document_symbol, remove_aliases(body.childItems))
 end
 
 return {

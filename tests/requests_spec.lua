@@ -316,4 +316,28 @@ describe("Lsp request", function()
     assert.is.same(1, #fileTextEdits)
     assert.are.same("./other2", fileTextEdits[1].newText)
   end)
+
+  it("should return correct response for " .. methods.DocumentSymbol, function()
+    utils.open_file "src/imported.ts"
+    utils.wait_for_lsp_initialization()
+
+    local uri = "file://" .. vim.fn.getcwd() .. "/src/index.ts"
+    local ret = vim.lsp.buf_request_sync(0, methods.DocumentSymbol, {
+      textDocument = {
+        uri = uri,
+      },
+    })
+    local result = lsp_assert.response(ret)
+    print([[[requests_spec.lua:353] -- result: ]] .. vim.inspect(result))
+
+    assert.is.table(result)
+
+    assert.is.same(1, #result)
+    assert.is.same("main", result[1].name)
+    assert.is.table(result[1].children)
+    assert.is.same(1, #result[1].children)
+    assert.is.same("foo", result[1].children[1].name)
+    assert.is.table(result[1].children[1].children)
+    assert.is.same(0, #result[1].children[1].children)
+  end)
 end)
