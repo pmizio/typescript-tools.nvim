@@ -206,6 +206,7 @@ return {
     Formatting = "textDocument/formatting",
     RangeFormatting = "textDocument/rangeFormatting",
     PrepareCallHierarchy = "textDocument/prepareCallHierarchy",
+    FoldingRange = "textDocument/foldingRange",
     IncomingCalls = "callHierarchy/incomingCalls",
     OutgoingCalls = "callHierarchy/outgoingCalls",
     WorkspaceSymbol = "workspace/symbol",
@@ -243,6 +244,11 @@ return {
     Event = 23,
     Operator = 24,
     TypeParameter = 25,
+  },
+  FoldingRangeKind = {
+    Comment = "comment",
+    Imports = "imports",
+    Region = "region",
   },
   InsertTextFormat = {
     PlainText = 1,
