@@ -316,4 +316,29 @@ describe("Lsp request", function()
     assert.is.same(1, #fileTextEdits)
     assert.are.same("./other2", fileTextEdits[1].newText)
   end)
+
+  it("should return correct response for " .. methods.FoldingRange, function()
+    utils.open_file "src/comment.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.FoldingRange, {
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+
+    local import_range = result[1]
+
+    assert.is.same(0, import_range.startLine)
+    assert.is.same(1, import_range.endLine)
+    assert.is.same("imports", import_range.kind)
+
+    local comment_range = result[2]
+
+    assert.is.same(3, comment_range.startLine)
+    assert.is.same(7, comment_range.endLine)
+    assert.is.same("comment", comment_range.kind)
+  end)
 end)
