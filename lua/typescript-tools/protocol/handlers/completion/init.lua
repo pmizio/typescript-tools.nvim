@@ -19,9 +19,7 @@ local completion_request_handler = function(_, params)
         or nil,
       includeExternalModuleExports = true,
       includeInsertTextCompletions = true,
-    }, utils.convert_lsp_position_to_tsserver(
-      params.position
-    )),
+    }, utils.convert_lsp_position_to_tsserver(params.position)),
   }
 end
 
@@ -51,8 +49,12 @@ local completion_response_handler = function(_, body, request_params)
   return {
     isIncomplete = body.isIncomplete or false,
     items = vim.tbl_map(function(item)
-      local is_optional = string.find(item.kindModifiers, "optional", 1, true)
-      local is_deprecated = string.find(item.kindModifiers, "deprecated", 1, true)
+      local is_optional = item.kindModifiers
+          and string.find(item.kindModifiers, "optional", 1, true)
+        or false
+      local is_deprecated = item.kindModifiers
+          and string.find(item.kindModifiers, "deprecated", 1, true)
+        or false
       local insertText = item.insertText or item.name
       local kind = item_kind_utils.map_completion_item_kind(item.kind)
       local sortText = item.sortText
