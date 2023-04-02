@@ -90,12 +90,7 @@ function TsserverInstance:invoke_response_handler(handler, response, request_seq
     -- request/respunse ping-pong
   elseif not response.success and response.command ~= constants.CommandTypes.SignatureHelp then
     vim.schedule(function()
-      if
-        not response.message:find "^No content available."
-        and not response.message:find "^Error processing request. No Project."
-      then
-        vim.notify(response.message or "No information available.", log.levels.INFO)
-      end
+      vim.notify(response.message or "No information available.", log.levels.INFO)
     end)
   end
 
