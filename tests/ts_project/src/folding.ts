@@ -6,3 +6,7 @@ import { fn } from './import';
 *
 *
 * */
+
+const sectionWithBracketAtTheEnd = {
+  test: 'test'
+}

@@ -13,46 +13,37 @@ local function as_folding_range_kind(span)
   end
 end
 
-local function as_folding_range(span)
+local function get_last_character(range, bufnr)
+  return vim.api.nvim_buf_get_text(
+    bufnr,
+    range["end"].line,
+    range["end"].character - 1,
+    range["end"].line,
+    range["end"].character,
+    {}
+  )[1]
+end
+
+local function as_folding_range(span, bufnr)
   local range = utils.convert_tsserver_range_to_lsp(span.textSpan)
   local kind = as_folding_range_kind(span)
 
-  -- TODO: how can we use vim.* here? I get E5560 lua-loop-callbacks error when
-  -- calling e.g. api.nvim_buf_get_lines(bufnr, range.start.line, range.start.line, false)
-
-  -- workaround for https://github.com/Microsoft/vscode/issues/49904
-  -- if kind == constants.FoldingRangeKind.Comment then
-  --   -- local line = document:getLine(range.start.line)
-  --   local line = api.nvim_buf_get_lines(bufnr, range.start.line, range.start.line, false)[1]
-  --   if string.match(line, "//%s*#endregion") then
-  --     return nil
-  --   end
-  -- end
-
   -- workaround for https://github.com/Microsoft/vscode/issues/47240
-  -- local lastCharacter = api.nvim_buf_get_text(
-  --   0,
-  --   range["end"].line,
-  --   range["end"].character - 1,
-  --   range["end"].line,
-  --   range["end"].character,
-  --   {}
-  -- )
-  -- local endLine = range["end"].character > 0
-  --     and lastCharacter == "}"
-  --     and math.max(range["end"].line - 1, range.start.line)
-  --   or range["end"].line
+  local lastCharacter = get_last_character(range, bufnr)
+  local endLine = range["end"].character > 0
+      and (lastCharacter == "}" or lastCharacter == "]")
+      and math.max(range["end"].line - 1, range.start.line)
+    or range["end"].line
 
   return {
     startLine = range.start.line,
-    -- endLine = endLine,
-    endLine = range["end"].line,
+    endLine = endLine,
     kind = kind,
   }
 end
 
 -- tsserver protocol reference:
--- https://github.com/microsoft/TypeScript/blob/main/src/server/protocol.ts#L375
+-- https://github.com/microsoft/TypeScript/blob/v5.0.2/src/server/protocol.ts#L377
 local folding_range_request_handler = function(_, params)
   local text_document = params.textDocument
 
@@ -65,15 +56,13 @@ local folding_range_request_handler = function(_, params)
 end
 
 -- tsserver protocol reference:
--- https://github.com/microsoft/TypeScript/blob/e14a2298c5add93816c6f487bcfc5ac72e3a4c59/lib/protocol.d.ts#L1574
-local folding_range_response_handler = function(_, body)
-  local folding_ranges = vim.tbl_map(function(range)
-    return as_folding_range(range)
-  end, body)
+-- https://github.com/microsoft/TypeScript/blob/v5.0.2/src/server/protocol.ts#L406
+local folding_range_response_handler = function(_, body, request_params)
+  local requested_bufnr = vim.uri_to_bufnr(request_params.textDocument.uri)
 
-  return vim.tbl_filter(function(folding_range)
-    return folding_range ~= nil
-  end, folding_ranges)
+  return vim.tbl_map(function(range)
+    return as_folding_range(range, requested_bufnr)
+  end, body)
 end
 
 return {
@@ -84,5 +73,6 @@ return {
   response = {
     method = constants.CommandTypes.GetOutliningSpans,
     handler = folding_range_response_handler,
+    schedule = true,
   },
 }

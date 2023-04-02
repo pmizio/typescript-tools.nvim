@@ -318,7 +318,7 @@ describe("Lsp request", function()
   end)
 
   it("should return correct response for " .. methods.FoldingRange, function()
-    utils.open_file "src/comment.ts"
+    utils.open_file "src/folding.ts"
     utils.wait_for_lsp_initialization()
 
     local ret = vim.lsp.buf_request_sync(0, methods.FoldingRange, {
@@ -328,6 +328,7 @@ describe("Lsp request", function()
     local result = lsp_assert.response(ret)
 
     assert.is.table(result)
+    print([[[requests_spec.lua:330] -- result: ]] .. vim.inspect(result))
 
     local import_range = result[1]
 
@@ -340,5 +341,11 @@ describe("Lsp request", function()
     assert.is.same(3, comment_range.startLine)
     assert.is.same(7, comment_range.endLine)
     assert.is.same("comment", comment_range.kind)
+
+    local bracketRange = result[3]
+
+    assert.is.same(9, bracketRange.startLine)
+    assert.is.same(10, bracketRange.endLine)
+    assert.is.same(nil, bracketRange.kind)
   end)
 end)

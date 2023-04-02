@@ -7,19 +7,19 @@ local make_protocol_handlers = function()
 
     if vim.tbl_islist(request) then
       for _, it in ipairs(request) do
-        request_handlers[it.method] = it.handler
+        request_handlers[it.method] = it
       end
     else
-      request_handlers[request.method] = request.handler
+      request_handlers[request.method] = request
     end
 
     if response then
       if vim.tbl_islist(response) then
         for _, it in ipairs(response) do
-          response_handlers[it.method] = it.handler
+          response_handlers[it.method] = it
         end
       else
-        response_handlers[response.method] = response.handler
+        response_handlers[response.method] = response
       end
     end
   end
