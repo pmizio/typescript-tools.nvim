@@ -1,11 +1,10 @@
 import { fn } from './import';
 import { fn } from './import';
 
-/*
-* Section to fold
-*
-*
-* */
+// #region testRegion
+const test = 'test'
+// #endregion
+
 
 const sectionWithBracketAtTheEnd = {
   test: 'test'

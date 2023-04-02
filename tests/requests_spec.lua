@@ -328,6 +328,7 @@ describe("Lsp request", function()
     local result = lsp_assert.response(ret)
 
     assert.is.table(result)
+    print([[[requests_spec.lua:330] -- result: ]] .. vim.inspect(result))
 
     local import_range = result[1]
 
@@ -338,13 +339,13 @@ describe("Lsp request", function()
     local comment_range = result[2]
 
     assert.is.same(3, comment_range.startLine)
-    assert.is.same(7, comment_range.endLine)
-    assert.is.same("comment", comment_range.kind)
+    assert.is.same(5, comment_range.endLine)
+    assert.is.same("region", comment_range.kind)
 
     local bracketRange = result[3]
 
-    assert.is.same(9, bracketRange.startLine)
-    assert.is.same(10, bracketRange.endLine)
+    assert.is.same(8, bracketRange.startLine)
+    assert.is.same(9, bracketRange.endLine)
     assert.is.same(nil, bracketRange.kind)
   end)
 end)
