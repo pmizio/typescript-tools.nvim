@@ -328,7 +328,6 @@ describe("Lsp request", function()
     local result = lsp_assert.response(ret)
 
     assert.is.table(result)
-    print([[[requests_spec.lua:330] -- result: ]] .. vim.inspect(result))
 
     local import_range = result[1]
 
