@@ -44,6 +44,7 @@
 | ✅     | textDocument/codeAction         |
 | ✅     | textDocument/formatting         |
 | ✅     | textDocument/rangeFormatting    |
+| ✅     | textDocument/foldingRange       |
 | ✅     | callHierarchy/incomingCalls     |
 | ✅     | callHierarchy/outgoingCalls     |
 | ✅     | workspace/symbol                |

@@ -318,6 +318,37 @@ describe("Lsp request", function()
     assert.are.same("./other2", fileTextEdits[1].newText)
   end)
 
+  it("should return correct response for " .. methods.FoldingRange, function()
+    utils.open_file "src/folding.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.FoldingRange, {
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+
+    local import_range = result[1]
+
+    assert.is.same(0, import_range.startLine)
+    assert.is.same(1, import_range.endLine)
+    assert.is.same("imports", import_range.kind)
+
+    local comment_range = result[2]
+
+    assert.is.same(3, comment_range.startLine)
+    assert.is.same(5, comment_range.endLine)
+    assert.is.same("region", comment_range.kind)
+
+    local bracketRange = result[3]
+
+    assert.is.same(8, bracketRange.startLine)
+    assert.is.same(9, bracketRange.endLine)
+    assert.is.same(nil, bracketRange.kind)
+  end)
+
   it("should return correct response for " .. methods.DocumentSymbol, function()
     utils.open_file "src/imported.ts"
     utils.wait_for_lsp_initialization()

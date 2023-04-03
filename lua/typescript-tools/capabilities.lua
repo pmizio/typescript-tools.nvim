@@ -23,6 +23,7 @@ local function make_capabilities(settings)
     hoverProvider = true,
     definitionProvider = true,
     typeDefinitionProvider = true,
+    foldingRangeProvider = true,
     declarationProvider = false,
     implementationProvider = true,
     referencesProvider = true,
