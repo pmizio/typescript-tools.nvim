@@ -214,6 +214,9 @@ return {
     ExecuteCommand = "workspace/executeCommand",
     WillRenameFiles = "workspace/willRenameFiles",
   },
+  CustomMethods = {
+    OrganizeImports = "typescriptTools/organizeImports",
+  },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
     ProjectLoadingFinish = "projectLoadingFinish",
@@ -263,6 +266,12 @@ return {
     Warning = 2,
     Information = 3,
     Hint = 4,
+  },
+  -- https://github.com/microsoft/TypeScript/blob/7f292bf2a19aa14ed69a55e646111af9533d8f1c/src/server/protocol.ts#L699
+  OrganizeImportsMode = {
+    All = "All",
+    SortAndCombine = "SortAndCombine",
+    RemoveUnused = "RemoveUnused",
   },
   SignatureHelpTriggerKind = {
     Invoked = 1,
