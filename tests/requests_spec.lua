@@ -329,7 +329,6 @@ describe("Lsp request", function()
     local result = lsp_assert.response(ret)
 
     assert.is.table(result)
-    print([[[requests_spec.lua:330] -- result: ]] .. vim.inspect(result))
 
     local import_range = result[1]
 
@@ -349,7 +348,7 @@ describe("Lsp request", function()
     assert.is.same(9, bracketRange.endLine)
     assert.is.same(nil, bracketRange.kind)
   end)
-  
+
   it("should return correct response for " .. methods.DocumentSymbol, function()
     utils.open_file "src/imported.ts"
     utils.wait_for_lsp_initialization()
