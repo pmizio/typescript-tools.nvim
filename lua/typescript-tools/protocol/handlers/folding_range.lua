@@ -8,14 +8,23 @@ local tsserver_fold_kind_to_lsp_map = {
 }
 
 local function get_last_character(range, bufnr)
-  return vim.api.nvim_buf_get_text(
+  -- when file changes between request and response vim.api.nvim_buf_get_text
+  -- returns Index out of bounds
+  local err, last_character_lines = pcall(
+    vim.api.nvim_buf_get_text,
     bufnr,
     range["end"].line,
     range["end"].character - 1,
     range["end"].line,
     range["end"].character,
     {}
-  )[1]
+  )
+
+  if not err then
+    return nil
+  end
+
+  return last_character_lines[1]
 end
 
 local function as_folding_range(span, bufnr)
