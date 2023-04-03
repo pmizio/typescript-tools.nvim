@@ -185,7 +185,7 @@ function TsserverInstance:handle_request(method, params, callback, notify_reply_
       callback = scheduled_callback,
       notify_reply_callback = scheduled_notify_reply_callback,
       is_async = is_async,
-      priority = self.request_queue:get_queueing_type(message.command, nil),
+      priority = self.request_queue:get_queueing_type(message.command, params.low_priority),
     }
 
     seq = self.request_queue:enqueue(args)

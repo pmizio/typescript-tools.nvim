@@ -56,33 +56,21 @@ local function convert_related_information(related_information)
   end, related_information)
 end
 
--- tsserver protocol reference:
--- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L844
-local function diagnostics_response_worker()
-  local cache = {}
+--- @private
+--- @param cache table
+--- @return table
+local function map_cache_to_lsp_response(cache)
+  local response = {}
 
-  while true do
-    local event, body, request_params = coroutine.yield()
+  for _, cached_response in pairs(cache) do
+    local file = vim.uri_from_fname(cached_response.file)
 
-    if event == constants.RequestCompletedEventName then
-      if request_params.files then
-        return cache
+    for _, diagnostic in pairs(cached_response.diagnostics) do
+      if not response[file] then
+        response[file] = {}
       end
 
-      return {
-        kind = constants.DiagnosticReportKind.Full,
-        items = vim.tbl_values(cache)[1] or {},
-      }
-    end
-
-    local file = vim.uri_from_fname(body.file)
-
-    for _, diagnostic in pairs(body.diagnostics) do
-      if not cache[file] then
-        cache[file] = {}
-      end
-
-      table.insert(cache[file], {
+      table.insert(response[file], {
         message = diagnostic.text,
         source = SOURCE,
         code = diagnostic.code,
@@ -92,6 +80,33 @@ local function diagnostics_response_worker()
           and convert_related_information(diagnostic.relatedInformation),
       })
     end
+  end
+
+  return response
+end
+
+-- tsserver protocol reference:
+-- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L844
+local function diagnostics_response_worker()
+  local cache = {}
+
+  while true do
+    local event, body, request_params = coroutine.yield()
+
+    if event == constants.RequestCompletedEventName then
+      local lsp_format_diagnostic = map_cache_to_lsp_response(cache)
+
+      if request_params.files then
+        return lsp_format_diagnostic
+      end
+
+      return {
+        kind = constants.DiagnosticReportKind.Full,
+        items = vim.tbl_values(lsp_format_diagnostic)[1] or {},
+      }
+    end
+
+    cache[event] = body
   end
 end
 

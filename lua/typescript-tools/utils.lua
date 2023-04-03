@@ -4,13 +4,22 @@ local M = {}
 
 ---@param ms number
 ---@param fn function
----@return function, table
+---@return function, uv.uv_timer_t|uv_timer_t|nil
 M.debounce = function(ms, fn)
   local timer = uv.new_timer()
 
-  local wrapped_fn = function()
+  local wrapped_fn = function(...)
+    if not timer then
+      vim.schedule_wrap(vim.notify)("Cannot create luv timer!", vim.log.levels.ERROR)
+      return
+    end
+
+    local args = ...
+
     timer:stop()
-    timer:start(ms, 0, vim.schedule_wrap(fn))
+    timer:start(ms, 0, function()
+      vim.schedule_wrap(fn)(args)
+    end)
   end
 
   return wrapped_fn, timer

@@ -29,7 +29,7 @@ end
 
 --- @private
 --- @type function
-local debounced_request = utils.debounce(200, function()
+local debounced_request = utils.debounce(200, function(low_priority)
   local attached_bufs = get_attached_buffers()
 
   if #attached_bufs <= 0 then
@@ -38,6 +38,7 @@ local debounced_request = utils.debounce(200, function()
 
   lsp.buf_request(0, constants.CustomMethods.BatchDiagnostic, {
     files = attached_bufs,
+    low_priority = low_priority,
   })
 end)
 
@@ -75,6 +76,7 @@ function M.setup_autocmds(tsserver_instance)
             then
               sheduled_request = true
             else
+              tsserver_instance.request_queue:clear_geterrs()
               debounced_request()
             end
           end,
@@ -88,13 +90,15 @@ function M.setup_autocmds(tsserver_instance)
   api.nvim_create_autocmd("User", {
     pattern = { "tsserver_response_" .. constants.CommandTypes.UpdateOpen },
     callback = function(event)
-      tsserver_instance.request_queue:clear_geterrs()
+      local is_initial_req = get_update_type(event.data) == constants.CommandTypes.Open
+
       if
         sheduled_request
-        or get_update_type(event.data) == constants.CommandTypes.Open
+        or is_initial_req
         or config.publish_diagnostic_on == config.PUBLISH_DIAGNOSTIC_ON.CHANGE
       then
-        debounced_request()
+        tsserver_instance.request_queue:clear_geterrs()
+        debounced_request(is_initial_req)
         sheduled_request = false
       end
     end,
