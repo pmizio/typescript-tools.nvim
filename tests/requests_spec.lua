@@ -1,6 +1,7 @@
 local utils = require "tests.utils"
 local lsp_assert = require "tests.lsp_asserts"
 local methods = require("typescript-tools.protocol.constants").LspMethods
+local customMethods = require("typescript-tools.protocol.constants").CustomMethods
 
 describe("Lsp request", function()
   it("should return correct response for " .. methods.Hover, function()
@@ -315,5 +316,27 @@ describe("Lsp request", function()
     assert.is.table(fileTextEdits)
     assert.is.same(1, #fileTextEdits)
     assert.are.same("./other2", fileTextEdits[1].newText)
+  end)
+
+  it("should return correct response for " .. customMethods.OrganizeImports, function()
+    utils.open_file "src/imported.ts"
+    utils.wait_for_lsp_initialization()
+
+    local file = vim.fs.dirname(vim.api.nvim_buf_get_name(0)) .. "/imports.ts"
+    local ret = vim.lsp.buf_request_sync(0, customMethods.OrganizeImports, {
+      file = file,
+      mode = "All",
+    })
+    local result = lsp_assert.response(ret)
+    local changes = result.changes
+
+    assert.is.table(changes)
+
+    local uriWithChangedImport = "file://" .. vim.fn.getcwd() .. "/src/imports.ts"
+    local fileTextEdits = changes[uriWithChangedImport]
+
+    assert.is.table(fileTextEdits)
+    assert.is.same(1, #fileTextEdits)
+    assert.are.same("import { export1 } from './exports'\n", fileTextEdits[1].newText)
   end)
 end)

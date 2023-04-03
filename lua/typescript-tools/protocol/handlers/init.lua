@@ -46,6 +46,9 @@ local make_protocol_handlers = function()
   assign_handlers(require "typescript-tools.protocol.handlers.workspace_symbol")
   assign_handlers(require "typescript-tools.protocol.handlers.will_rename_file")
 
+  -- custom handlers
+  assign_handlers(require "typescript-tools.protocol.handlers.organize_imports")
+
   assign_handlers(require "typescript-tools.protocol.handlers.shutdown")
 
   return request_handlers, response_handlers
