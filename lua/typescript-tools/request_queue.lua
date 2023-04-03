@@ -71,7 +71,7 @@ function RequestQueue:clear_geterrs()
   for i = #self.queue, 1, -1 do
     local el = self.queue[i]
 
-    if el.message.command == constants.CommandTypes.Geterr then
+    if el.message.command == constants.CommandTypes.Geterr and el.params.cancellable then
       table.remove(self.queue, i)
     end
   end

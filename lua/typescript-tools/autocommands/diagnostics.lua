@@ -27,31 +27,36 @@ local function get_attached_buffers()
   return {}
 end
 
+---@param tsserver_instance TsserverInstance
+local function cancel_requests(tsserver_instance)
+  tsserver_instance.request_queue:clear_geterrs()
+
+  for _, it in pairs(tsserver_instance.request_metadata) do
+    if it.message.command == constants.CommandTypes.Geterr and it.params.cancellable then
+      tsserver_instance.rpc:cancel(it.seq)
+    end
+  end
+end
+
 --- @private
---- @type function
-local debounced_request = utils.debounce(200, function(low_priority)
+---@param tsserver_instance TsserverInstance
+---@param low_priority boolean|nil
+local debounced_request = utils.debounce(200, function(tsserver_instance, low_priority)
   local attached_bufs = get_attached_buffers()
 
   if #attached_bufs <= 0 then
     return
   end
 
+  cancel_requests(tsserver_instance)
   lsp.buf_request(0, constants.CustomMethods.BatchDiagnostic, {
     files = attached_bufs,
+    -- INFO: mark only internal diagnostics requests as cancellable,
+    -- to prevent userspace requests cancellation
+    cancellable = true,
     low_priority = low_priority,
   })
 end)
-
----@param tsserver_instance TsserverInstance
-local function cancel_requests(tsserver_instance)
-  tsserver_instance.request_queue:clear_geterrs()
-
-  for _, it in pairs(tsserver_instance.request_metadata) do
-    if it.message.command == constants.CommandTypes.Geterr then
-      tsserver_instance.rpc:cancel(it.seq)
-    end
-  end
-end
 
 --- @param message table
 --- @return "open"|"change"|"close"|nil
@@ -91,8 +96,7 @@ function M.setup_autocmds(tsserver_instance)
             then
               sheduled_request = true
             else
-              cancel_requests(tsserver_instance)
-              debounced_request()
+              debounced_request(tsserver_instance)
             end
           end,
           group = diag_augroup,
@@ -116,8 +120,7 @@ function M.setup_autocmds(tsserver_instance)
           and update_type == constants.CommandTypes.Change
         )
       then
-        cancel_requests(tsserver_instance)
-        debounced_request(is_initial_req)
+        debounced_request(tsserver_instance, is_initial_req)
         sheduled_request = false
       end
     end,

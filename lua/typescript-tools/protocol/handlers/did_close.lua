@@ -8,7 +8,7 @@ local close_request_handler = function(_, params)
   return {
     command = constants.CommandTypes.UpdateOpen,
     arguments = {
-      closedFiles = { vim.uri_from_fname(text_document.uri) },
+      closedFiles = { vim.uri_to_fname(text_document.uri) },
       openFiles = {},
       changedFiles = {},
     },
