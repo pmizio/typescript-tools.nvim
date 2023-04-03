@@ -192,6 +192,7 @@ return {
     Completion = "textDocument/completion",
     CompletionResolve = "completionItem/resolve",
     PublishDiagnostics = "textDocument/publishDiagnostics",
+    Diagnostic = "textDocument/diagnostic",
     Hover = "textDocument/hover",
     Definition = "textDocument/definition",
     Implementation = "textDocument/implementation",
@@ -216,6 +217,7 @@ return {
   },
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
+    BatchDiagnostic = "typescriptTools/batchDiagnostic",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
@@ -272,6 +274,10 @@ return {
     All = "All",
     SortAndCombine = "SortAndCombine",
     RemoveUnused = "RemoveUnused",
+  },
+  DiagnosticReportKind = {
+    Full = "full",
+    Unchanged = "unchanged",
   },
   SignatureHelpTriggerKind = {
     Invoked = 1,

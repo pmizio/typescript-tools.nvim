@@ -10,14 +10,16 @@ function M.wait_for_lsp_initialization()
   end
 end
 
-function M.open_file(file)
+function M.open_file(file, mode)
+  mode = mode or "e"
+
   local cwd = vim.fn.getcwd()
 
   if not string.find(cwd, "ts_project", 1, true) then
     vim.cmd ":cd tests/ts_project"
   end
 
-  vim.cmd(":e " .. file)
+  vim.cmd(":" .. mode .. " " .. file)
 end
 
 function M.get_text_document()

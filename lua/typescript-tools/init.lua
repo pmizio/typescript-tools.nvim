@@ -4,7 +4,6 @@ local util = require "lspconfig.util"
 local rpc = require "typescript-tools.rpc"
 local plugin_config = require "typescript-tools.config"
 local user_commands = require "typescript-tools.user_commands"
-local custom_handlers = require "typescript-tools.custom_handlers"
 
 local M = {}
 
@@ -13,7 +12,7 @@ M.setup = function(config)
 
   plugin_config.load_and_validate(settings)
 
-  configs[plugin_config.NAME] = {
+  configs[plugin_config.NAME] = vim.tbl_extend("force", {
     default_config = {
       cmd = function(...)
         return rpc.start(plugin_config.NAME, ...)
@@ -33,11 +32,10 @@ M.setup = function(config)
           or util.root_pattern("package.json", "jsconfig.json", ".git")(fname)
       end,
     },
-  }
+  }, config)
 
   lspconfig[plugin_config.NAME].setup(config)
   user_commands.setup_user_commands()
-  custom_handlers.setup_lsp_commands()
 end
 
 return M

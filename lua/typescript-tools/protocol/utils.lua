@@ -156,6 +156,8 @@ function M.HandlerCoroutine:new(handler)
   self.__call = function(this, ...)
     if not this.co or coroutine.status(this.co) == "dead" then
       this.co = coroutine.create(handler)
+      -- "eat" first call to proceed to first yield
+      coroutine.resume(this.co)
     end
 
     local _, ret = coroutine.resume(this.co, ...)
@@ -166,7 +168,7 @@ function M.HandlerCoroutine:new(handler)
 end
 
 function M.HandlerCoroutine:status()
-  return coroutine.status(self.co)
+  return self.co and coroutine.status(self.co) or "dead"
 end
 
 return M

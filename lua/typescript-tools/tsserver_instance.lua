@@ -1,3 +1,4 @@
+local api = vim.api
 local schedule_wrap = vim.schedule_wrap
 
 local log = require "vim.lsp.log"
@@ -9,9 +10,10 @@ local global_initialize = require "typescript-tools.protocol.handlers.initialize
 local file_initialize = require "typescript-tools.protocol.handlers.did_open"
 local request_handlers = require("typescript-tools.protocol").request_handlers
 local response_handlers = require("typescript-tools.protocol").response_handlers
-local DiagnosticsService = require "typescript-tools.protocol.diagnostics"
 local ProjectLoadService = require "typescript-tools.protocol.project_load"
 local CodeActionsService = require "typescript-tools.protocol.code_actions"
+local custom_handlers = require "typescript-tools.custom_handlers"
+local autocommands = require "typescript-tools.autocommands"
 
 --- @class TsserverInstance
 --- @field rpc TsserverRpc
@@ -19,7 +21,6 @@ local CodeActionsService = require "typescript-tools.protocol.code_actions"
 --- @field request_queue RequestQueue
 --- @field pending_responses table
 --- @field request_metadata table
---- @field diagnostics_service DiagnosticsService
 --- @field project_load_service ProjectLoadService
 --- @field code_actions_service CodeActionsService
 
@@ -28,9 +29,9 @@ local TsserverInstance = {}
 
 --- @param path table Plenary path object
 --- @param server_type string
---- @param dispachers table
+--- @param dispatchers table
 --- @return TsserverInstance
-function TsserverInstance:new(path, server_type, dispachers)
+function TsserverInstance:new(path, server_type, dispatchers)
   local obj = {
     server_type = server_type,
     request_queue = RequestQueue:new(),
@@ -40,10 +41,9 @@ function TsserverInstance:new(path, server_type, dispachers)
 
   obj.rpc = TsserverRpc:new(path, server_type, function(...)
     obj:on_exit()
-    dispachers.on_exit(...)
+    dispatchers.on_exit(...)
   end)
-  obj.diagnostics_service = DiagnosticsService:new(server_type, obj, dispachers)
-  obj.project_load_service = ProjectLoadService:new(dispachers)
+  obj.project_load_service = ProjectLoadService:new(dispatchers)
   obj.code_actions_service = CodeActionsService:new(server_type, obj)
 
   setmetatable(obj, self)
@@ -55,23 +55,25 @@ function TsserverInstance:new(path, server_type, dispachers)
     end)
   end
 
+  custom_handlers.setup_lsp_handlers(dispatchers)
+  autocommands.setup_autocmds(obj)
+
   return obj
 end
 
 function TsserverInstance:on_exit()
-  self.diagnostics_service:dispose()
   self.project_load_service:dispose()
 end
 
-function TsserverInstance:invoke_response_handler(handler, response, request_seq)
+function TsserverInstance:invoke_response_handler(handler, command, response, request_seq)
   local request_data = self.request_metadata[request_seq]
   local request_params = request_data.params
   local callback = request_data.callback
   local notify_reply_callback = request_data.notify_reply_callback
 
-  if response.success then
-    local status, result =
-      pcall(handler, response.command, response.body or response, request_params)
+  -- INFO: tsserver diagonstics request completed events don't have success field
+  if response.success or command == constants.RequestCompletedEventName then
+    local status, result = pcall(handler, command, response.body or response, request_params)
 
     if notify_reply_callback then
       notify_reply_callback(request_seq)
@@ -88,7 +90,7 @@ function TsserverInstance:invoke_response_handler(handler, response, request_seq
     -- this plugin ask for signature even outisde function brakets so error reporst are annoying
     -- maybe this plugin can implement this feautre in future using treesitter to reduce
     -- request/respunse ping-pong
-  elseif not response.success and response.command ~= constants.CommandTypes.SignatureHelp then
+  elseif not response.success and command ~= constants.CommandTypes.SignatureHelp then
     vim.schedule(function()
       vim.notify(response.message or "No information available.", log.levels.INFO)
     end)
@@ -102,23 +104,43 @@ end
 --- @param message string
 function TsserverInstance:handle_response(message)
   local ok, response = pcall(vim.json.decode, message, { luanil = { object = true } })
-  if not ok then
+  if not ok or not response then
     log.error("Invalid json: ", response)
     return
   end
 
+  local command = response.event or response.command
   local request_seq = (type(response.body) == "table" and response.body.request_seq)
       and response.body.request_seq
     or response.request_seq
-  local handler_config = response_handlers[response.command]
+  local handler_config = response_handlers[command]
+  local request_data = self.request_metadata[request_seq]
 
-  if handler_config and self.pending_responses[request_seq] then
-    if handler_config.schedule then
-      vim.schedule(function()
-        self:invoke_response_handler(handler_config.handler, response, request_seq)
-      end)
-    else
-      self:invoke_response_handler(handler_config.handler, response, request_seq)
+  vim.schedule(function()
+    api.nvim_exec_autocmds("User", {
+      pattern = "tsserver_response_" .. command,
+      data = request_data and request_data.message,
+      modeline = false,
+    })
+  end)
+
+  if handler_config then
+    -- INFO: tsserver diagonstics events don't have seq number
+    if not request_seq and response.type == "event" then
+      local _, err = pcall(handler_config.handler, command, response.body or response)
+      if not err then
+        log.error("Diagnostics conversion error: ", err)
+      end
+    end
+
+    if self.pending_responses[request_seq] then
+      if handler_config.schedule then
+        vim.schedule(function()
+          self:invoke_response_handler(handler_config.handler, command, response, request_seq)
+        end)
+      else
+        self:invoke_response_handler(handler_config.handler, command, response, request_seq)
+      end
     end
   end
 
@@ -126,7 +148,6 @@ function TsserverInstance:handle_response(message)
     self.pending_responses[request_seq] = nil
   end
 
-  self.diagnostics_service:handle_response(response)
   self.project_load_service:handle_event(response)
   self.code_actions_service:handle_response(response)
 
@@ -162,7 +183,6 @@ function TsserverInstance:handle_request(method, params, callback, notify_reply_
     }
 
     seq = self.request_queue:enqueue(args)
-    self.diagnostics_service:handle_request(message)
   elseif method == constants.LspMethods.CodeAction then
     seq = self.code_actions_service:request(params, callback, notify_reply_callback)
   end
@@ -243,7 +263,6 @@ function TsserverInstance:get_lsp_interface()
       return self.rpc:is_closing()
     end,
     terminate = function()
-      self.diagnostics_service:dispose()
       self.rpc:terminate()
     end,
   }

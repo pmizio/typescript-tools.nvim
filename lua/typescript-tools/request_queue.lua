@@ -93,4 +93,16 @@ function RequestQueue:get_queueing_type(command, is_low_priority)
   return is_low_priority and self.Priority.Low or self.Priority.Normal
 end
 
+--- @param command string
+--- @return boolean
+function RequestQueue:has_command_queued(command)
+  for i = #self.queue, 1, -1 do
+    if self.queue[i].message.command == command then
+      return true
+    end
+  end
+
+  return false
+end
+
 return RequestQueue

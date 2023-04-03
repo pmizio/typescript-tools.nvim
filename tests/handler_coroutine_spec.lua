@@ -5,10 +5,10 @@ describe("HandlerCoroutine", function()
   local proxy_spy = spy.new(function(x)
     return x
   end)
-  local function test_handler(x)
+  local function test_handler()
     local sum = 0
 
-    sum = sum + proxy_spy(x)
+    sum = sum + proxy_spy(coroutine.yield())
     sum = sum + proxy_spy(coroutine.yield())
     sum = sum + proxy_spy(coroutine.yield())
 

@@ -1,6 +1,3 @@
 tmp/
-<<<<<<< HEAD
 tests/ts_project/node_modules
-=======
 .luarc.json
->>>>>>> 7a51aac (feat: coroutine based handler wrapper)

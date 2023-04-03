@@ -5,12 +5,14 @@ local make_protocol_handlers = function()
     local request = config.request
     local response = config.response
 
-    if vim.tbl_islist(request) then
-      for _, it in ipairs(request) do
-        request_handlers[it.method] = it
+    if request then
+      if vim.tbl_islist(request) then
+        for _, it in ipairs(request) do
+          request_handlers[it.method] = it
+        end
+      else
+        request_handlers[request.method] = request
       end
-    else
-      request_handlers[request.method] = request
     end
 
     if response then
@@ -49,6 +51,7 @@ local make_protocol_handlers = function()
 
   -- custom handlers
   assign_handlers(require "typescript-tools.protocol.handlers.organize_imports")
+  assign_handlers(require "typescript-tools.protocol.handlers.diagnostics")
 
   assign_handlers(require "typescript-tools.protocol.handlers.shutdown")
 

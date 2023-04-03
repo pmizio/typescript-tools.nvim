@@ -1,7 +1,7 @@
 local utils = require "tests.utils"
 local lsp_assert = require "tests.lsp_asserts"
 local methods = require("typescript-tools.protocol.constants").LspMethods
-local customMethods = require("typescript-tools.protocol.constants").CustomMethods
+local custom_methods = require("typescript-tools.protocol.constants").CustomMethods
 
 describe("Lsp request", function()
   it("should return correct response for " .. methods.Hover, function()
@@ -372,12 +372,12 @@ describe("Lsp request", function()
     assert.is.same(0, #result[1].children[1].children)
   end)
 
-  it("should return correct response for " .. customMethods.OrganizeImports, function()
+  it("should return correct response for " .. custom_methods.OrganizeImports, function()
     utils.open_file "src/imported.ts"
     utils.wait_for_lsp_initialization()
 
     local file = vim.fs.dirname(vim.api.nvim_buf_get_name(0)) .. "/imports.ts"
-    local ret = vim.lsp.buf_request_sync(0, customMethods.OrganizeImports, {
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.OrganizeImports, {
       file = file,
       mode = "All",
     })
@@ -392,5 +392,40 @@ describe("Lsp request", function()
     assert.is.table(fileTextEdits)
     assert.is.same(1, #fileTextEdits)
     assert.are.same("import { export1 } from './exports'\n", fileTextEdits[1].newText)
+  end)
+
+  it("should return correct response for " .. methods.Diagnostic, function()
+    utils.open_file "src/diagnostic1.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.Diagnostic, {
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+    local items = result.items
+
+    assert.is.table(items)
+    assert.is.same(1, #items)
+  end)
+
+  it("should return correct response for " .. custom_methods.BatchDiagnostic, function()
+    utils.open_file "src/diagnostic1.ts"
+    utils.open_file("src/diagnostic2.ts", "vs")
+    utils.wait_for_lsp_initialization()
+
+    local f1 = "file://" .. vim.fn.getcwd() .. "/src/diagnostic1.ts"
+    local f2 = "file://" .. vim.fn.getcwd() .. "/src/diagnostic2.ts"
+
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.BatchDiagnostic, {
+      files = { f1, f2 },
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+    assert.is.same(2, #vim.tbl_values(result))
+    assert.is.table(result[f1])
+    assert.is.table(result[f2])
   end)
 end)
