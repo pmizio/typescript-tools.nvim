@@ -154,6 +154,10 @@ function TsserverInstance:handle_response(message)
     self.pending_responses[request_seq] = nil
   end
 
+  if not handler_config and self.request_metadata[request_seq] then
+    self.request_metadata[request_seq] = nil
+  end
+
   self.project_load_service:handle_event(response)
   self.code_actions_service:handle_response(response)
 

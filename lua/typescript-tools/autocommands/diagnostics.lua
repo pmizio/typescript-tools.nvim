@@ -42,6 +42,17 @@ local debounced_request = utils.debounce(200, function(low_priority)
   })
 end)
 
+---@param tsserver_instance TsserverInstance
+local function cancel_requests(tsserver_instance)
+  tsserver_instance.request_queue:clear_geterrs()
+
+  for _, it in pairs(tsserver_instance.request_metadata) do
+    if it.message.command == constants.CommandTypes.Geterr then
+      tsserver_instance.rpc:cancel(it.seq)
+    end
+  end
+end
+
 --- @param message table
 --- @return "open"|"change"|"close"|nil
 local function get_update_type(message)
@@ -62,6 +73,10 @@ end
 
 --- @param tsserver_instance TsserverInstance
 function M.setup_autocmds(tsserver_instance)
+  if tsserver_instance.server_type == constants.ServerCompositeType.Primary then
+    return
+  end
+
   local sheduled_request = false
   local diag_augroup = api.nvim_create_augroup("TsserverDiagnosticsGroup", { clear = true })
 
@@ -76,7 +91,7 @@ function M.setup_autocmds(tsserver_instance)
             then
               sheduled_request = true
             else
-              tsserver_instance.request_queue:clear_geterrs()
+              cancel_requests(tsserver_instance)
               debounced_request()
             end
           end,
@@ -90,14 +105,18 @@ function M.setup_autocmds(tsserver_instance)
   api.nvim_create_autocmd("User", {
     pattern = { "tsserver_response_" .. constants.CommandTypes.UpdateOpen },
     callback = function(event)
-      local is_initial_req = get_update_type(event.data) == constants.CommandTypes.Open
+      local update_type = get_update_type(event.data)
+      local is_initial_req = update_type == constants.CommandTypes.Open
 
       if
         sheduled_request
         or is_initial_req
-        or config.publish_diagnostic_on == config.PUBLISH_DIAGNOSTIC_ON.CHANGE
+        or (
+          config.publish_diagnostic_on == config.PUBLISH_DIAGNOSTIC_ON.CHANGE
+          and update_type == constants.CommandTypes.Change
+        )
       then
-        tsserver_instance.request_queue:clear_geterrs()
+        cancel_requests(tsserver_instance)
         debounced_request(is_initial_req)
         sheduled_request = false
       end
