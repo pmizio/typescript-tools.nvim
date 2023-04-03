@@ -88,6 +88,7 @@ function M.setup_autocmds(tsserver_instance)
   api.nvim_create_autocmd("User", {
     pattern = { "tsserver_response_" .. constants.CommandTypes.UpdateOpen },
     callback = function(event)
+      tsserver_instance.request_queue:clear_geterrs()
       if
         sheduled_request
         or get_update_type(event.data) == constants.CommandTypes.Open
