@@ -141,4 +141,32 @@ M.convert_tsserver_call_hierarchy_item_to_lsp = function(item)
   }
 end
 
+--- @class HandlerCoroutine
+--- @overload fun(...: any): any
+--- @field co thread
+M.HandlerCoroutine = {}
+
+--- @param handler function
+--- @return HandlerCoroutine
+function M.HandlerCoroutine:new(handler)
+  local obj = {}
+
+  setmetatable(obj, self)
+  self.__index = self
+  self.__call = function(this, ...)
+    if not this.co or coroutine.status(this.co) == "dead" then
+      this.co = coroutine.create(handler)
+    end
+
+    local _, ret = coroutine.resume(this.co, ...)
+    return ret
+  end
+
+  return obj
+end
+
+function M.HandlerCoroutine:status()
+  return coroutine.status(self.co)
+end
+
 return M
