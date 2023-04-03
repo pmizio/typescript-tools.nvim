@@ -58,7 +58,7 @@ end
 
 -- tsserver protocol reference:
 -- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L844
-local function diagnostics_response_worker(a, b, c)
+local function diagnostics_response_worker()
   local cache = {}
 
   while true do
