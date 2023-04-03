@@ -339,6 +339,7 @@ describe("Lsp request", function()
     assert.is.same("foo", result[1].children[1].name)
     assert.is.table(result[1].children[1].children)
     assert.is.same(0, #result[1].children[1].children)
+  end)
 
   it("should return correct response for " .. customMethods.OrganizeImports, function()
     utils.open_file "src/imported.ts"
