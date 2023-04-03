@@ -88,7 +88,13 @@ function TsserverInstance:invoke_response_handler(handler, response, request_seq
     -- this plugin ask for signature even outisde function brakets so error reporst are annoying
     -- maybe this plugin can implement this feautre in future using treesitter to reduce
     -- request/respunse ping-pong
-  elseif not response.success and response.command ~= constants.CommandTypes.SignatureHelp then
+    -- INFO: exclude CompletionInfo fail response because it fail always in comments
+    -- probably I can do it better detecting comments using treesitter but it is ok for now
+  elseif
+    not response.success
+    and response.command ~= constants.CommandTypes.SignatureHelp
+    and response.command ~= constants.CommandTypes.CompletionInfo
+  then
     vim.schedule(function()
       vim.notify(response.message or "No information available.", log.levels.INFO)
     end)
