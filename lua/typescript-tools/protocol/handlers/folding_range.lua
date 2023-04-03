@@ -1,17 +1,11 @@
 local constants = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
-local function as_folding_range_kind(span)
-  if span.kind == "comment" then
-    return constants.FoldingRangeKind.Comment
-  elseif span.kind == "region" then
-    return constants.FoldingRangeKind.Region
-  elseif span.kind == "imports" then
-    return constants.FoldingRangeKind.Imports
-  else
-    return nil
-  end
-end
+local tsserver_fold_kind_to_lsp_map = {
+  comment = constants.FoldingRangeKind.Comment,
+  region = constants.FoldingRangeKind.Region,
+  imports = constants.FoldingRangeKind.Imports,
+}
 
 local function get_last_character(range, bufnr)
   return vim.api.nvim_buf_get_text(
@@ -26,7 +20,7 @@ end
 
 local function as_folding_range(span, bufnr)
   local range = utils.convert_tsserver_range_to_lsp(span.textSpan)
-  local kind = as_folding_range_kind(span)
+  local kind = tsserver_fold_kind_to_lsp_map[span.kind]
 
   -- workaround for https://github.com/Microsoft/vscode/issues/47240
   local lastCharacter = get_last_character(range, bufnr)
