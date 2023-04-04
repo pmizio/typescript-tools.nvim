@@ -4,6 +4,10 @@ local methods = require("typescript-tools.protocol.constants").LspMethods
 local custom_methods = require("typescript-tools.protocol.constants").CustomMethods
 
 describe("Lsp request", function()
+  after_each(function()
+    vim.cmd "silent 1,$bd!"
+  end)
+
   it("should return correct response for " .. methods.Hover, function()
     utils.open_file "src/index.ts"
     utils.wait_for_lsp_initialization()
@@ -424,7 +428,6 @@ describe("Lsp request", function()
 
     local result = lsp_assert.response(ret)
 
-    assert.is.table(result)
     assert.is.same(2, #vim.tbl_values(result))
     assert.is.table(result[f1])
     assert.is.table(result[f2])

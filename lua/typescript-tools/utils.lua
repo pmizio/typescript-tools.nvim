@@ -25,6 +25,34 @@ M.debounce = function(ms, fn)
   return wrapped_fn, timer
 end
 
+---@param ms number
+---@param fn function
+---@return function, uv.uv_timer_t|uv_timer_t|nil
+function M.throttle(ms, fn)
+  local timer = uv.new_timer()
+  local running = false
+
+  local wrapped_fn = function(...)
+    if not timer then
+      vim.schedule_wrap(vim.notify)("Cannot create luv timer!", vim.log.levels.ERROR)
+      return
+    end
+
+    local args = ...
+
+    if not running then
+      timer:start(ms, 0, function()
+        running = false
+        vim.schedule_wrap(fn)(args)
+      end)
+
+      running = true
+    end
+  end
+
+  return wrapped_fn, timer
+end
+
 --- @param bufnr number
 --- @return boolean
 M.is_buf_hidden = function(bufnr)

@@ -7,56 +7,26 @@ local constants = require "typescript-tools.protocol.constants"
 
 local M = {}
 
---- @private
+--- @param client_id number
 --- @return string[]
-local function get_attached_buffers()
-  local client = vim.lsp.get_active_clients({ name = config.NAME })[1]
+local function get_attached_buffers(client_id)
+  local attached_bufs = {}
 
-  if client then
-    local attached_bufs = {}
-
-    for _, bufnr in pairs(vim.api.nvim_list_bufs()) do
-      if vim.lsp.buf_is_attached(bufnr, client.id) and not utils.is_buf_hidden(bufnr) then
-        table.insert(attached_bufs, vim.uri_from_bufnr(bufnr))
-      end
+  for _, bufnr in pairs(vim.api.nvim_list_bufs()) do
+    if vim.lsp.buf_is_attached(bufnr, client_id) and not utils.is_buf_hidden(bufnr) then
+      table.insert(attached_bufs, vim.uri_from_bufnr(bufnr))
     end
-
-    return attached_bufs
   end
 
-  return {}
+  return attached_bufs
 end
 
----@param tsserver_instance TsserverInstance
-local function cancel_requests(tsserver_instance)
+--- @param tsserver_instance TsserverInstance
+--- @param seq number
+local function cancel_request(tsserver_instance, seq)
   tsserver_instance.request_queue:clear_geterrs()
-
-  for _, it in pairs(tsserver_instance.request_metadata) do
-    if it.message.command == constants.CommandTypes.Geterr and it.params.cancellable then
-      tsserver_instance.rpc:cancel(it.seq)
-    end
-  end
+  tsserver_instance.rpc:cancel(seq)
 end
-
---- @private
----@param tsserver_instance TsserverInstance
----@param low_priority boolean|nil
-local debounced_request = utils.debounce(200, function(tsserver_instance, low_priority)
-  local attached_bufs = get_attached_buffers()
-
-  if #attached_bufs <= 0 then
-    return
-  end
-
-  cancel_requests(tsserver_instance)
-  lsp.buf_request(0, constants.CustomMethods.BatchDiagnostic, {
-    files = attached_bufs,
-    -- INFO: mark only internal diagnostics requests as cancellable,
-    -- to prevent userspace requests cancellation
-    cancellable = true,
-    low_priority = low_priority,
-  })
-end)
 
 --- @param message table
 --- @return "open"|"change"|"close"|nil
@@ -82,25 +52,58 @@ function M.setup_autocmds(tsserver_instance)
     return
   end
 
-  local sheduled_request = false
+  local pending_request = nil
+
+  --- @param low_priority boolean|nil
+  local function request_diagnostics(low_priority)
+    local client = vim.lsp.get_active_clients({ name = config.NAME })[1]
+    if not client then
+      return
+    end
+
+    local attached_bufs = get_attached_buffers(client.id)
+
+    if #attached_bufs <= 0 then
+      return
+    end
+
+    if pending_request then
+      cancel_request(tsserver_instance, pending_request)
+      pending_request = nil
+    end
+
+    pending_request = lsp.buf_request(0, constants.CustomMethods.BatchDiagnostic, {
+      files = attached_bufs,
+      -- INFO: mark only internal diagnostics requests as cancellable,
+      -- to prevent userspace requests cancellation
+      cancellable = true,
+      low_priority = low_priority,
+    }, function(...)
+      pending_request = nil
+      return vim.lsp.handlers[constants.CustomMethods.BatchDiagnostic](...)
+    end)[client.id]
+  end
+
+  --- @type function(low_priority: boolean|nil): nil
+  local debounced_request = utils.debounce(200, request_diagnostics)
+
+  --- @type function(low_priority: boolean|nil): nil
+  local throttled_request = utils.throttle(200, request_diagnostics)
+
+  local sheduled_request = true
   local diag_augroup = api.nvim_create_augroup("TsserverDiagnosticsGroup", { clear = true })
 
   if config.publish_diagnostic_on == config.PUBLISH_DIAGNOSTIC_ON.INSERT_LEAVE then
-    api.nvim_create_autocmd("LspAttach", {
+    api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
+      pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" },
       callback = function()
-        api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
-          pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" },
-          callback = function()
-            if
-              tsserver_instance.request_queue:has_command_queued(constants.CommandTypes.UpdateOpen)
-            then
-              sheduled_request = true
-            else
-              debounced_request(tsserver_instance)
-            end
-          end,
-          group = diag_augroup,
-        })
+        if
+          tsserver_instance.request_queue:has_command_queued(constants.CommandTypes.UpdateOpen)
+        then
+          sheduled_request = true
+        else
+          debounced_request()
+        end
       end,
       group = diag_augroup,
     })
@@ -112,16 +115,15 @@ function M.setup_autocmds(tsserver_instance)
       local update_type = get_update_type(event.data)
       local is_initial_req = update_type == constants.CommandTypes.Open
 
-      if
-        sheduled_request
-        or is_initial_req
-        or (
-          config.publish_diagnostic_on == config.PUBLISH_DIAGNOSTIC_ON.CHANGE
-          and update_type == constants.CommandTypes.Change
-        )
-      then
-        debounced_request(tsserver_instance, is_initial_req)
-        sheduled_request = false
+      if is_initial_req then
+        request_diagnostics(is_initial_req)
+      elseif update_type == constants.CommandTypes.Change then
+        if config.publish_diagnostic_on == config.PUBLISH_DIAGNOSTIC_ON.CHANGE then
+          throttled_request()
+        elseif sheduled_request then
+          debounced_request()
+          sheduled_request = false
+        end
       end
     end,
     group = diag_augroup,
