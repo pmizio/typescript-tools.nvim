@@ -94,7 +94,7 @@ function M.setup_autocmds(tsserver_instance)
   local diag_augroup = api.nvim_create_augroup("TsserverDiagnosticsGroup", { clear = true })
 
   if config.publish_diagnostic_on == config.PUBLISH_DIAGNOSTIC_ON.INSERT_LEAVE then
-    api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
+    api.nvim_create_autocmd({ "InsertLeave", "TextChanged", "BufWinEnter" }, {
       pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" },
       callback = function()
         if
