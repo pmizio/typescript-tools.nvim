@@ -1,7 +1,7 @@
 local lspconfig = require "lspconfig"
 local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
-local rpc = require "typescript-tools.rpc"
+local rpc = require "typescript-tools.new.rpc"
 local plugin_config = require "typescript-tools.config"
 local user_commands = require "typescript-tools.user_commands"
 local custom_handlers = require "typescript-tools.custom_handlers"
@@ -16,7 +16,7 @@ M.setup = function(config)
   configs[plugin_config.NAME] = {
     default_config = {
       cmd = function(...)
-        return rpc.start(plugin_config.NAME, ...)
+        return rpc.start(--[[plugin_config.NAME,]] ...)
       end,
       filetypes = {
         "javascript",

@@ -1,2 +1,4 @@
 tmp/
 tests/ts_project/node_modules
+
+.luarc.json
