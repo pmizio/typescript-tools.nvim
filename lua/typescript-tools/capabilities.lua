@@ -1,5 +1,6 @@
 local lspProtocol = require "vim.lsp.protocol"
 local constants = require "typescript-tools.protocol.constants"
+local config = require "typescript-tools.config"
 
 local function make_capabilities(settings)
   return {
@@ -62,8 +63,8 @@ local function make_capabilities(settings)
         },
       },
     },
-    documentFormattingProvider = settings.enable_formatting,
-    documentRangeFormattingProvider = settings.enable_formatting,
+    documentFormattingProvider = config.enable_formatting,
+    documentRangeFormattingProvider = config.enable_formatting,
     callHierarchyProvider = true,
     workspaceSymbolProvider = true,
   }

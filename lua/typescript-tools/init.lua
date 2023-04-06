@@ -16,7 +16,8 @@ M.setup = function(config)
   configs[plugin_config.NAME] = {
     default_config = {
       cmd = function(...)
-        return rpc.start(--[[plugin_config.NAME,]] ...)
+        return rpc.start(...)
+        -- return require("typescript-tools.rpc").start(plugin_config.NAME, ...)
       end,
       filetypes = {
         "javascript",
