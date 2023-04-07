@@ -2,13 +2,17 @@ local log = require "vim.lsp.log"
 local Process = require "typescript-tools.new.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.new.protocol.progress"
-local comm = require "typescript-tools.new.communication"
 local c = require "typescript-tools.protocol.constants"
+
+---@class PendingRequest
+---@field handler thread|false|nil
+---@field callback LspCallback|nil
+---@field notify_reply_callback function|nil
 
 ---@class Tsserver
 ---@field process Process
 ---@field request_queue RequestQueue
----@field pending_requests table
+---@field pending_requests PendingRequest[]
 ---@field dispatchers Dispatchers
 
 ---@class Tsserver
@@ -52,7 +56,7 @@ function Tsserver:handle_response(response)
   local callback = request_metadata.callback
   local notify_reply_callback = request_metadata.notify_reply_callback
 
-  local ok, handler_success, result = pcall(coroutine.resume, handler, response)
+  local ok, handler_success, result = pcall(coroutine.resume, handler, response.body or response)
   self.pending_requests[seq] = nil
 
   vim.schedule(function()
@@ -80,8 +84,8 @@ end
 ---@param callback LspCallback
 ---@param notify_reply_callback function|nil
 function Tsserver:handle_request(method, params, callback, notify_reply_callback)
-  local module = method:gsub("%$/", ""):gsub("/", "."):gsub("%u", function(c)
-    return "_" .. c:lower()
+  local module = method:gsub("%$/", ""):gsub("/", "."):gsub("%u", function(it)
+    return "_" .. it:lower()
   end)
 
   if method == c.LspMethods.CompletionResolve then
@@ -89,25 +93,36 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   end
 
   print(method, module)
-  local ok, handler = pcall(require, "typescript-tools.new.protocol." .. module)
+  local ok, request_creator = pcall(require, "typescript-tools.new.protocol." .. module)
   if not ok then
     -- TODO: log message
     P(handler)
     return
   end
 
-  local co = handler(method, params)
-  local seq
-  repeat
-    local _, request, request_type = coroutine.resume(co)
-    seq = self.request_queue:enqueue {
-      handler = request_type ~= comm.RequestType.SKIP and co or nil,
+  ---@type TsserverRequest | TsserverRequest[], function | nil
+  local requests, handler_fn = request_creator(method, params)
+
+  ---@param request table
+  ---@return number
+  local function enqueue_request(request)
+    return self.request_queue:enqueue {
+      handler = not request.skip_response and handler_fn,
       request = request,
       callback = callback,
       notify_reply_callback = notify_reply_callback,
       priority = RequestQueue.Priority.Normal,
     }
-  until request_type == comm.RequestType.AWAIT or coroutine.status(co) == "dead"
+  end
+
+  local seq
+  if vim.tbl_islist(requests) then
+    for _, request in ipairs(requests) do
+      seq = enqueue_request(request)
+    end
+  else
+    seq = enqueue_request(requests)
+  end
 
   self:send_queued_requests()
 
@@ -130,7 +145,7 @@ function Tsserver:send_queued_requests()
     self.process:send(request)
 
     self.pending_requests[request.seq] = {
-      handler = item.handler,
+      handler = item.handler and coroutine.create(item.handler),
       callback = item.callback,
       notify_reply_callback = item.notify_reply_callback,
     }

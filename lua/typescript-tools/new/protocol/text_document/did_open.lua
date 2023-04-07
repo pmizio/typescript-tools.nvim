@@ -1,10 +1,9 @@
 local c = require "typescript-tools.protocol.constants"
-local comm = require "typescript-tools.new.communication"
 local utils = require "typescript-tools.protocol.utils"
 
 -- TODO: read configuration
 ---@param params table
----@return table
+---@return TsserverRequest
 local function configure(params)
   local text_document = params.textDocument
 
@@ -61,13 +60,14 @@ local function configure(params)
         includeInlayEnumMemberValueHints = false,
       },
     },
+    skip_response = true,
   }
 end
 
 -- tsserver protocol reference:
 -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L1305
 ---@param params table
----@return table
+---@return TsserverRequest
 local function open_request(params)
   local text_document = params.textDocument
 
@@ -89,12 +89,12 @@ end
 
 ---@param _ string
 ---@param params table
----@return thread
-local function did_open_handler(_, params)
-  return coroutine.create(function()
-    comm.queue_request(configure(params), true)
-    return open_request(params)
-  end)
+---@return TsserverRequest | TsserverRequest[], function|nil
+local function did_open_creator(_, params)
+  return {
+    configure(params),
+    open_request(params),
+  }
 end
 
-return did_open_handler
+return did_open_creator

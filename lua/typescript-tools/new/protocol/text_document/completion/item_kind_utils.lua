@@ -42,7 +42,9 @@ local tsserver_kind_to_lsp_kind = {
   [c.ScriptElementKind.linkText] = c.CompletionItemKind.Text,
 }
 
-M.map_completion_item_kind = function(script_element_kind)
+---@param script_element_kind ScriptElementKind
+---@return CompletionItemKind
+function M.map_completion_item_kind(script_element_kind)
   local kind = tsserver_kind_to_lsp_kind[script_element_kind]
 
   if kind then
@@ -66,7 +68,9 @@ local item_kind_to_commit_character = {
   [c.CompletionItemKind.Variable] = { ".", "?" },
 }
 
-M.calculate_commit_characters = function(kind)
+---@param kind CompletionItemKind
+---@return string[]
+function M.calculate_commit_characters(kind)
   return item_kind_to_commit_character[kind]
 end
 

@@ -7,6 +7,7 @@ return {
   InternalCommands = {
     InvokeAdditionalRename = "invoke_additional_rename",
   },
+  ---@enum CommandTypes
   CommandTypes = {
     JsxClosingTag = "jsxClosingTag",
     Brace = "brace",
@@ -81,6 +82,7 @@ return {
     ProvideCallHierarchyOutgoingCalls = "provideCallHierarchyOutgoingCalls",
     ProvideInlayHints = "provideInlayHints",
   },
+  ---@enum ScriptElementKind
   ScriptElementKind = {
     unknown = "",
     warning = "warning",
@@ -221,6 +223,7 @@ return {
     ProjectLoadingStart = "projectLoadingStart",
     ProjectLoadingFinish = "projectLoadingFinish",
   },
+  ---@enum CompletionItemKind
   CompletionItemKind = {
     Text = 1,
     Method = 2,

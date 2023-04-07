@@ -1,7 +1,7 @@
 local c = require "typescript-tools.protocol.constants"
-local comm = require "typescript-tools.new.communication"
 local make_capabilities = require "typescript-tools.capabilities"
 
+---@type TsserverRequest
 local configuration = {
   command = c.CommandTypes.Configure,
   arguments = {
@@ -13,8 +13,10 @@ local configuration = {
     },
     watchOptions = {},
   },
+  skip_response = true,
 }
 
+---@type TsserverRequest
 local initial_compiler_options = {
   command = c.CommandTypes.CompilerOptionsForInferredProjects,
   arguments = {
@@ -34,16 +36,19 @@ local initial_compiler_options = {
   },
 }
 
----@param method string
----@param params table
----@return thread
-local function initialize_handler(method, params)
-  return coroutine.create(function()
-    comm.queue_request(configuration, true)
-    comm.await(initial_compiler_options)
+---@return TsserverRequest | TsserverRequest[], function|nil
+local function initialize_creator()
+  local requests = {
+    configuration,
+    initial_compiler_options,
+  }
 
+  ---@return table
+  local function handler()
     return { capabilities = make_capabilities() }
-  end)
+  end
+
+  return requests, handler
 end
 
-return initialize_handler
+return initialize_creator

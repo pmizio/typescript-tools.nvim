@@ -1,5 +1,4 @@
 local c = require "typescript-tools.protocol.constants"
-local comm = require "typescript-tools.new.communication"
 local item_kind_utils =
   require "typescript-tools.new.protocol.text_document.completion.item_kind_utils"
 local utils = require "typescript-tools.protocol.utils"
@@ -22,30 +21,33 @@ end
 
 ---@param _ string
 ---@param params table
----@return thread
-local function completion_handler(_, params)
-  return coroutine.create(function()
-    local text_document = params.textDocument
-    local context = params.context or {}
-    local trigger_character = context.triggerCharacter
+---@return TsserverRequest | TsserverRequest[], function|nil
+local function completion_creator(_, params)
+  local text_document = params.textDocument
+  local context = params.context or {}
+  local trigger_character = context.triggerCharacter
 
-    -- tsserver protocol reference:
-    -- https//github.com/microsoft/TypeScript/blob/8b482b513d87c6fcda8ece18b99f8a01cff5c605/lib/protocol.d.ts#L1631
-    local body = comm.await {
-      command = c.CommandTypes.CompletionInfo,
-      arguments = vim.tbl_extend("force", {
-        file = vim.uri_to_fname(text_document.uri),
-        triggerKind = context.triggerKind,
-        triggerCharacter = vim.tbl_contains(c.CompletionsTriggerCharacter, trigger_character)
-            and trigger_character
-          or nil,
-        includeExternalModuleExports = true,
-        includeInsertTextCompletions = true,
-      }, utils.convert_lsp_position_to_tsserver(params.position)),
-    }
+  -- tsserver protocol reference:
+  -- https//github.com/microsoft/TypeScript/blob/8b482b513d87c6fcda8ece18b99f8a01cff5c605/lib/protocol.d.ts#L1631
+  ---@type TsserverRequest
+  local request = {
+    command = c.CommandTypes.CompletionInfo,
+    arguments = vim.tbl_extend("force", {
+      file = vim.uri_to_fname(text_document.uri),
+      triggerKind = context.triggerKind,
+      triggerCharacter = vim.tbl_contains(c.CompletionsTriggerCharacter, trigger_character)
+          and trigger_character
+        or nil,
+      includeExternalModuleExports = true,
+      includeInsertTextCompletions = true,
+    }, utils.convert_lsp_position_to_tsserver(params.position)),
+  }
 
-    -- tsserver protocol reference:
-    -- https://github.com/microsoft/TypeScript/blob/9a83f2551ded0d88a0ba0ec9af260f83eb3568cd/lib/protocol.d.ts#L1824
+  -- tsserver protocol reference:
+  -- https://github.com/microsoft/TypeScript/blob/9a83f2551ded0d88a0ba0ec9af260f83eb3568cd/lib/protocol.d.ts#L1824
+  ---@param body table
+  ---@return table
+  local function handler(body)
     local file = vim.uri_to_fname(text_document.uri)
 
     return {
@@ -93,7 +95,9 @@ local function completion_handler(_, params)
         }
       end, body.entries or {}),
     }
-  end)
+  end
+
+  return request, handler
 end
 
-return completion_handler
+return completion_creator

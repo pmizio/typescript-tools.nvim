@@ -1,5 +1,4 @@
 local c = require "typescript-tools.protocol.constants"
-local comm = require "typescript-tools.new.communication"
 local utils = require "typescript-tools.protocol.utils"
 
 ---@param code_actions table
@@ -51,13 +50,13 @@ end
 
 ---@param _ string
 ---@param params table
----@return thread
-local function completion_resolve_handler(_, params)
-  return coroutine.create(function()
-    local body = comm.await(completion_resolve_request(params))
-
-    -- tsserver protocol reference:
-    -- https://github.com/microsoft/TypeScript/blob/9a83f2551ded0d88a0ba0ec9af260f83eb3568cd/lib/protocol.d.ts#L1841
+---@return TsserverRequest | TsserverRequest[], function|nil
+local function completion_resolve_creator(_, params)
+  -- tsserver protocol reference:
+  -- https://github.com/microsoft/TypeScript/blob/9a83f2551ded0d88a0ba0ec9af260f83eb3568cd/lib/protocol.d.ts#L1841
+  ---@param body table
+  ---@return table|nil
+  local function handler(body)
     if body and body[1] then
       local details = body[1]
       local documentation = details.documentation or {}
@@ -87,7 +86,9 @@ local function completion_resolve_handler(_, params)
     end
 
     return nil
-  end)
+  end
+
+  return completion_resolve_request(params), handler
 end
 
-return completion_resolve_handler
+return completion_resolve_creator

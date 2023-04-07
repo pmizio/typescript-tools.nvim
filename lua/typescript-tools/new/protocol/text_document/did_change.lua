@@ -29,23 +29,21 @@ end
 -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L1305
 ---@param _ string
 ---@param params table
----@return thread
-local function did_open_handler(_, params)
-  return coroutine.create(function()
-    local text_document = params.textDocument
-    local content_changes = params.contentChanges
+---@return TsserverRequest | TsserverRequest[], function|nil
+local function did_open_creator(_, params)
+  local text_document = params.textDocument
+  local content_changes = params.contentChanges
 
-    return {
-      command = c.CommandTypes.UpdateOpen,
-      arguments = {
-        changedFiles = {
-          convert_text_changes(vim.uri_to_fname(text_document.uri), content_changes),
-        },
-        closedFiles = {},
-        openFiles = {},
+  return {
+    command = c.CommandTypes.UpdateOpen,
+    arguments = {
+      changedFiles = {
+        convert_text_changes(vim.uri_to_fname(text_document.uri), content_changes),
       },
-    }
-  end)
+      closedFiles = {},
+      openFiles = {},
+    },
+  }
 end
 
-return did_open_handler
+return did_open_creator

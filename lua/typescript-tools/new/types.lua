@@ -10,3 +10,7 @@
 ---@field notify fun(method: string, params: table|nil): boolean
 ---@field terminate function
 ---@field is_closing fun(): boolean
+
+---@class TsserverRequest
+---@field command CommandTypes
+---@field arguments table

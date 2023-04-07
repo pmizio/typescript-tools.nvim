@@ -1,5 +1,4 @@
 local c = require "typescript-tools.protocol.constants"
-local comm = require "typescript-tools.new.communication"
 local utils = require "typescript-tools.protocol.utils"
 
 ---@param new_text string
@@ -41,25 +40,28 @@ end
 
 ---@param _ string
 ---@param params table
----@return thread
-local function rename_handler(_, params)
-  return coroutine.create(function()
-    local text_document = params.textDocument
+---@return TsserverRequest | TsserverRequest[], function|nil
+local function rename_creator(_, params)
+  local text_document = params.textDocument
 
-    -- tsserver protocol reference:
-    -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L930
-    local body = comm.await {
-      command = c.CommandTypes.Rename,
-      arguments = vim.tbl_extend("force", {
-        file = vim.uri_to_fname(text_document.uri),
-        -- TODO: expose as options
-        findInComments = false,
-        findInStrings = false,
-      }, utils.convert_lsp_position_to_tsserver(params.position)),
-    }
+  -- tsserver protocol reference:
+  -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L930
+  ---@type TsserverRequest
+  local request = {
+    command = c.CommandTypes.Rename,
+    arguments = vim.tbl_extend("force", {
+      file = vim.uri_to_fname(text_document.uri),
+      -- TODO: expose as options
+      findInComments = false,
+      findInStrings = false,
+    }, utils.convert_lsp_position_to_tsserver(params.position)),
+  }
 
-    -- tsserver protocol reference:
-    -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L993
+  -- tsserver protocol reference:
+  -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L993
+  ---@param body table
+  ---@return table|nil
+  local function handler(body)
     if not body.info.canRename then
       return nil
     end
@@ -67,7 +69,9 @@ local function rename_handler(_, params)
     return {
       changes = convert_tsserver_locs_to_changes(params.newName, body.locs),
     }
-  end)
+  end
+
+  return request, handler
 end
 
-return rename_handler
+return rename_creator
