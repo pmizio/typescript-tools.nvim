@@ -45,7 +45,9 @@ function M.start(dispatchers)
     notify = function(...)
       tsserver:handle_request(...)
     end,
-    terminate = function() end,
+    terminate = function()
+      tsserver:terminate()
+    end,
     is_closing = function()
       return tsserver:is_closing()
     end,

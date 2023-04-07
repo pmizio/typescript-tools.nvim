@@ -3,7 +3,6 @@ local Process = require "typescript-tools.new.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.new.protocol.progress"
 local module_mapper = require "typescript-tools.new.protocol.module_mapper"
-local c = require "typescript-tools.protocol.constants"
 
 ---@class PendingRequest
 ---@field handler thread|false|nil
@@ -44,8 +43,6 @@ end
 function Tsserver:handle_response(response)
   local seq = response.request_seq
   local request_metadata = self.pending_requests[seq]
-  -- P(response)
-  -- P(self.pending_requests)
 
   handle_progress(response, self.dispatchers)
 
@@ -102,9 +99,12 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   ---@param request table
   ---@return number
   local function enqueue_request(request)
+    local copy = vim.tbl_extend("force", {}, request)
+    copy.skip_response = nil
+
     return self.request_queue:enqueue {
       handler = not request.skip_response and handler_fn,
-      request = request,
+      request = copy,
       callback = callback,
       notify_reply_callback = notify_reply_callback,
       priority = RequestQueue.Priority.Normal,
@@ -146,6 +146,10 @@ function Tsserver:send_queued_requests()
       notify_reply_callback = item.notify_reply_callback,
     }
   end
+end
+
+function Tsserver:terminate()
+  self.process:terminate()
 end
 
 ---@return boolean
