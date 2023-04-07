@@ -14,8 +14,9 @@ local Process = {}
 
 ---@param path table Plenary path object
 ---@param on_response fun(response: table)
+---@param on_exit fun(code: number, signal: number)
 ---@return Process
-function Process:new(path, on_response)
+function Process:new(path, on_response, on_exit)
   local obj = {}
 
   local command = is_win and "cmd.exe" or "node"
@@ -77,6 +78,8 @@ function Process:new(path, on_response)
 
       parse_response(data)
     end,
+    on_exit = on_exit,
+    detached = not is_win,
   }
   obj.job:start()
 
@@ -91,6 +94,11 @@ function Process:send(request)
   self.job:send(vim.json.encode(request))
   -- INFO: flush message
   self.job:send "\r\n"
+end
+
+---@return boolean
+function Process:is_closing()
+  return self.job.handle:is_closing()
 end
 
 return Process

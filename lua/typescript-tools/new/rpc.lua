@@ -46,7 +46,9 @@ function M.start(dispatchers)
       tsserver:handle_request(...)
     end,
     terminate = function() end,
-    is_closing = function() end,
+    is_closing = function()
+      return tsserver:is_closing()
+    end,
   }
 end
 

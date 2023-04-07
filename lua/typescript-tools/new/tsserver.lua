@@ -2,6 +2,7 @@ local log = require "vim.lsp.log"
 local Process = require "typescript-tools.new.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.new.protocol.progress"
+local module_mapper = require "typescript-tools.new.protocol.module_mapper"
 local c = require "typescript-tools.protocol.constants"
 
 ---@class PendingRequest
@@ -34,7 +35,7 @@ function Tsserver:new(path, dispatchers)
   obj.process = Process:new(path, function(response)
     obj:handle_response(response)
     obj:send_queued_requests()
-  end)
+  end, dispatchers.on_exit)
 
   return obj
 end
@@ -84,15 +85,10 @@ end
 ---@param callback LspCallback
 ---@param notify_reply_callback function|nil
 function Tsserver:handle_request(method, params, callback, notify_reply_callback)
-  local module = method:gsub("%$/", ""):gsub("/", "."):gsub("%u", function(it)
-    return "_" .. it:lower()
-  end)
-
-  if method == c.LspMethods.CompletionResolve then
-    module = "text_document.completion.resolve"
-  end
+  local module = module_mapper.map_method_to_module(method)
 
   print(method, module)
+
   local ok, request_creator = pcall(require, "typescript-tools.new.protocol." .. module)
   if not ok then
     -- TODO: log message
@@ -150,6 +146,11 @@ function Tsserver:send_queued_requests()
       notify_reply_callback = item.notify_reply_callback,
     }
   end
+end
+
+---@return boolean
+function Tsserver:is_closing()
+  return self.process:is_closing()
 end
 
 return Tsserver
