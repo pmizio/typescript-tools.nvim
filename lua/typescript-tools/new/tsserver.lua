@@ -3,8 +3,10 @@ local Process = require "typescript-tools.new.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.new.protocol.progress"
 local module_mapper = require "typescript-tools.new.protocol.module_mapper"
+local c = require "typescript-tools.protocol.constants"
 
 ---@class PendingRequest
+---@field method LspMethods | CustomMethods
 ---@field handler thread|false|nil
 ---@field callback LspCallback|nil
 ---@field notify_reply_callback function|nil
@@ -13,6 +15,7 @@ local module_mapper = require "typescript-tools.new.protocol.module_mapper"
 ---@field process Process
 ---@field request_queue RequestQueue
 ---@field pending_requests PendingRequest[]
+---@field pending_diagnostic_seq number
 ---@field dispatchers Dispatchers
 
 ---@class Tsserver
@@ -42,19 +45,39 @@ end
 ---@param response table
 function Tsserver:handle_response(response)
   local seq = response.request_seq
+  local is_diagnostic_event = self:is_diagnostic_event(response)
+
+  -- INFO: seq in requestCompleted tsserver command
+  if not seq and type(response.body) == "table" then
+    seq = response.body.request_seq
+  end
+
+  -- INFO: seq for diagnostic events
+  if not seq and is_diagnostic_event then
+    seq = self.pending_diagnostic_seq
+  end
+
   local request_metadata = self.pending_requests[seq]
 
   handle_progress(response, self.dispatchers)
 
-  if not request_metadata then
+  if not seq or not request_metadata then
     return
   end
+
+  self:dispatch_update_event(request_metadata.method, response)
 
   local handler = request_metadata.handler
   local callback = request_metadata.callback
   local notify_reply_callback = request_metadata.notify_reply_callback
 
-  local ok, handler_success, result = pcall(coroutine.resume, handler, response.body or response)
+  local ok, handler_success, result =
+    pcall(coroutine.resume, handler, response.body or response, response.command or response.event)
+
+  if is_diagnostic_event then
+    return
+  end
+
   self.pending_requests[seq] = nil
 
   vim.schedule(function()
@@ -77,7 +100,7 @@ function Tsserver:handle_response(response)
   end)
 end
 
----@param method string
+---@param method LspMethods | CustomMethods
 ---@param params table|nil
 ---@param callback LspCallback
 ---@param notify_reply_callback function|nil
@@ -103,6 +126,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
     copy.skip_response = nil
 
     return self.request_queue:enqueue {
+      method = method,
       handler = not request.skip_response and handler_fn,
       request = copy,
       callback = callback,
@@ -140,12 +164,48 @@ function Tsserver:send_queued_requests()
 
     self.process:send(request)
 
+    if item.method == c.CustomMethods.BatchDiagnostics then
+      self.pending_diagnostic_seq = request.seq
+    end
+
     self.pending_requests[request.seq] = {
+      method = item.method,
       handler = item.handler and coroutine.create(item.handler),
       callback = item.callback,
       notify_reply_callback = item.notify_reply_callback,
     }
   end
+end
+
+---@private
+---@param method LspMethods | CustomMethods
+---@param data table
+function Tsserver:dispatch_update_event(method, data)
+  if not (method == c.LspMethods.DidOpen or method == c.LspMethods.DidChange) then
+    return
+  end
+
+  vim.schedule(function()
+    vim.api.nvim_exec_autocmds("User", {
+      pattern = "TypescriptTools_" .. method,
+      data = data,
+    })
+  end)
+end
+
+---@private
+---@param response table
+---@return boolean
+function Tsserver:is_diagnostic_event(response)
+  if response.type ~= "event" then
+    return false
+  end
+
+  local event = response.event
+
+  return event == c.DiagnosticEventKind.SyntaxDiag
+    or event == c.DiagnosticEventKind.SemanticDiag
+    or event == c.DiagnosticEventKind.SuggestionDiag
 end
 
 function Tsserver:terminate()

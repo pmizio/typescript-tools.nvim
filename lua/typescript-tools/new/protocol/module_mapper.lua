@@ -2,6 +2,7 @@ local c = require "typescript-tools.protocol.constants"
 
 local REMAPPED_METHODS = {
   [c.LspMethods.CompletionResolve] = "text_document.completion.resolve",
+  [c.CustomMethods.BatchDiagnostics] = "text_document.batch_diagnostics",
 }
 
 local M = {}

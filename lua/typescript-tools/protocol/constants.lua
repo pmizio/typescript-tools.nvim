@@ -167,10 +167,12 @@ return {
     TSX = "TSX",
     JSX = "JSX",
   },
+  ---@enum DiagnosticEventKind
   DiagnosticEventKind = {
     SemanticDiag = "semanticDiag",
     SyntaxDiag = "syntaxDiag",
     SuggestionDiag = "suggestionDiag",
+    RequestCompleted = "requestCompleted",
   },
   RequestCompletedEventName = "requestCompleted",
   SignatureHelpTriggerReason = {
@@ -184,6 +186,7 @@ return {
     reference = "reference",
     writtenReference = "writtenReference",
   },
+  ---@enum LspMethods
   LspMethods = {
     Initialize = "initialize",
     Shutdown = "shutdown",
@@ -216,8 +219,10 @@ return {
     ExecuteCommand = "workspace/executeCommand",
     WillRenameFiles = "workspace/willRenameFiles",
   },
+  ---@enum CustomMethods
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
+    BatchDiagnostics = "typescriptTools/batchDiagnostics",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
@@ -264,6 +269,7 @@ return {
     PlainText = "plaintext",
     Markdown = "markdown",
   },
+  ---@enum DiagnosticSeverity
   DiagnosticSeverity = {
     Error = 1,
     Warning = 2,

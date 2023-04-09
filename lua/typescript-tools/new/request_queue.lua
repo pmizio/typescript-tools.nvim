@@ -10,6 +10,7 @@ local CONST_QUEUE_REQUESTS = {
 ---@class RequestContainer
 ---@field seq number
 ---@field priority number
+---@field method LspMethods | CustomMethods
 ---@field handler function|false|nil
 ---@field callback LspCallback
 ---@field notify_reply_callback function|nil

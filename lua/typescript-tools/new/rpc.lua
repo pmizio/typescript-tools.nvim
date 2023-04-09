@@ -5,6 +5,8 @@ local plugin_config = require "typescript-tools.config"
 local Path = require "plenary.path"
 
 local Tsserver = require "typescript-tools.new.tsserver"
+local autocommands = require "typescript-tools.new.autocommands"
+local custom_handlers = require "typescript-tools.new.custom_handlers"
 
 local M = {}
 
@@ -37,6 +39,9 @@ function M.start(dispatchers)
   )
 
   local tsserver = Tsserver:new(tsserver_path, dispatchers)
+
+  autocommands.setup_autocommands()
+  custom_handlers.setup_lsp_handlers(dispatchers)
 
   return {
     request = function(...)
