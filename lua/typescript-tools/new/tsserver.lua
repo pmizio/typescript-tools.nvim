@@ -1,6 +1,6 @@
 local log = require "vim.lsp.log"
 local Process = require "typescript-tools.new.process"
-local RequestQueue = require "typescript-tools.request_queue"
+local RequestQueue = require "typescript-tools.new.request_queue"
 local handle_progress = require "typescript-tools.new.protocol.progress"
 local module_mapper = require "typescript-tools.new.protocol.module_mapper"
 local c = require "typescript-tools.protocol.constants"
@@ -10,6 +10,7 @@ local c = require "typescript-tools.protocol.constants"
 ---@field handler thread|false|nil
 ---@field callback LspCallback|nil
 ---@field notify_reply_callback function|nil
+---@field cancelled boolean|nil
 
 ---@class Tsserver
 ---@field process Process
@@ -62,6 +63,15 @@ function Tsserver:handle_response(response)
   handle_progress(response, self.dispatchers)
 
   if not seq or not request_metadata then
+    return
+  end
+
+  if response.event == c.DiagnosticEventKind.RequestCompleted then
+    self.pending_diagnostic_seq = nil
+  end
+
+  if request_metadata.cancelled then
+    self.pending_requests[seq] = nil
     return
   end
 
@@ -131,8 +141,15 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
       request = copy,
       callback = callback,
       notify_reply_callback = notify_reply_callback,
-      priority = RequestQueue.Priority.Normal,
+      priority = self.request_queue:get_queueing_type(method),
     }
+  end
+
+  local pending_diagnostic = self.pending_requests[self.pending_diagnostic_seq]
+  if pending_diagnostic then
+    self.request_queue:clear_diagnostics()
+    pending_diagnostic.cancelled = true
+    self.process:cancel(self.pending_diagnostic_seq)
   end
 
   local seq
@@ -151,7 +168,7 @@ end
 
 ---@private
 function Tsserver:send_queued_requests()
-  while vim.tbl_isempty(self.pending_requests) and self.request_queue:is_empty() do
+  while vim.tbl_isempty(self.pending_requests) and not self.request_queue:is_empty() do
     local item = self.request_queue:dequeue()
     if not item then
       return

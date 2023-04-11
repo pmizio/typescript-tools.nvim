@@ -1,10 +1,9 @@
-local constants = require "typescript-tools.protocol.constants"
+local c = require "typescript-tools.protocol.constants"
 
 local CONST_QUEUE_REQUESTS = {
-  constants.CommandTypes.Open,
-  constants.CommandTypes.Change,
-  constants.CommandTypes.Close,
-  constants.CommandTypes.UpdateOpen,
+  c.LspMethods.DidOpen,
+  c.LspMethods.DidChange,
+  c.LspMethods.DidClose,
 }
 
 ---@class RequestContainer
@@ -51,8 +50,9 @@ function RequestQueue:enqueue(request)
     local idx = #self.queue
 
     for i = #self.queue, 1, -1 do
+      idx = i
+
       if self.queue[i].priority ~= self.Priority.Low then
-        idx = 1
         break
       end
     end
@@ -75,30 +75,30 @@ function RequestQueue:dequeue()
   return request
 end
 
--- function RequestQueue:clear_geterrs()
---   for i = #self.queue, 1, -1 do
---     local el = self.queue[i]
---
---     if el.message.command == constants.CommandTypes.Geterr then
---       table.remove(self.queue, i)
---     end
---   end
--- end
+function RequestQueue:clear_diagnostics()
+  for i = #self.queue, 1, -1 do
+    local el = self.queue[i]
+
+    if el.method == c.CustomMethods.BatchDiagnostics then
+      table.remove(self.queue, i)
+    end
+  end
+end
 
 ---@return boolean
 function RequestQueue:is_empty()
   return #self.queue == 0
 end
 
---@param command string
+--@param method LspMethods
 --@param is_low_priority string|nil
 --@return number
--- function RequestQueue:get_queueing_type(command, is_low_priority)
---   if vim.tbl_contains(CONST_QUEUE_REQUESTS, command) then
---     return self.Priority.Const
---   end
---
---   return is_low_priority and self.Priority.Low or self.Priority.Normal
--- end
+function RequestQueue:get_queueing_type(method, is_low_priority)
+  if vim.tbl_contains(CONST_QUEUE_REQUESTS, method) then
+    return self.Priority.Const
+  end
+
+  return is_low_priority and self.Priority.Low or self.Priority.Normal
+end
 
 return RequestQueue

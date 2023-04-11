@@ -1,7 +1,9 @@
 local uv = vim.loop
 local log = require "vim.lsp.log"
+local Path = require "plenary.path"
 
 local HEADER = "Content-Length: "
+local CANCELLATION_PREFIX = "seq_"
 
 local is_win = uv.os_uname().version:find "Windows"
 
@@ -11,6 +13,7 @@ local is_win = uv.os_uname().version:find "Windows"
 ---@field private stdout uv.uv_pipe_t
 ---@field private stderr uv.uv_pipe_t
 ---@field private args string[]
+---@field private cancellation_dir table Plenary path object
 ---@field private on_response fun(response: table)
 ---@field private on_exit fun(code: number, signal: number)
 
@@ -22,6 +25,8 @@ local Process = {}
 ---@param on_exit fun(code: number, signal: number)
 ---@return Process
 function Process:new(path, on_response, on_exit)
+  local cancellation_dir =
+    Path:new(uv.fs_mkdtemp(Path:new(uv.os_tmpdir(), "tsserver_nvim_XXXXXX"):absolute()))
     -- stylua: ignore start
   local obj = {
     handle = nil,
@@ -35,7 +40,12 @@ function Process:new(path, on_response, on_exit)
       "--useInferredProjectPerProjectRoot",
       "--validateDefaultNpmLocation",
       "--noGetErrOnBackgroundUpdate",
+      "--cancellationPipeName",
+      cancellation_dir:joinpath(CANCELLATION_PREFIX .. "*"):absolute(),
+      -- "--logVerbosity", "verbose",
+      -- "--logFile", "/Users/pawel.mizio/tsserver.log"
     },
+    cancellation_dir = cancellation_dir,
     on_response=on_response,
     on_exit=on_exit
   }
@@ -171,6 +181,13 @@ function Process:send(request)
   self.stdin:write(serialized_request)
   -- INFO: flush message
   self.stdin:write "\r\n"
+end
+
+---@param seq number
+function Process:cancel(seq)
+  assert(self.cancellation_dir:exists(), "Cancellation pipe wasn't created, cannot cancel request!")
+
+  self.cancellation_dir:joinpath(CANCELLATION_PREFIX .. seq):touch { mode = 438 }
 end
 
 function Process:terminate()

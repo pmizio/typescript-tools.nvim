@@ -1,0 +1,3 @@
+- [x] diagnostic cancelling
+- [ ] multiple server impl
+- [ ] diagnostic dedicated server
