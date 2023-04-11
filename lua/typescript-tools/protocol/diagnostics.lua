@@ -227,11 +227,24 @@ function DiagnosticsService:collect_diagnostics(response)
       code = diagnostic.code,
       severity = category_to_severity(diagnostic.category),
       range = lspUtils.convert_tsserver_range_to_lsp(diagnostic),
-      relatedInformation = diagnostic.relatedInformation and convert_related_information(
-        diagnostic.relatedInformation
-      ),
+      relatedInformation = diagnostic.relatedInformation
+        and convert_related_information(diagnostic.relatedInformation),
+      tags = self:get_diagnostic_tags(diagnostic),
     })
   end
+end
+
+--- @private
+--- @param diagnostic table
+function DiagnosticsService:get_diagnostic_tags(diagnostic)
+  local tags = {}
+  if diagnostic.reportsUnnecessary then
+    table.insert(tags, constants.DiagnosticTag.Unnecessary)
+  end
+  if diagnostic.reportsDeprecated then
+    table.insert(tags, constants.DiagnosticTag.Deprecated)
+  end
+  return tags
 end
 
 --- @private
