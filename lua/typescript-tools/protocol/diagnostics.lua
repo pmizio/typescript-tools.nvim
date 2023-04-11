@@ -218,6 +218,19 @@ local convert_related_information = function(related_information)
 end
 
 --- @private
+--- @param diagnostic table
+local function get_diagnostic_tags(diagnostic)
+  local tags = {}
+  if diagnostic.reportsUnnecessary then
+    table.insert(tags, constants.DiagnosticTag.Unnecessary)
+  end
+  if diagnostic.reportsDeprecated then
+    table.insert(tags, constants.DiagnosticTag.Deprecated)
+  end
+  return tags
+end
+
+--- @private
 --- @param response table
 function DiagnosticsService:collect_diagnostics(response)
   for _, diagnostic in pairs(response.body.diagnostics) do
@@ -229,22 +242,9 @@ function DiagnosticsService:collect_diagnostics(response)
       range = lspUtils.convert_tsserver_range_to_lsp(diagnostic),
       relatedInformation = diagnostic.relatedInformation
         and convert_related_information(diagnostic.relatedInformation),
-      tags = self:get_diagnostic_tags(diagnostic),
+      tags = get_diagnostic_tags(diagnostic),
     })
   end
-end
-
---- @private
---- @param diagnostic table
-function DiagnosticsService:get_diagnostic_tags(diagnostic)
-  local tags = {}
-  if diagnostic.reportsUnnecessary then
-    table.insert(tags, constants.DiagnosticTag.Unnecessary)
-  end
-  if diagnostic.reportsDeprecated then
-    table.insert(tags, constants.DiagnosticTag.Deprecated)
-  end
-  return tags
 end
 
 --- @private
