@@ -1,74 +1,53 @@
 local constants = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
-
-local function lshift(x, by)
-  return x * 2 ^ by
-end
-
-local function rshift(x, by)
-  return math.floor(x / 2 ^ by)
-end
-
-local function bitwise_and(a, b)
-  local result = 0
-  local bitval = 1
-  while a > 0 and b > 0 do
-    if a % 2 == 1 and b % 2 == 1 then -- both bits are 1
-      result = result + bitval
-    end
-    bitval = bitval * 2
-    a = math.floor(a / 2)
-    b = math.floor(b / 2)
-  end
-  return result
-end
+local bit = require "bit"
 
 local TOKEN_ENCODING_TYPE_OFFSET = 8
-local TOKEN_ENCODING_MODIFIER_MASK = lshift(1, TOKEN_ENCODING_TYPE_OFFSET) - 1
+local TOKEN_ENCODING_MODIFIER_MASK = bit.lshift(1, TOKEN_ENCODING_TYPE_OFFSET) - 1
 
 -- Transforms the semantic token spans given by the ts-server into lsp compatible spans.
 -- @param spans the spans given by ts-server
 -- @param requested_bufnr
 -- @returns lsp compatible spans
 local function transform_spans(spans, requested_bufnr)
-  local lspSpans = {}
-  local previousLine = 0
-  local previousTokenStart = 0
+  local lsp_spans = {}
+  local previous_line = 0
+  local previous_token_start = 0
   for i = 1, #spans, 3 do
     -- ts-server sends us a packed array that contains 3 elements per 1 token:
-    -- 1. the start position of the token
+    -- 1. the start offset of the token
     -- 2. length of the token
     -- 3. token type & modifier packed into a bitset
-    local tokenStart = spans[i]
-    local tokenLength = spans[i + 1]
-    local tokenTypeBitSet = spans[i + 2]
+    local token_start_offset = spans[i]
+    local token_length = spans[i + 1]
+    local token_type_bit_set = spans[i + 2]
 
     -- unpack the modifier and type: https://github.com/microsoft/TypeScript/blob/main/src/services/classifier2020.ts#L45
-    local tokenModifier = bitwise_and(tokenTypeBitSet, TOKEN_ENCODING_MODIFIER_MASK)
-    local tokenType = rshift(tokenTypeBitSet, TOKEN_ENCODING_TYPE_OFFSET) - 1
+    local token_modifier = bit.band(token_type_bit_set, TOKEN_ENCODING_MODIFIER_MASK)
+    local token_type = bit.rshift(token_type_bit_set, TOKEN_ENCODING_TYPE_OFFSET) - 1
 
-    local pos = utils.get_position_at_offset(tokenStart, requested_bufnr)
+    local pos = utils.get_position_at_offset(token_start_offset, requested_bufnr)
     local line, character = pos.line, pos.character
 
     -- lsp spec requires 5 elements per token instead of 3:
     -- 1. delta line number (relative to the previous line)
-    -- 2. delta token start position (relative to the previous token)
+    -- 2. delta token start offset (relative to the previous token)
     -- 3. length of the token
     -- 4. type of the token (e.g. function, comment, enum etc.)
     -- 5. token modifier (static, async etc.)
-    local deltaLine = line - previousLine
-    local deltaStart = previousLine == line and character - previousTokenStart or character
+    local delta_line = line - previous_line
+    local delta_start = previous_line == line and character - previous_token_start or character
 
-    table.insert(lspSpans, deltaLine)
-    table.insert(lspSpans, deltaStart)
-    table.insert(lspSpans, tokenLength)
-    table.insert(lspSpans, tokenType)
-    table.insert(lspSpans, tokenModifier)
+    table.insert(lsp_spans, delta_line)
+    table.insert(lsp_spans, delta_start)
+    table.insert(lsp_spans, token_length)
+    table.insert(lsp_spans, token_type)
+    table.insert(lsp_spans, token_modifier)
 
-    previousTokenStart = character
-    previousLine = line
+    previous_token_start = character
+    previous_line = line
   end
-  return lspSpans
+  return lsp_spans
 end
 
 -- tsserver protocol reference:
@@ -97,11 +76,7 @@ end
 -- https://github.com/microsoft/TypeScript/blob/v5.0.2/src/server/protocol.ts#L910
 local semantic_tokens_full_response_handler = function(_, body, request_params)
   local requested_bufnr = vim.uri_to_bufnr(request_params.textDocument.uri)
-  local err, result = pcall(transform_spans, body.spans, requested_bufnr)
 
-  if not err then
-    print([[[semantic_tokens.lua:100] -- result: ]] .. vim.inspect(result))
-  end
   return { data = transform_spans(body.spans, requested_bufnr) }
 end
 
