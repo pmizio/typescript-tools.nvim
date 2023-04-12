@@ -1,6 +1,7 @@
 local uv = vim.loop
 local log = require "vim.lsp.log"
 local Path = require "plenary.path"
+local plugin_config = require "typescript-tools.new.config"
 
 local HEADER = "Content-Length: "
 local CANCELLATION_PREFIX = "seq_"
@@ -21,10 +22,11 @@ local is_win = uv.os_uname().version:find "Windows"
 local Process = {}
 
 ---@param path table Plenary path object
+---@param type ServerType
 ---@param on_response fun(response: table)
 ---@param on_exit fun(code: number, signal: number)
 ---@return Process
-function Process:new(path, on_response, on_exit)
+function Process:new(path, type, on_response, on_exit)
   local cancellation_dir =
     Path:new(uv.fs_mkdtemp(Path:new(uv.os_tmpdir(), "tsserver_nvim_XXXXXX"):absolute()))
     -- stylua: ignore start
@@ -42,14 +44,20 @@ function Process:new(path, on_response, on_exit)
       "--noGetErrOnBackgroundUpdate",
       "--cancellationPipeName",
       cancellation_dir:joinpath(CANCELLATION_PREFIX .. "*"):absolute(),
-      -- "--logVerbosity", "verbose",
-      -- "--logFile", "/Users/pawel.mizio/tsserver.log"
     },
     cancellation_dir = cancellation_dir,
     on_response=on_response,
     on_exit=on_exit
   }
   -- stylua: ignore end
+
+  if plugin_config.tsserver_logs ~= "off" then
+    local log_dir = Path:new(uv.os_tmpdir())
+    table.insert(obj.args, "--logVerbosity")
+    table.insert(obj.args, plugin_config.tsserver_logs)
+    table.insert(obj.args, "--logFile")
+    table.insert(obj.args, log_dir:joinpath("tsserver_" .. type .. ".log"):absolute())
+  end
 
   if is_win then
     table.insert(obj.args, 2, "node")

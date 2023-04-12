@@ -14,3 +14,5 @@
 ---@class TsserverRequest
 ---@field command CommandTypes
 ---@field arguments table
+
+---@alias ServerType "syntax"|"diagnostic"

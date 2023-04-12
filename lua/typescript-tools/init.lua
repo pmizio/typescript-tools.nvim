@@ -2,18 +2,18 @@ local lspconfig = require "lspconfig"
 local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
 local rpc = require "typescript-tools.new.rpc"
-local plugin_config = require "typescript-tools.config"
-local user_commands = require "typescript-tools.user_commands"
-local custom_handlers = require "typescript-tools.custom_handlers"
+local plugin_config = require "typescript-tools.new.config"
+-- local user_commands = require "typescript-tools.user_commands"
+-- local custom_handlers = require "typescript-tools.custom_handlers"
 
 local M = {}
 
 M.setup = function(config)
   local settings = config.settings or {}
 
-  plugin_config.load_and_validate(settings)
+  plugin_config.load_settings(settings)
 
-  configs[plugin_config.NAME] = {
+  configs[plugin_config.plugin_name] = {
     default_config = {
       cmd = function(...)
         return rpc.start(...)
@@ -36,9 +36,9 @@ M.setup = function(config)
     },
   }
 
-  lspconfig[plugin_config.NAME].setup(config)
-  user_commands.setup_user_commands()
-  custom_handlers.setup_lsp_commands()
+  lspconfig[plugin_config.plugin_name].setup(config)
+  -- user_commands.setup_user_commands()
+  -- custom_handlers.setup_lsp_commands()
 end
 
 return M

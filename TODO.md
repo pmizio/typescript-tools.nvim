@@ -1,4 +1,4 @@
-- [ ] better config
+- [x] better config
 - [x] diagnostic cancelling
 - [x] multiple server impl
 - [x] diagnostic dedicated server

@@ -1,12 +1,12 @@
 local c = require "typescript-tools.protocol.constants"
-local config = require "typescript-tools.config"
+local plugin_config = require "typescript-tools.new.config"
 local utils = require "typescript-tools.utils"
 
 local M = {}
 
 --- @return string[]
 local function get_attached_buffers()
-  local client = vim.lsp.get_active_clients({ name = config.NAME })[1]
+  local client = vim.lsp.get_active_clients({ name = plugin_config.plugin_name })[1]
 
   if client then
     local attached_bufs = {}

@@ -1,7 +1,7 @@
 local api = vim.api
 local util = require "lspconfig.util"
 local configs = require "lspconfig.configs"
-local plugin_config = require "typescript-tools.config"
+local plugin_config = require "typescript-tools.new.config"
 local Path = require "plenary.path"
 
 local Tsserver = require "typescript-tools.new.tsserver"
@@ -14,7 +14,7 @@ local M = {}
 ---@param dispatchers Dispatchers
 ---@return LspInterface
 function M.start(dispatchers)
-  local config = configs[plugin_config.NAME]
+  local config = configs[plugin_config.plugin_name]
   local bufnr = api.nvim_get_current_buf()
   local bufname = api.nvim_buf_get_name(bufnr)
 
@@ -26,7 +26,6 @@ function M.start(dispatchers)
   local npm_global_path = vim.fn
     .system([[node -p "require('path').resolve(process.execPath, '../..')"]])
     :match "^%s*(.-)%s*$"
-  plugin_config.set_global_npm_path(npm_global_path)
 
   -- INFO: if we can't find local tsserver try to use global installed one
   if not tsserver_path:exists() then
@@ -39,8 +38,11 @@ function M.start(dispatchers)
     "Cannot find tsserver executable in local project nor global npm installation."
   )
 
-  local tsserver_syntax = Tsserver:new(tsserver_path, dispatchers)
-  local tsserver_diagnostic = Tsserver:new(tsserver_path, dispatchers)
+  local tsserver_syntax = Tsserver:new(tsserver_path, "syntax", dispatchers)
+  local tsserver_diagnostic = nil
+  if plugin_config.separate_diagnostic_server then
+    tsserver_diagnostic = Tsserver:new(tsserver_path, "diagnostic", dispatchers)
+  end
 
   autocommands.setup_autocommands()
   custom_handlers.setup_lsp_handlers(dispatchers)
