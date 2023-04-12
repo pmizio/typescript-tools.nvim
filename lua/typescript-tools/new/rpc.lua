@@ -7,6 +7,7 @@ local Path = require "plenary.path"
 local Tsserver = require "typescript-tools.new.tsserver"
 local autocommands = require "typescript-tools.new.autocommands"
 local custom_handlers = require "typescript-tools.new.custom_handlers"
+local request_router = require "typescript-tools.new.request_router"
 
 local M = {}
 
@@ -38,23 +39,32 @@ function M.start(dispatchers)
     "Cannot find tsserver executable in local project nor global npm installation."
   )
 
-  local tsserver = Tsserver:new(tsserver_path, dispatchers)
+  local tsserver_syntax = Tsserver:new(tsserver_path, dispatchers)
+  local tsserver_diagnostic = Tsserver:new(tsserver_path, dispatchers)
 
   autocommands.setup_autocommands()
   custom_handlers.setup_lsp_handlers(dispatchers)
 
   return {
     request = function(...)
-      return tsserver:handle_request(...)
+      return request_router.route_request(tsserver_syntax, tsserver_diagnostic, ...)
     end,
     notify = function(...)
-      tsserver:handle_request(...)
+      request_router.route_request(tsserver_syntax, tsserver_diagnostic, ...)
     end,
     terminate = function()
-      tsserver:terminate()
+      tsserver_syntax:terminate()
+      if tsserver_diagnostic then
+        tsserver_diagnostic:terminate()
+      end
     end,
     is_closing = function()
-      return tsserver:is_closing()
+      local ret = tsserver_syntax:is_closing()
+      if tsserver_diagnostic then
+        ret = ret and tsserver_diagnostic:is_closing()
+      end
+
+      return ret
     end,
   }
 end
