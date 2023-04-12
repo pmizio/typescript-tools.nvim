@@ -1,16 +1,20 @@
 local c = require "typescript-tools.protocol.constants"
 
-local REMAPPED_METHODS = {
+local remapped_methods = {
   [c.LspMethods.CompletionResolve] = "text_document.completion.resolve",
+  [c.LspMethods.IncomingCalls] = "text_document.hierarchy_calls",
+  [c.LspMethods.OutgoingCalls] = "text_document.hierarchy_calls",
   [c.CustomMethods.BatchDiagnostics] = "text_document.batch_diagnostics",
 }
 
 local M = {}
 
+local cache = {}
+
 ---@param method string
 ---@return string
 function M.map_method_to_module(method)
-  local module = REMAPPED_METHODS[method]
+  local module = remapped_methods[method] or cache[method]
 
   if module then
     return module
@@ -19,6 +23,8 @@ function M.map_method_to_module(method)
   module = method:gsub("%$/", ""):gsub("/", "."):gsub("%u", function(it)
     return "_" .. it:lower()
   end)
+
+  cache[method] = module
 
   return module
 end
