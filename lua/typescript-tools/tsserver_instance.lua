@@ -123,6 +123,7 @@ function TsserverInstance:handle_response(message)
       vim.schedule(function()
         self:invoke_response_handler(handler_config.handler, response, request_seq)
       end)
+      self.pending_responses[request_seq] = nil
     else
       self:invoke_response_handler(handler_config.handler, response, request_seq)
     end

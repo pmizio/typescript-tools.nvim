@@ -393,4 +393,62 @@ describe("Lsp request", function()
     assert.is.same(1, #fileTextEdits)
     assert.are.same("import { export1 } from './exports'\n", fileTextEdits[1].newText)
   end)
+
+  it("should return correct response for " .. methods.SemanticTokensFull, function()
+    utils.open_file "src/semanticTokens.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.SemanticTokensFull, {
+      textDocument = utils.get_text_document(),
+    })
+    local result = lsp_assert.response(ret)
+    local data = result.data
+
+    assert.is.table(data)
+    assert.are.same(
+      data,
+      {
+        0,
+        6,
+        6,
+        7,
+        9,
+        1,
+        6,
+        1,
+        7,
+        9,
+        2,
+        9,
+        4,
+        10,
+        1,
+        0,
+        5,
+        5,
+        6,
+        1,
+        0,
+        15,
+        6,
+        6,
+        1,
+        1,
+        9,
+        5,
+        6,
+        0,
+        0,
+        8,
+        6,
+        6,
+        0,
+        0,
+        9,
+        1,
+        7,
+        8,
+      }
+    )
+  end)
 end)
