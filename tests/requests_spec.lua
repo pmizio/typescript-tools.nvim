@@ -405,49 +405,11 @@ describe("Lsp request", function()
     local data = result.data
 
     assert.is.table(data)
-    assert.are.same(
-      data,
-      {
-        0,
-        6,
-        6,
-        7,
-        9,
-        1,
-        6,
-        1,
-        7,
-        9,
-        2,
-        9,
-        4,
-        10,
-        1,
-        0,
-        5,
-        5,
-        6,
-        1,
-        0,
-        15,
-        6,
-        6,
-        1,
-        1,
-        9,
-        5,
-        6,
-        0,
-        0,
-        8,
-        6,
-        6,
-        0,
-        0,
-        9,
-        1,
-        7,
-        8,
+    -- stylua: ignore
+    assert.is.same(data,
+      utils.tsv {
+        ["4.0"] = {},
+        default = { 0, 6, 6, 7, 9, 1, 6, 1, 7, 9, 2, 9, 4, 10, 1, 0, 5, 5, 6, 1, 0, 15, 6, 6, 1, 1, 9, 5, 6, 0, 0, 8, 6, 6, 0, 0, 9, 1, 7, 8 }
       }
     )
   end)
