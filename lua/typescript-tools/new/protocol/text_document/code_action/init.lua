@@ -48,10 +48,14 @@ local function code_action_creator(_, params)
 
   ---@type TsserverRequest[]
   local requests = {
+    -- tsserver protocol reference:
+    -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L405
     {
       command = c.CommandTypes.GetApplicableRefactors,
       arguments = request_range,
     },
+    -- tsserver protocol reference:
+    -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L526
     {
       command = c.CommandTypes.GetCodeFixes,
       arguments = vim.tbl_extend("force", request_range, {
@@ -67,6 +71,8 @@ local function code_action_creator(_, params)
   local function handler(body)
     local code_actions = {}
 
+    -- tsserver protocol reference:
+    -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L418
     for _, refactor in ipairs(body) do
       for _, action in ipairs(refactor.actions or {}) do
         local kind = make_lsp_code_action_kind(action.kind or "")
@@ -87,6 +93,8 @@ local function code_action_creator(_, params)
 
     body = coroutine.yield()
 
+    -- tsserver protocol reference:
+    -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L585
     if #code_actions == 0 then
       table.insert(code_actions, make_imports_action(request_range.file, "Organize imports", false))
       table.insert(code_actions, make_imports_action(request_range.file, "Sort imports", true))

@@ -4,10 +4,12 @@ local configs = require "lspconfig.configs"
 local plugin_config = require "typescript-tools.new.config"
 local Path = require "plenary.path"
 
+local c = require "typescript-tools.protocol.constants"
 local Tsserver = require "typescript-tools.new.tsserver"
 local autocommands = require "typescript-tools.new.autocommands"
 local custom_handlers = require "typescript-tools.new.custom_handlers"
 local request_router = require "typescript-tools.new.request_router"
+local internal_commands = require "typescript-tools.internal_commands"
 
 local M = {}
 
@@ -48,8 +50,12 @@ function M.start(dispatchers)
   custom_handlers.setup_lsp_handlers(dispatchers)
 
   return {
-    request = function(...)
-      return request_router.route_request(tsserver_syntax, tsserver_diagnostic, ...)
+    request = function(method, ...)
+      if method == c.LspMethods.ExecuteCommand then
+        return internal_commands.handle_command(...)
+      end
+
+      return request_router.route_request(tsserver_syntax, tsserver_diagnostic, method, ...)
     end,
     notify = function(...)
       request_router.route_request(tsserver_syntax, tsserver_diagnostic, ...)
