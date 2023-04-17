@@ -5,6 +5,58 @@ local bit = require "bit"
 local TOKEN_ENCODING_TYPE_OFFSET = 8
 local TOKEN_ENCODING_MODIFIER_MASK = bit.lshift(1, TOKEN_ENCODING_TYPE_OFFSET) - 1
 
+local NEWLINE_LENGTH_MAP = {
+  dos = 2,
+  unix = 1,
+  mac = 1,
+}
+
+-- Returns { [linenr]: [global_offset] } table for every line in buffer
+-- @param bufnr
+-- @returns table
+local function get_buffer_lines_offsets(bufnr)
+  local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, vim.api.nvim_buf_line_count(bufnr), false)
+
+  return vim.tbl_map(function(line)
+    return vim.lsp.util._str_utfindex_enc(line, nil, "utf-16")
+  end, all_lines)
+end
+
+-- Given the buffer offset finds nvim line and character position in UTF-16 encoding
+-- could not use `vim.api.nvim_buf_get_offset` because it returns byte offset and
+-- tsserver uses UTF-16 offset. Uses offset_from_last_iteration and line_from_last_iteration
+-- for performance. Tokens in tsserver response are positioned in ascending order so we don't need
+-- to search whole file every token.
+-- @param offset
+-- @param lines_offsets - table with every line in buffer offsets
+-- @param offset_from_last_iteration - offset to start with (performance)
+-- @param line_from_last_iteration - line to start with (performance)
+-- @returns lsp compatible spans
+local function get_utf_16_position_at_offset(
+  offset,
+  lines_offsets,
+  offset_from_last_iteration,
+  line_from_last_iteration
+)
+  if #lines_offsets == 1 then
+    return { line = 0, character = offset }
+  end
+
+  local newline_length = NEWLINE_LENGTH_MAP[vim.bo.fileformat]
+  local current_offset = offset_from_last_iteration
+
+  for line = line_from_last_iteration, #lines_offsets, 1 do
+    local current_line_length = lines_offsets[line + 1]
+    local offset_with_current_line = current_offset + current_line_length + newline_length -- 1 is for endline
+
+    if offset_with_current_line > offset then
+      return { line = line, character = offset - current_offset }, current_offset
+    end
+
+    current_offset = offset_with_current_line
+  end
+end
+
 -- Transforms the semantic token spans given by the ts-server into lsp compatible spans.
 -- @param spans the spans given by ts-server
 -- @param requested_bufnr
@@ -13,6 +65,9 @@ local function transform_spans(spans, requested_bufnr)
   local lsp_spans = {}
   local previous_line = 0
   local previous_token_start = 0
+  local previous_offset = 0
+  local line_offsets = get_buffer_lines_offsets(requested_bufnr)
+
   for i = 1, #spans, 3 do
     -- ts-server sends us a packed array that contains 3 elements per 1 token:
     -- 1. the start offset of the token
@@ -26,7 +81,12 @@ local function transform_spans(spans, requested_bufnr)
     local token_modifier = bit.band(token_type_bit_set, TOKEN_ENCODING_MODIFIER_MASK)
     local token_type = bit.rshift(token_type_bit_set, TOKEN_ENCODING_TYPE_OFFSET) - 1
 
-    local pos = utils.get_position_at_offset(token_start_offset, requested_bufnr)
+    local pos, last_line_offset = get_utf_16_position_at_offset(
+      token_start_offset,
+      line_offsets,
+      previous_offset,
+      previous_line
+    )
     local line, character = pos.line, pos.character
 
     -- lsp spec requires 5 elements per token instead of 3:
@@ -46,7 +106,9 @@ local function transform_spans(spans, requested_bufnr)
 
     previous_token_start = character
     previous_line = line
+    previous_offset = last_line_offset
   end
+
   return lsp_spans
 end
 

@@ -154,26 +154,4 @@ M.get_offset_at_position = function(position, bufnr)
   return line_offset + column
 end
 
-M.get_position_at_offset = function(offset, bufnr)
-  local lines_count = vim.api.nvim_buf_line_count(bufnr)
-  local low = 0
-  local high = lines_count
-  if high == 1 then
-    return { line = 0, character = offset }
-  end
-  -- perform binary search to find offset line
-  while low < high do
-    local mid = math.floor((low + high) / 2)
-    if M.get_offset_at_position({ mid, 0 }, bufnr) > offset then
-      high = mid
-    else
-      low = mid + 1
-    end
-  end
-  -- low is the least x for which the line offset is larger than the current offset
-  -- or array.length if no line offset is larger than the current offset
-  local line = low - 1
-  return { line = line, character = offset - M.get_offset_at_position({ line, 0 }, bufnr) }
-end
-
 return M
