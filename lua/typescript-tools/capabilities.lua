@@ -63,8 +63,8 @@ local function make_capabilities(settings)
         },
       },
     },
-    documentFormattingProvider = config.enable_formatting,
-    documentRangeFormattingProvider = config.enable_formatting,
+    documentFormattingProvider = true,
+    documentRangeFormattingProvider = true,
     callHierarchyProvider = true,
     workspaceSymbolProvider = true,
   }

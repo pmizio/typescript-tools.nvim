@@ -175,6 +175,7 @@ return {
     RequestCompleted = "requestCompleted",
   },
   RequestCompletedEventName = "requestCompleted",
+  ---@enum SignatureHelpTriggerReason
   SignatureHelpTriggerReason = {
     Invoked = "invoked",
     CharacterTyped = "characterTyped",
