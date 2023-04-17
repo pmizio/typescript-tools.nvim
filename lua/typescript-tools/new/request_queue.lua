@@ -8,11 +8,13 @@ local CONST_QUEUE_REQUESTS = {
 
 ---@class RequestContainer
 ---@field seq number
+---@field synthetic_seq string|nil
 ---@field priority number
 ---@field method LspMethods | CustomMethods
----@field handler function|false|nil
+---@field handler thread|false|nil
 ---@field callback LspCallback
 ---@field notify_reply_callback function|nil
+---@field wait_for_all boolean|nil
 
 ---@class RequestQueue
 ---@field seq number
@@ -65,6 +67,26 @@ function RequestQueue:enqueue(request)
   self.seq = seq + 1
 
   return seq
+end
+
+---@param requests RequestContainer[]
+---@param wait_for_all boolean|nil
+function RequestQueue:enqueue_all(requests, wait_for_all)
+  local seq = {}
+
+  local last_request
+  for _, request in ipairs(requests) do
+    request.wait_for_all = wait_for_all
+    table.insert(seq, self:enqueue(request))
+    last_request = request
+  end
+
+  if wait_for_all then
+    last_request.synthetic_seq = table.concat(seq, "_")
+    return last_request.synthetic_seq
+  end
+
+  return last_request.seq
 end
 
 ---@return RequestContainer

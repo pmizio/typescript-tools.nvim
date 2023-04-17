@@ -1,1 +1,3 @@
-const str: string = 1;
+function test() {
+  const str: string = 1;
+}

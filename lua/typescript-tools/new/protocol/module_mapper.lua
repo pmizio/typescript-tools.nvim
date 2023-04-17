@@ -4,6 +4,7 @@ local remapped_methods = {
   [c.LspMethods.CompletionResolve] = "text_document.completion.resolve",
   [c.LspMethods.IncomingCalls] = "text_document.hierarchy_calls",
   [c.LspMethods.OutgoingCalls] = "text_document.hierarchy_calls",
+  [c.LspMethods.CodeActionResolve] = "text_document.code_action.resolve",
   [c.CustomMethods.BatchDiagnostics] = "text_document.batch_diagnostics",
 }
 

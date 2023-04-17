@@ -11,6 +11,8 @@ local c = require "typescript-tools.protocol.constants"
 ---@field callback LspCallback|nil
 ---@field notify_reply_callback function|nil
 ---@field cancelled boolean|nil
+---@field synthetic_seq string|nil
+---@field wait_for_all boolean|nil
 
 ---@class Tsserver
 ---@field process Process
@@ -92,13 +94,17 @@ function Tsserver:handle_response(response)
   self.pending_requests[seq] = nil
 
   vim.schedule(function()
-    if not ok then
+    local wait_for_all = request_metadata.wait_for_all
+      and handler
+      and coroutine.status(handler) ~= "dead"
+
+    if not ok or wait_for_all then
       -- INFO: request don't have equvalent in lsp - just skip response
       return
     end
 
     if notify_reply_callback then
-      notify_reply_callback(seq)
+      notify_reply_callback(request_metadata.synthetic_seq or seq)
     end
 
     if callback then
@@ -128,17 +134,18 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   end
 
   ---@type TsserverRequest | TsserverRequest[], function | nil
-  local requests, handler_fn = request_creator(method, params)
+  local requests, handler_fn, opts = request_creator(method, params)
+  local handler_coroutine = handler_fn and coroutine.create(handler_fn)
 
   ---@param request table
-  ---@return number
-  local function enqueue_request(request)
+  ---@return RequestContainer
+  local function make_request_container(request)
     local copy = vim.tbl_extend("force", {}, request)
     copy.skip_response = nil
 
-    return self.request_queue:enqueue {
+    return {
       method = method,
-      handler = not request.skip_response and handler_fn,
+      handler = not request.skip_response and handler_coroutine,
       request = copy,
       callback = callback,
       notify_reply_callback = notify_reply_callback,
@@ -155,11 +162,12 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
   local seq
   if vim.tbl_islist(requests) then
-    for _, request in ipairs(requests) do
-      seq = enqueue_request(request)
-    end
+    seq = self.request_queue:enqueue_all(
+      vim.tbl_map(make_request_container, requests),
+      (opts or {}).wait_for_all
+    )
   else
-    seq = enqueue_request(requests)
+    seq = self.request_queue:enqueue(make_request_container(requests))
   end
 
   self:send_queued_requests()
@@ -188,9 +196,11 @@ function Tsserver:send_queued_requests()
 
     self.pending_requests[request.seq] = {
       method = item.method,
-      handler = item.handler and coroutine.create(item.handler),
+      handler = item.handler,
       callback = item.callback,
       notify_reply_callback = item.notify_reply_callback,
+      synthetic_seq = item.synthetic_seq,
+      wait_for_all = item.wait_for_all,
     }
   end
 end

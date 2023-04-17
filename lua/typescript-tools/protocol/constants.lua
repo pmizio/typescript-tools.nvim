@@ -320,6 +320,7 @@ return {
     Read = 2,
     Write = 3,
   },
+  ---@enum CodeActionKind
   CodeActionKind = {
     Empty = "",
     QuickFix = "quickfix",
