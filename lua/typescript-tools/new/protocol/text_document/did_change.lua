@@ -30,7 +30,7 @@ end
 ---@param _ string
 ---@param params table
 ---@return TsserverRequest | TsserverRequest[], function|nil
-local function did_open_creator(_, params)
+local function did_change_creator(_, params)
   local text_document = params.textDocument
   local content_changes = params.contentChanges
 
@@ -46,4 +46,4 @@ local function did_open_creator(_, params)
   }
 end
 
-return did_open_creator
+return did_change_creator

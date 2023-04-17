@@ -38,7 +38,7 @@ end
 
 ---@param _ string
 ---@param params table
-local function hover_creator(_, params)
+local function batch_diagnostics_creator(_, params)
   ---@type TsserverRequest
   local request = {
     command = c.CommandTypes.Geterr,
@@ -82,4 +82,4 @@ local function hover_creator(_, params)
   return request, handler
 end
 
-return hover_creator
+return batch_diagnostics_creator
