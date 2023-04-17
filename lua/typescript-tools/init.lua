@@ -3,7 +3,7 @@ local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
 local rpc = require "typescript-tools.new.rpc"
 local plugin_config = require "typescript-tools.new.config"
--- local user_commands = require "typescript-tools.user_commands"
+local user_commands = require "typescript-tools.user_commands"
 -- local custom_handlers = require "typescript-tools.custom_handlers"
 
 local M = {}
@@ -37,7 +37,7 @@ M.setup = function(config)
   }
 
   lspconfig[plugin_config.plugin_name].setup(config)
-  -- user_commands.setup_user_commands()
+  user_commands.setup_user_commands()
   -- custom_handlers.setup_lsp_commands()
 end
 
