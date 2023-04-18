@@ -33,7 +33,7 @@ end
 
 ---@param _ string
 ---@param params table
----@return TsserverRequest | TsserverRequest[], function|nil, table
+---@return TsserverRequest | TsserverRequest[], function|nil, RequestOptions
 local function code_action_creator(_, params)
   local text_document = params.textDocument
 

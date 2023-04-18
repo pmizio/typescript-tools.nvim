@@ -1,9 +1,11 @@
+---@diagnostic disable: lowercase-global
 ignore = {
-  "631",    -- max_line_length
+  "631", -- max_line_length
 }
 read_globals = {
   "vim",
   "describe",
   "it",
-  "assert"
+  "after_each",
+  "assert",
 }

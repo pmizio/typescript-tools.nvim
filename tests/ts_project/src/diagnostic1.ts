@@ -1,5 +1,7 @@
+import { num } from 'diagnostic2';
+
 function test() {
-  const str: string = 1;
+  const str: string = num;
 }
 
-test()
+test();

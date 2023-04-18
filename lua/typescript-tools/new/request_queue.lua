@@ -6,6 +6,10 @@ local CONST_QUEUE_REQUESTS = {
   c.LspMethods.DidClose,
 }
 
+---@class RequestOptions
+---@field schedule boolean|nil
+---@field wait_for_all boolean|nil
+
 ---@class RequestContainer
 ---@field seq number
 ---@field synthetic_seq string|nil
@@ -14,7 +18,7 @@ local CONST_QUEUE_REQUESTS = {
 ---@field handler thread|false|nil
 ---@field callback LspCallback
 ---@field notify_reply_callback function|nil
----@field wait_for_all boolean|nil
+---@field request_options RequestOptions
 
 ---@class RequestQueue
 ---@field seq number
