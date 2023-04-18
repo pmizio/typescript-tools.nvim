@@ -4,6 +4,10 @@ local methods = require("typescript-tools.protocol.constants").LspMethods
 local customMethods = require("typescript-tools.protocol.constants").CustomMethods
 
 describe("Lsp request", function()
+  after_each(function()
+    -- INFO: close all buffers
+    vim.cmd "silent 1,$bd!"
+  end)
   it("should return correct response for " .. methods.Hover, function()
     utils.open_file "src/index.ts"
     utils.wait_for_lsp_initialization()

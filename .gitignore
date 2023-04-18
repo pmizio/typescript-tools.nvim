@@ -1,3 +1,4 @@
+.tests/
 tmp/
 tests/ts_project/node_modules
 
