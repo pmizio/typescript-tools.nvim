@@ -1,5 +1,6 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
+local protocol = require "typescript-tools.new.protocol"
 
 --- @param kind string
 --- @return CodeActionKind|nil
@@ -91,7 +92,7 @@ local function code_action_creator(_, params)
       end
     end
 
-    body = coroutine.yield()
+    body = coroutine.yield(protocol.multi_response)
 
     -- tsserver protocol reference:
     -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L585
@@ -113,7 +114,7 @@ local function code_action_creator(_, params)
     return code_actions
   end
 
-  return requests, handler, { wait_for_all = true }
+  return requests, handler, { collect_all = true }
 end
 
 return code_action_creator

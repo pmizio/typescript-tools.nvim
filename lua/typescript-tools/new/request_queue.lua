@@ -8,7 +8,6 @@ local CONST_QUEUE_REQUESTS = {
 
 ---@class RequestOptions
 ---@field schedule boolean|nil
----@field wait_for_all boolean|nil
 
 ---@class RequestContainer
 ---@field seq number
@@ -74,18 +73,17 @@ function RequestQueue:enqueue(request)
 end
 
 ---@param requests RequestContainer[]
----@param wait_for_all boolean|nil
-function RequestQueue:enqueue_all(requests, wait_for_all)
+---@param collect_all boolean|nil
+function RequestQueue:enqueue_all(requests, collect_all)
   local seq = {}
 
   local last_request
   for _, request in ipairs(requests) do
-    request.wait_for_all = wait_for_all
     table.insert(seq, self:enqueue(request))
     last_request = request
   end
 
-  if wait_for_all then
+  if collect_all then
     last_request.synthetic_seq = table.concat(seq, "_")
     return last_request.synthetic_seq
   end

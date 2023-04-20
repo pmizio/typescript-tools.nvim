@@ -1,5 +1,6 @@
 local c = require "typescript-tools.protocol.constants"
 local make_capabilities = require "typescript-tools.capabilities"
+local protocol = require "typescript-tools.new.protocol"
 
 ---@type TsserverRequest
 local configuration = {
@@ -13,7 +14,6 @@ local configuration = {
     },
     watchOptions = {},
   },
-  skip_response = true,
 }
 
 ---@type TsserverRequest
@@ -45,6 +45,7 @@ local function initialize_creator()
 
   ---@return table
   local function handler()
+    coroutine.yield(protocol.multi_response)
     return { capabilities = make_capabilities() }
   end
 

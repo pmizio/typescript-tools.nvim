@@ -4,8 +4,10 @@ local RequestQueue = require "typescript-tools.new.request_queue"
 local handle_progress = require "typescript-tools.new.protocol.progress"
 local module_mapper = require "typescript-tools.new.protocol.module_mapper"
 local c = require "typescript-tools.protocol.constants"
+local protocol = require "typescript-tools.new.protocol"
 
 ---@class PendingRequest: RequestContainer
+---@field schedule boolean|nil
 ---@field cancelled boolean|nil
 
 ---@class Tsserver
@@ -42,29 +44,30 @@ end
 ---@param seq number
 ---@param response table
 ---@param request_metadata PendingRequest
----@param is_diagnostic_event boolean
-function Tsserver:invoke_response_handler(seq, response, request_metadata, is_diagnostic_event)
-  ---@diagnostic disable-next-line: param-type-mismatch
+function Tsserver:invoke_response_handler(seq, response, request_metadata)
   local handler = request_metadata.handler
   local callback = request_metadata.callback
   local notify_reply_callback = request_metadata.notify_reply_callback
   local ok, handler_success, result =
     pcall(coroutine.resume, handler, response.body or response, response.command or response.event)
 
-  if is_diagnostic_event then
+  -- INFO: request don't have equvalent in lsp or need multiple responses - just skip
+  if not ok or not handler or result == protocol.multi_response then
+    self.pending_requests[seq] = nil
     return
+  end
+
+  -- INFO: request isn't done yet
+  if coroutine.status(handler) ~= "dead" then
+    return
+  end
+
+  -- INFO: diagnstic collection is done
+  if response.event == c.DiagnosticEventKind.RequestCompleted then
+    self.pending_diagnostic_seq = nil
   end
 
   self.pending_requests[seq] = nil
-
-  local wait_for_all = request_metadata.request_options.wait_for_all
-    and handler
-    and coroutine.status(handler) ~= "dead"
-
-  if not ok or wait_for_all or is_diagnostic_event then
-    -- INFO: request don't have equvalent in lsp - just skip response
-    return
-  end
 
   vim.schedule(function()
     if notify_reply_callback then
@@ -111,19 +114,15 @@ function Tsserver:handle_response(response)
     return
   end
 
-  if response.event == c.DiagnosticEventKind.RequestCompleted then
-    self.pending_diagnostic_seq = nil
-  end
-
-  if request_metadata.request_options.schedule then
+  if request_metadata.schedule then
     vim.schedule(function()
-      self:invoke_response_handler(seq, response, request_metadata, is_diagnostic_event)
+      self:invoke_response_handler(seq, response, request_metadata)
       self:send_queued_requests()
     end)
     return
   end
 
-  self:invoke_response_handler(seq, response, request_metadata, is_diagnostic_event)
+  self:invoke_response_handler(seq, response, request_metadata)
   self:send_queued_requests()
 end
 
@@ -161,7 +160,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
       callback = callback,
       notify_reply_callback = notify_reply_callback,
       priority = self.request_queue:get_queueing_type(method),
-      request_options = opts,
+      schedule = opts.schedule,
     }
   end
 
@@ -176,7 +175,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   if vim.tbl_islist(requests) then
     seq = self.request_queue:enqueue_all(
       vim.tbl_map(make_request_container, requests),
-      opts.wait_for_all
+      opts.collect_all
     )
   else
     seq = self.request_queue:enqueue(make_request_container(requests))
