@@ -1,5 +1,5 @@
-local c = require "typescript-tools.protocol.constants"
-local utils = require "typescript-tools.protocol.utils"
+local c = require "typescript-tools.new.protocol.constants"
+local utils = require "typescript-tools.new.protocol.utils"
 
 ---@param code_actions table
 ---@return table|nil

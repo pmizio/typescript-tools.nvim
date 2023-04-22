@@ -1,15 +1,15 @@
 local api = vim.api
 local util = require "lspconfig.util"
 local configs = require "lspconfig.configs"
-local plugin_config = require "typescript-tools.new.config"
 local Path = require "plenary.path"
 
-local c = require "typescript-tools.protocol.constants"
+local plugin_config = require "typescript-tools.new.config"
+local c = require "typescript-tools.new.protocol.constants"
 local Tsserver = require "typescript-tools.new.tsserver"
 local autocommands = require "typescript-tools.new.autocommands"
 local custom_handlers = require "typescript-tools.new.custom_handlers"
 local request_router = require "typescript-tools.new.request_router"
-local internal_commands = require "typescript-tools.internal_commands"
+local internal_commands = require "typescript-tools.new.internal_commands"
 
 local M = {}
 

@@ -1,4 +1,4 @@
-local c = require "typescript-tools.protocol.constants"
+local c = require "typescript-tools.new.protocol.constants"
 local make_capabilities = require "typescript-tools.capabilities"
 local protocol = require "typescript-tools.new.protocol"
 

@@ -1,7 +1,7 @@
-local c = require "typescript-tools.protocol.constants"
+local c = require "typescript-tools.new.protocol.constants"
 local item_kind_utils =
   require "typescript-tools.new.protocol.text_document.completion.item_kind_utils"
-local utils = require "typescript-tools.protocol.utils"
+local utils = require "typescript-tools.new.protocol.utils"
 
 ---@param replacement_span table
 ---@param new_text string

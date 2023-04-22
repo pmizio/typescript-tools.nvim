@@ -3,7 +3,7 @@ local Process = require "typescript-tools.new.process"
 local RequestQueue = require "typescript-tools.new.request_queue"
 local handle_progress = require "typescript-tools.new.protocol.progress"
 local module_mapper = require "typescript-tools.new.protocol.module_mapper"
-local c = require "typescript-tools.protocol.constants"
+local c = require "typescript-tools.new.protocol.constants"
 local protocol = require "typescript-tools.new.protocol"
 
 ---@class PendingRequest: RequestContainer

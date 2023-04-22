@@ -1,5 +1,5 @@
-local c = require "typescript-tools.protocol.constants"
-local api = require "typescript-tools.api"
+local c = require "typescript-tools.new.protocol.constants"
+local api = require "typescript-tools.new.api"
 
 local M = {}
 
