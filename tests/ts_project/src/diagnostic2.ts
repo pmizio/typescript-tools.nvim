@@ -1,1 +1,3 @@
-export const num = 1;
+import { str } from "./diagnostic1";
+
+const num: number = str;

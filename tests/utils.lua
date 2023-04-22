@@ -10,24 +10,34 @@ function M.wait_for_lsp_initialization()
   end
 end
 
-function M.open_file(file)
+---@param file string
+---@param command string|nil
+function M.open_file(file, command)
+  command = command or "e"
+
   local cwd = vim.fn.getcwd()
 
   if not string.find(cwd, "ts_project", 1, true) then
     vim.cmd ":cd tests/ts_project"
   end
 
-  vim.cmd(":e " .. file)
+  vim.cmd(command .. " " .. file)
 end
 
 function M.get_text_document()
   return { uri = vim.uri_from_bufnr(0) }
 end
 
+---@param line number
+---@param character number
 function M.make_position(line, character)
   return { line = line, character = character }
 end
 
+---@param start_line number
+---@param start_character number
+---@param end_line number
+---@param end_character number
 function M.make_range(start_line, start_character, end_line, end_character)
   return {
     start = M.make_position(start_line, start_character),
