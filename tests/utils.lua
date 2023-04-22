@@ -24,12 +24,14 @@ function M.open_file(file, command)
   vim.cmd(command .. " " .. file)
 end
 
+---@return TextDocument
 function M.get_text_document()
   return { uri = vim.uri_from_bufnr(0) }
 end
 
 ---@param line number
 ---@param character number
+---@return LspPosition
 function M.make_position(line, character)
   return { line = line, character = character }
 end
@@ -38,6 +40,7 @@ end
 ---@param start_character number
 ---@param end_line number
 ---@param end_character number
+---@return LspRange
 function M.make_range(start_line, start_character, end_line, end_character)
   return {
     start = M.make_position(start_line, start_character),
@@ -45,6 +48,8 @@ function M.make_range(start_line, start_character, end_line, end_character)
   }
 end
 
+---@param options table<string, any>
+---@return any
 function M.tsv(options)
   return options[vim.env.TEST_TYPESCRIPT_VERSION] or options.default
 end

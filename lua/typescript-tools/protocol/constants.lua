@@ -289,6 +289,7 @@ return {
     TriggerCharacter = 2,
     ContentChange = 3,
   },
+  ---@enum SymbolKind
   SymbolKind = {
     File = 1,
     Module = 2,

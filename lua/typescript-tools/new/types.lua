@@ -16,3 +16,34 @@
 ---@field arguments table
 
 ---@alias ServerType "syntax"|"diagnostic"
+
+---@class LspPosition
+---@field line number
+---@field character number
+--
+---@class TssPosition
+---@field line number
+---@field offset number
+
+---@class LspRange
+---@field start LspPosition
+---@field end LspPosition
+
+---@class TssRange
+---@field start TssPosition
+---@field end TssPosition
+
+---@class LspEdit
+---@field newText string
+---@field range LspRange
+
+---@class CallHierarchyItem
+---@field name string
+---@field kind SymbolKind
+---@field uri string
+---@field range LspRange
+---@field selectionRange LspRange
+
+---@class TextDocument
+---@field uri string
+---@field languageId string|nil
