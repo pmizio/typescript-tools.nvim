@@ -1,13 +1,16 @@
 local utils = require "tests.utils"
 local lsp_assert = require "tests.lsp_asserts"
-local methods = require("typescript-tools.protocol.constants").LspMethods
-local customMethods = require("typescript-tools.protocol.constants").CustomMethods
+local mocks = require "tests.mocks"
+local c = require "typescript-tools.protocol.constants"
+local methods = c.LspMethods
+local customMethods = c.CustomMethods
 
 describe("Lsp request", function()
   after_each(function()
     -- INFO: close all buffers
     vim.cmd "silent 1,$bd!"
   end)
+
   it("should return correct response for " .. methods.Hover, function()
     utils.open_file "src/index.ts"
     utils.wait_for_lsp_initialization()
@@ -397,5 +400,42 @@ describe("Lsp request", function()
     assert.is.table(fileTextEdits)
     assert.is.same(1, #fileTextEdits)
     assert.are.same("import { export1 } from './exports'\n", fileTextEdits[1].newText)
+  end)
+
+  it("should return correct response for " .. methods.CodeAction, function()
+    utils.open_file "src/code_actions.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.CodeAction, {
+      textDocument = utils.get_text_document(),
+      range = utils.make_range(1, 0, 1, 0),
+      context = mocks.mocked_code_action_context,
+    })
+
+    local result = lsp_assert.response(ret)
+    assert.is.same(3, #result)
+    assert.is.same(result[1].title, "Organize imports")
+    assert.is.same(result[2].title, "Sort imports")
+    assert.is.same(result[3].title, "Remove variable statement")
+  end)
+
+  it("should return correct response for " .. methods.CodeActionResolve, function()
+    utils.open_file "src/code_actions.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.CodeActionResolve, {
+      kind = c.CodeActionKind.SourceOrganizeImports,
+      data = {
+        scope = {
+          type = "file",
+          args = { file = vim.fn.getcwd() .. "/src/code_actions.ts" },
+        },
+        skipDestructiveCodeActions = false,
+      },
+    })
+
+    local result = lsp_assert.response(ret)
+    assert.is.table(result.edit)
+    assert.is.table(result.edit.changes)
   end)
 end)
