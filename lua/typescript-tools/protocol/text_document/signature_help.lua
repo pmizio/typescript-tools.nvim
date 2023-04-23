@@ -103,6 +103,7 @@ local function signature_help_creator(_, params)
   ---@param body table
   ---@return table
   local function handler(body)
+    P(body)
     return {
       signatures = make_signatures(body.items),
       activeSignature = body.selectedItemIndex,

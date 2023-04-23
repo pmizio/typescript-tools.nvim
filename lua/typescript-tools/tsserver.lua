@@ -46,8 +46,9 @@ end
 ---@param request_metadata PendingRequest
 function Tsserver:invoke_response_handler(seq, response, request_metadata)
   local handler = request_metadata.handler
-  local callback = request_metadata.callback
+  local callback = request_metadata.callback and vim.schedule_wrap(request_metadata.callback)
   local notify_reply_callback = request_metadata.notify_reply_callback
+    and vim.schedule_wrap(request_metadata.notify_reply_callback)
   local ok, handler_success, result =
     pcall(coroutine.resume, handler, response.body or response, response.command or response.event)
 
@@ -67,21 +68,19 @@ function Tsserver:invoke_response_handler(seq, response, request_metadata)
     self.pending_diagnostic_seq = nil
   end
 
+  if notify_reply_callback then
+    notify_reply_callback(request_metadata.synthetic_seq or seq)
+  end
+
+  if callback then
+    if handler_success then
+      callback(nil, result)
+    else
+      callback(result, result)
+    end
+  end
+
   self.pending_requests[seq] = nil
-
-  vim.schedule(function()
-    if notify_reply_callback then
-      notify_reply_callback(request_metadata.synthetic_seq or seq)
-    end
-
-    if callback then
-      if handler_success then
-        callback(nil, result)
-      else
-        callback(result, result)
-      end
-    end
-  end)
 end
 
 ---@param response table

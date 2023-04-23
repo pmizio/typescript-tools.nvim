@@ -42,9 +42,7 @@ vim.lsp.handlers["$/progress"] = function(...)
   old_handler(...)
 end
 
-require("typescript-tools").setup {
-  on_attach = function() end,
-}
+require("typescript-tools").setup {}
 
 function P(arg)
   print(vim.inspect(arg))

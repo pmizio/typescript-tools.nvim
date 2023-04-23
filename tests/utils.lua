@@ -5,15 +5,18 @@ function M.wait_for_lsp_initialization()
     vim.wait(10000, function()
       return _G.initialized
     end, 10)
+
     -- to be sure everything is setup correctly wait a bit
     vim.wait(1000)
   end
+
+  vim.wait(1000)
 end
 
 ---@param file string
----@param command string|nil
-function M.open_file(file, command)
-  command = command or "e"
+---@param mode string|nil
+function M.open_file(file, mode)
+  mode = mode or "e"
 
   local cwd = vim.fn.getcwd()
 
@@ -21,7 +24,7 @@ function M.open_file(file, command)
     vim.cmd ":cd tests/ts_project"
   end
 
-  vim.cmd(command .. " " .. file)
+  vim.cmd(":" .. mode .. " " .. file)
 end
 
 ---@return TextDocument
@@ -52,6 +55,12 @@ end
 ---@return any
 function M.tsv(options)
   return options[vim.env.TEST_TYPESCRIPT_VERSION] or options.default
+end
+
+---@param version string
+---@return boolean
+function M.is_typescript_version(version)
+  return vim.env.TEST_TYPESCRIPT_VERSION == version
 end
 
 return M
