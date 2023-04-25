@@ -57,11 +57,11 @@ local function batch_diagnostics_creator(_, params)
     repeat
       local file = body.file and vim.uri_from_fname(body.file)
 
-      if not cache[file] then
+      if file and not cache[file] then
         cache[file] = {}
       end
 
-      for _, diagnostic in pairs(body.diagnostics) do
+      for _, diagnostic in pairs(body.diagnostics or {}) do
         table.insert(cache[file], {
           message = diagnostic.text,
           source = SOURCE,
