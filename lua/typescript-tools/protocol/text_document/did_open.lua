@@ -97,4 +97,18 @@ local function did_open_creator(_, params)
   }
 end
 
-return did_open_creator
+-- return did_open_creator
+
+local M = {}
+
+function M.handler(request, _, params)
+  request(configure(params))
+  request(open_request(params))
+
+  -- INFO: skip first response
+  coroutine.yield()
+
+  return true
+end
+
+return M

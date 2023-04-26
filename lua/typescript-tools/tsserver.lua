@@ -28,6 +28,7 @@ function Tsserver:new(path, type, dispatchers)
   local obj = {
     request_queue = RequestQueue:new(),
     pending_requests = {},
+    requests_metadata = {},
     dispatchers = dispatchers,
   }
 
@@ -41,87 +42,31 @@ function Tsserver:new(path, type, dispatchers)
   return obj
 end
 
----@param seq number
----@param response table
----@param request_metadata PendingRequest
-function Tsserver:invoke_response_handler(seq, response, request_metadata)
-  local handler = request_metadata.handler
-  local callback = request_metadata.callback and vim.schedule_wrap(request_metadata.callback)
-  local notify_reply_callback = request_metadata.notify_reply_callback
-    and vim.schedule_wrap(request_metadata.notify_reply_callback)
-  local ok, handler_success, result =
-    pcall(coroutine.resume, handler, response.body or response, response.command or response.event)
-
-  -- INFO: request don't have equvalent in lsp or need multiple responses - just skip
-  if not ok or not handler or result == protocol.multi_response then
-    self.pending_requests[seq] = nil
-    return
-  end
-
-  -- INFO: request isn't done yet
-  if coroutine.status(handler) ~= "dead" then
-    return
-  end
-
-  -- INFO: diagnstic collection is done
-  if response.event == c.DiagnosticEventKind.RequestCompleted then
-    self.pending_diagnostic_seq = nil
-  end
-
-  if notify_reply_callback then
-    notify_reply_callback(request_metadata.synthetic_seq or seq)
-  end
-
-  if callback then
-    if handler_success then
-      callback(nil, result)
-    else
-      callback(result, result)
-    end
-  end
-
-  self.pending_requests[seq] = nil
-end
-
 ---@param response table
 function Tsserver:handle_response(response)
   local seq = response.request_seq
-  local is_diagnostic_event = self:is_diagnostic_event(response)
 
-  -- INFO: seq in requestCompleted tsserver command
-  if not seq and type(response.body) == "table" then
-    seq = response.body.request_seq
-  end
-
-  -- INFO: seq for diagnostic events
-  if not seq and is_diagnostic_event then
-    seq = self.pending_diagnostic_seq
-  end
+  P(response)
 
   handle_progress(response, self.dispatchers)
 
-  local request_metadata = self.pending_requests[seq]
-
-  if not seq or not request_metadata then
+  if not seq then
     return
   end
 
-  self:dispatch_update_event(request_metadata.method, response)
+  local metadata = self.requests_metadata[seq]
 
-  if request_metadata.cancelled then
-    self.pending_requests[seq] = nil
+  if not metadata then
     return
   end
 
-  if request_metadata.schedule then
-    vim.schedule(function()
-      self:invoke_response_handler(seq, response, request_metadata)
-      self:send_queued_requests()
-    end)
-    return
-  end
+  local handler = metadata.handler
 
-  self:invoke_response_handler(seq, response, request_metadata)
+  coroutine.resume(handler, response.body or response)
+
+  self.pending_requests[seq] = nil
+  self.requests_metadata[seq] = nil
+
   self:send_queued_requests()
 end
 
@@ -132,63 +77,56 @@ end
 function Tsserver:handle_request(method, params, callback, notify_reply_callback)
   local module = module_mapper.map_method_to_module(method)
 
-  print(method, module)
+  local ok, handler_module = pcall(require, "typescript-tools.protocol." .. module)
 
-  local ok, request_creator = pcall(require, "typescript-tools.protocol." .. module)
-  if not ok then
-    -- TODO: log message
-    P(request_creator)
+  if not ok or type(handler_module) ~= "table" then
+    print(method, module)
+    P(handler_module)
     return
   end
 
-  ---@type TsserverRequest | TsserverRequest[], function | nil
-  local requests, handler_fn, opts = request_creator(method, params)
-  opts = opts or {}
-  local handler_coroutine = handler_fn and coroutine.create(handler_fn)
+  local handler = coroutine.create(handler_module.handler)
 
-  ---@param request table
-  ---@return RequestContainer
-  local function make_request_container(request)
-    local copy = vim.tbl_extend("force", {}, request)
-    copy.skip_response = nil
-
-    return {
+  local function request(tsseever_request)
+    return self.request_queue:enqueue {
       method = method,
-      handler = not request.skip_response and handler_coroutine,
-      request = copy,
-      callback = callback,
-      notify_reply_callback = notify_reply_callback,
-      priority = self.request_queue:get_queueing_type(method),
-      schedule = opts.schedule,
+      handler = handler,
+      request = tsseever_request,
+      interrupt_diagnostic = handler_module.interrupt_diagnostic,
     }
   end
 
-  local pending_diagnostic = self.pending_requests[self.pending_diagnostic_seq]
-  if pending_diagnostic then
-    self.request_queue:clear_diagnostics()
-    pending_diagnostic.cancelled = true
-    self.process:cancel(self.pending_diagnostic_seq)
+  local function response(seq, lsp_response, error)
+    local notify_reply = notify_reply_callback and vim.schedule_wrap(notify_reply_callback)
+    local response_callback = callback and vim.schedule_wrap(callback)
+
+    if notify_reply then
+      notify_reply(seq)
+    end
+
+    if response_callback then
+      if error then
+        response_callback(error, error)
+      else
+        response_callback(nil, lsp_response)
+
+        return true
+      end
+    end
+
+    return false
   end
 
-  local seq
-  if vim.tbl_islist(requests) then
-    seq = self.request_queue:enqueue_all(
-      vim.tbl_map(make_request_container, requests),
-      opts.collect_all
-    )
-  else
-    seq = self.request_queue:enqueue(make_request_container(requests))
-  end
+  coroutine.resume(handler, request, response, params)
 
   self:send_queued_requests()
-
-  return seq
 end
 
 ---@private
 function Tsserver:send_queued_requests()
   while vim.tbl_isempty(self.pending_requests) and not self.request_queue:is_empty() do
     local item = self.request_queue:dequeue()
+    -- P(item)
     if not item then
       return
     end
@@ -198,13 +136,12 @@ function Tsserver:send_queued_requests()
       type = "request",
     }, item.request)
 
-    self.process:send(request)
+    self.process:write(request)
 
-    if item.method == c.CustomMethods.BatchDiagnostics then
-      self.pending_diagnostic_seq = request.seq
-    end
+    self.pending_requests[item.seq] = true
+    self.requests_metadata[item.seq] = item
 
-    self.pending_requests[request.seq] = item --[[@as PendingRequest]]
+    -- TODO:
   end
 end
 
@@ -222,21 +159,6 @@ function Tsserver:dispatch_update_event(method, data)
       data = data,
     })
   end)
-end
-
----@private
----@param response table
----@return boolean
-function Tsserver:is_diagnostic_event(response)
-  if response.type ~= "event" then
-    return false
-  end
-
-  local event = response.event
-
-  return event == c.DiagnosticEventKind.SyntaxDiag
-    or event == c.DiagnosticEventKind.SemanticDiag
-    or event == c.DiagnosticEventKind.SuggestionDiag
 end
 
 function Tsserver:terminate()

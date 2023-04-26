@@ -52,4 +52,17 @@ local function initialize_creator()
   return requests, handler
 end
 
-return initialize_creator
+--return initialize_creator
+
+local M = {}
+
+function M.handler(request, response)
+  request(configuration)
+  local seq = request(initial_compiler_options)
+  -- INFO: skip first response
+  coroutine.yield()
+
+  return response(seq, { capabilities = make_capabilities() })
+end
+
+return M

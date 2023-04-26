@@ -179,7 +179,7 @@ function Process:close_pipes()
 end
 
 ---@param request table
-function Process:send(request)
+function Process:write(request)
   local serialized_request = vim.json.encode(request)
   if not serialized_request then
     -- TODO: propper error log here
