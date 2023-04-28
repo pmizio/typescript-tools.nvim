@@ -163,4 +163,29 @@ function M.convert_tsserver_call_hierarchy_item_to_lsp(item)
   }
 end
 
+---@param command CommandTypes
+---@param params table
+---@return TsserverRequest
+function M.tsserver_location_request(command, params)
+  local text_document = params.textDocument
+
+  return {
+    command = command,
+    arguments = vim.tbl_extend("force", {
+      file = vim.uri_to_fname(text_document.uri),
+    }, M.convert_lsp_position_to_tsserver(params.position)),
+  }
+end
+
+---@param locations table
+---@return table
+function M.tsserver_location_response(locations)
+  return vim.tbl_map(function(location)
+    return {
+      uri = vim.uri_from_fname(location.file),
+      range = M.convert_tsserver_range_to_lsp(location),
+    }
+  end, locations)
+end
+
 return M
