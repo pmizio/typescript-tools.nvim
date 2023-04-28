@@ -1,6 +1,8 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
+local M = {}
+
 ---@param new_text string
 ---@param loc table
 ---@return string
@@ -38,16 +40,13 @@ local function convert_tsserver_locs_to_changes(new_text, locs)
   return edits_per_file
 end
 
----@param _ string
----@param params table
----@return TsserverRequest | TsserverRequest[], function|nil
-local function rename_creator(_, params)
+---@type TsserverProtocolHandler
+function M.handler(request, response, params)
   local text_document = params.textDocument
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L930
-  ---@type TsserverRequest
-  local request = {
+  request {
     command = c.CommandTypes.Rename,
     arguments = vim.tbl_extend("force", {
       file = vim.uri_to_fname(text_document.uri),
@@ -57,21 +56,17 @@ local function rename_creator(_, params)
     }, utils.convert_lsp_position_to_tsserver(params.position)),
   }
 
+  local body = coroutine.yield()
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L993
-  ---@param body table
-  ---@return table|nil
-  local function handler(body)
-    if not body.info.canRename then
-      return nil
-    end
-
-    return {
-      changes = convert_tsserver_locs_to_changes(params.newName, body.locs),
-    }
+  if not body.info.canRename then
+    return response(nil)
   end
 
-  return request, handler
+  return response {
+    changes = convert_tsserver_locs_to_changes(params.newName, body.locs),
+  }
 end
 
-return rename_creator
+return M

@@ -82,7 +82,9 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
   local handler = coroutine.create(handler_module.handler)
 
-  local handler_context = {}
+  local handler_context = {
+    method = method,
+  }
 
   function handler_context.request(request)
     handler_context.seq = self.request_queue:enqueue {

@@ -1,6 +1,8 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
+local M = {}
+
 ---@param context table
 ---@return SignatureHelpTriggerReason
 local function tsserver_reason_to_lsp_kind(context)
@@ -81,16 +83,13 @@ local function make_signatures(items)
   end, items)
 end
 
----@param _ string
----@param params table
----@return TsserverRequest | TsserverRequest[], function|nil
-local function signature_help_creator(_, params)
+---@type TsserverProtocolHandler
+function M.handler(request, response, params)
   local text_document = params.textDocument
   local context = params.context
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/96894db6cb5b7af6857b4d0c7f70f7d8ac782d51/lib/protocol.d.ts#L1973
-  ---@type TsserverRequest
-  local request = {
+  request {
     command = c.CommandTypes.SignatureHelp,
     arguments = vim.tbl_extend("force", {
       file = vim.uri_to_fname(text_document.uri),
@@ -98,20 +97,15 @@ local function signature_help_creator(_, params)
     }, utils.convert_lsp_position_to_tsserver(params.position)),
   }
 
+  local body = coroutine.yield()
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/96894db6cb5b7af6857b4d0c7f70f7d8ac782d51/lib/protocol.d.ts#L1980
-  ---@param body table
-  ---@return table
-  local function handler(body)
-    P(body)
-    return {
-      signatures = make_signatures(body.items),
-      activeSignature = body.selectedItemIndex,
-      activeParameter = body.argumentIndex,
-    }
-  end
-
-  return request, handler
+  return response {
+    signatures = make_signatures(body.items),
+    activeSignature = body.selectedItemIndex,
+    activeParameter = body.argumentIndex,
+  }
 end
 
-return signature_help_creator
+return M

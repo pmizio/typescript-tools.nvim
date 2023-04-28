@@ -1,6 +1,8 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
+local M = {}
+
 --- @param symbols table
 --- @return table
 local function remove_aliases(symbols)
@@ -22,34 +24,27 @@ local function map_document_symbol(item)
   }
 end
 
----@param _ string
----@param params table
----@return TsserverRequest | TsserverRequest[], function|nil
-local function document_symbol_creator(_, params)
+---@type TsserverProtocolHandler
+function M.handler(request, response, params)
   local text_document = params.textDocument
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L1440
-  ---@type TsserverRequest
-  local request = {
+  request {
     command = c.CommandTypes.NavTree,
     arguments = {
       file = vim.uri_to_fname(text_document.uri),
     },
   }
 
+  local body = coroutine.yield()
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L2561
-  ---@param body table
-  ---@return table|nil
-  local function handler(body)
-    if #body.childItems == 0 then
-      return nil
-    end
-
-    return vim.tbl_map(map_document_symbol, remove_aliases(body.childItems))
+  if #body.childItems == 0 then
+    return response(nil)
   end
 
-  return request, handler
+  return response(vim.tbl_map(map_document_symbol, remove_aliases(body.childItems)))
 end
 
-return document_symbol_creator
+return M
