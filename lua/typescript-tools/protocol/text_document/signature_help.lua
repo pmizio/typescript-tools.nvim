@@ -101,7 +101,7 @@ function M.handler(request, response, params)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/96894db6cb5b7af6857b4d0c7f70f7d8ac782d51/lib/protocol.d.ts#L1980
-  return response {
+  response {
     signatures = make_signatures(body.items),
     activeSignature = body.selectedItemIndex,
     activeParameter = body.argumentIndex,

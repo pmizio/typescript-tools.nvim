@@ -52,7 +52,7 @@ end
 function M.handler(request, response, params)
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/549e61d0af1ba885be29d69f341e7d3a00686071/lib/protocol.d.ts#L1661
-  local seq = request(completion_resolve_request(params))
+  request(completion_resolve_request(params))
 
   local body = coroutine.yield()
 
@@ -74,7 +74,7 @@ function M.handler(request, response, params)
       detail = "Auto import from " .. utils.tsserver_docs_to_plain_text(source) .. "\n" .. detail
     end
 
-    return response(vim.tbl_extend("force", params, {
+    response(vim.tbl_extend("force", params, {
       detail = detail,
       documentation = {
         kind = c.MarkupKind.Markdown,
@@ -85,7 +85,7 @@ function M.handler(request, response, params)
       -- or neovim even handle that for now i skip this
     }))
   else
-    return response(nil)
+    response(nil)
   end
 end
 

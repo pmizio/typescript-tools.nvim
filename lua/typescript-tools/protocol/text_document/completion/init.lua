@@ -91,8 +91,6 @@ function M.handler(request, response, params)
       }
     end, body.entries or {}),
   }
-
-  return true
 end
 
 return M

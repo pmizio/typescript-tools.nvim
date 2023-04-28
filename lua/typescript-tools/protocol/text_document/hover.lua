@@ -33,7 +33,7 @@ function M.handler(request, response, params)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L1453
-  return response {
+  response {
     contents = contents,
     range = utils.convert_tsserver_range_to_lsp(body),
   }

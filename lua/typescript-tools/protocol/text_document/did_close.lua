@@ -16,8 +16,6 @@ function M.handler(request, _, params)
       changedFiles = {},
     },
   }
-
-  return true
 end
 
 return M

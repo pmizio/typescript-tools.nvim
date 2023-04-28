@@ -1,6 +1,5 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
-local protocol = require "typescript-tools.protocol"
 
 local M = {}
 
@@ -109,7 +108,7 @@ function M.handler(request, response, params, ctx)
     })
   end
 
-  return response(code_actions)
+  response(code_actions)
 end
 
 return M

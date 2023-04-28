@@ -24,7 +24,7 @@
 ---@field request TsserverRequestFn
 ---@field response LspResponseFn
 
----@alias TsserverProtocolHandler fun(request: TsserverRequest, response: LspResponseFn, params: table, context: TsserverHandlerContext): boolean
+---@alias TsserverProtocolHandler fun(request: TsserverRequest, response: LspResponseFn, params: table, context: TsserverHandlerContext): nil
 
 ---@alias ServerType "syntax"|"diagnostic"
 

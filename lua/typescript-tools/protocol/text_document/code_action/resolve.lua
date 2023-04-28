@@ -41,7 +41,7 @@ function M.handler(request, response, params)
   -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L508
   -- GetEditsForRefactor:
   -- https://github.com/microsoft/TypeScript/blob/b0795e9c94757a8ee78077d160cde8819a9801ea/lib/protocol.d.ts#L481
-  return response {
+  response {
     title = params.data.refactor,
     kind = params.data.kind,
     edit = {

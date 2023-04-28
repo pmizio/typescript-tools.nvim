@@ -76,8 +76,6 @@ function M.handler(request, response, params)
       return as_folding_range(range, requested_bufnr)
     end, body))
   end)
-
-  return true
 end
 
 return M

@@ -61,10 +61,10 @@ function M.handler(request, response, params)
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L993
   if not body.info.canRename then
-    return response(nil)
+    response(nil)
   end
 
-  return response {
+  response {
     changes = convert_tsserver_locs_to_changes(params.newName, body.locs),
   }
 end

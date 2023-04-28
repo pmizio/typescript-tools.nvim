@@ -4,7 +4,6 @@ local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.protocol.progress"
 local module_mapper = require "typescript-tools.protocol.module_mapper"
 local c = require "typescript-tools.protocol.constants"
-local protocol = require "typescript-tools.protocol"
 
 ---@class Tsserver
 ---@field process Process
@@ -43,6 +42,11 @@ end
 function Tsserver:handle_response(response)
   local seq = response.request_seq
 
+  -- INFO: seq in requestCompleted tsserver command
+  if not seq and type(response.body) == "table" then
+    seq = response.body.request_seq
+  end
+
   handle_progress(response, self.dispatchers)
 
   if not seq then
@@ -57,7 +61,7 @@ function Tsserver:handle_response(response)
 
   local handler = metadata.handler
 
-  coroutine.resume(handler, response.body or response)
+  coroutine.resume(handler, response.body or response, response.command or response.event)
 
   self.pending_requests[seq] = nil
   self.requests_metadata[seq] = nil
@@ -77,6 +81,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   if not ok or type(handler_module) ~= "table" then
     print(method, module)
     P(handler_module)
+    P(params)
     return
   end
 
@@ -113,12 +118,8 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
         response_callback(error, error)
       else
         response_callback(nil, response)
-
-        return true
       end
     end
-
-    return false
   end
 
   coroutine.resume(
@@ -143,12 +144,11 @@ function Tsserver:send_queued_requests()
     end
 
     local seq = item.context.seq
-    local request = vim.tbl_extend("force", {
+
+    self.process:write(vim.tbl_extend("force", {
       seq = seq,
       type = "request",
-    }, item.request)
-
-    self.process:write(request)
+    }, item.request))
 
     self.pending_requests[seq] = true
     self.requests_metadata[seq] = item

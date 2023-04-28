@@ -21,10 +21,10 @@ function M.handler(request, response, params)
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/2da62a784bbba237b8239e84c8629cfafb0f595e/lib/protocol.d.ts#L2409
   if not body then
-    return response {}
+    response {}
   end
 
-  return response(vim.tbl_map(function(item)
+  response(vim.tbl_map(function(item)
     return {
       name = item.name,
       kind = utils.get_lsp_symbol_kind(item.kind),

@@ -44,8 +44,6 @@ function M.handler(request, _, params)
       openFiles = {},
     },
   }
-
-  return true
 end
 
 return M

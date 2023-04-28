@@ -13,7 +13,7 @@ function M.handler(request, response, params)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L755
-  return response(utils.tsserver_location_response(body))
+  response(utils.tsserver_location_response(body))
 end
 
 return M

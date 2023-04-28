@@ -99,8 +99,6 @@ function M.handler(request, _, params)
 
   -- INFO: skip first response
   coroutine.yield()
-
-  return true
 end
 
 return M

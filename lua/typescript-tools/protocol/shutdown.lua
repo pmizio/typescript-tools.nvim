@@ -7,8 +7,6 @@ local M = {}
 ---@TsserverProtocolHandler
 function M.handler(request)
   request { command = c.CommandTypes.Exit }
-
-  return true
 end
 
 return M

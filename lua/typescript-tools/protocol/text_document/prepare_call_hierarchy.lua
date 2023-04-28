@@ -20,7 +20,7 @@ function M.handler(request, response, params)
   local body = coroutine.yield()
   body = vim.tbl_islist(body) and body or { body }
 
-  return response(vim.tbl_map(function(it)
+  response(vim.tbl_map(function(it)
     return utils.convert_tsserver_call_hierarchy_item_to_lsp(it)
   end, body))
 end

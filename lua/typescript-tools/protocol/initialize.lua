@@ -39,14 +39,12 @@ local initial_compiler_options = {
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response)
-  -- local request = ctx.request
-
   request(configuration)
   request(initial_compiler_options)
   -- INFO: skip first response
   coroutine.yield()
 
-  return response { capabilities = make_capabilities() }
+  response { capabilities = make_capabilities() }
 end
 
 return M

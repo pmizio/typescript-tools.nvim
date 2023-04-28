@@ -29,10 +29,10 @@ function M.handler(request, response, params)
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L844
   if not body[1] then
-    return response(nil)
+    response(nil)
   end
 
-  return response(vim.tbl_map(function(item)
+  response(vim.tbl_map(function(item)
     return {
       kind = kind_map[item.kind],
       range = utils.convert_tsserver_range_to_lsp(item),

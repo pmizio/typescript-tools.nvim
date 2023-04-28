@@ -53,7 +53,7 @@ function M.handler(request, response, params)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L511
-  return response {
+  response {
     changes = make_text_edits(body),
   }
 end

@@ -26,7 +26,7 @@ function M.handler(request, response, params, ctx)
   -- https://github.com/microsoft/TypeScript/blob/503604c884bd0557c851b11b699ef98cdb65b93b/lib/protocol.d.ts#L2590
   -- OutgoingCalls:
   -- https://github.com/microsoft/TypeScript/blob/503604c884bd0557c851b11b699ef98cdb65b93b/lib/protocol.d.ts#L2596
-  return response(vim.tbl_map(function(call)
+  response(vim.tbl_map(function(call)
     local lsp_call = {
       fromRanges = vim.tbl_map(function(it)
         return utils.convert_tsserver_range_to_lsp(it)
