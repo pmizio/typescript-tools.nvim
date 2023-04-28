@@ -6,14 +6,11 @@ local module_mapper = require "typescript-tools.protocol.module_mapper"
 local c = require "typescript-tools.protocol.constants"
 local protocol = require "typescript-tools.protocol"
 
----@class PendingRequest: RequestContainer
----@field schedule boolean|nil
----@field cancelled boolean|nil
-
 ---@class Tsserver
 ---@field process Process
 ---@field request_queue RequestQueue
----@field pending_requests PendingRequest[]
+---@field pending_requests table<number|string, boolean|nil>
+---@field requests_metadata RequestContainer[]
 ---@field pending_diagnostic_seq number
 ---@field dispatchers Dispatchers
 
@@ -46,8 +43,6 @@ end
 function Tsserver:handle_response(response)
   local seq = response.request_seq
 
-  P(response)
-
   handle_progress(response, self.dispatchers)
 
   if not seq then
@@ -62,7 +57,7 @@ function Tsserver:handle_response(response)
 
   local handler = metadata.handler
 
-  coroutine.resume(handler, response.body or response, seq)
+  coroutine.resume(handler, response.body or response)
 
   self.pending_requests[seq] = nil
   self.requests_metadata[seq] = nil
@@ -95,6 +90,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
       handler = handler,
       context = handler_context,
       request = request,
+      priority = self.request_queue:get_queueing_type(method),
       interrupt_diagnostic = handler_module.interrupt_diagnostic,
     }
 
@@ -134,22 +130,20 @@ end
 function Tsserver:send_queued_requests()
   while vim.tbl_isempty(self.pending_requests) and not self.request_queue:is_empty() do
     local item = self.request_queue:dequeue()
-    -- P(item)
     if not item then
       return
     end
 
+    local seq = item.context.seq
     local request = vim.tbl_extend("force", {
-      seq = item.seq,
+      seq = seq,
       type = "request",
     }, item.request)
 
     self.process:write(request)
 
-    self.pending_requests[item.seq] = true
-    self.requests_metadata[item.seq] = item
-
-    -- TODO:
+    self.pending_requests[seq] = true
+    self.requests_metadata[seq] = item
   end
 end
 

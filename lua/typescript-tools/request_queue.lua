@@ -6,18 +6,19 @@ local CONST_QUEUE_REQUESTS = {
   c.LspMethods.DidClose,
 }
 
----@class RequestOptions
----@field schedule boolean|nil
-
----@class RequestContainer
+---@class HandlerContext
 ---@field seq number
 ---@field synthetic_seq string|nil
----@field priority number
+---@field request TsserverRequestFn
+---@field response LspResponseFn
+
+---@class RequestContainer
 ---@field method LspMethods | CustomMethods
----@field handler thread|false|nil
----@field callback LspCallback
----@field notify_reply_callback function|nil
----@field request_options RequestOptions
+---@field handler thread
+---@field context HandlerContext
+---@field request TsserverRequest
+---@field priority Priority
+---@field interrupt_diagnostic boolean|nil
 
 ---@class RequestQueue
 ---@field seq number
@@ -25,6 +26,7 @@ local CONST_QUEUE_REQUESTS = {
 
 ---@class RequestQueue
 local RequestQueue = {
+  ---@enum Priority
   Priority = {
     Low = 1,
     Normal = 2,
@@ -49,8 +51,6 @@ end
 function RequestQueue:enqueue(request)
   local seq = self.seq
 
-  request.seq = seq
-
   if request.priority == self.Priority.Normal then
     local idx = #self.queue
 
@@ -70,25 +70,6 @@ function RequestQueue:enqueue(request)
   self.seq = seq + 1
 
   return seq
-end
-
----@param requests RequestContainer[]
----@param collect_all boolean|nil
-function RequestQueue:enqueue_all(requests, collect_all)
-  local seq = {}
-
-  local last_request
-  for _, request in ipairs(requests) do
-    table.insert(seq, self:enqueue(request))
-    last_request = request
-  end
-
-  if collect_all then
-    last_request.synthetic_seq = table.concat(seq, "_")
-    return last_request.synthetic_seq
-  end
-
-  return last_request.seq
 end
 
 ---@return RequestContainer
@@ -114,9 +95,9 @@ function RequestQueue:is_empty()
   return #self.queue == 0
 end
 
---@param method LspMethods
---@param is_low_priority string|nil
---@return number
+---@param method LspMethods
+---@param is_low_priority string|nil
+---@return Priority
 function RequestQueue:get_queueing_type(method, is_low_priority)
   if vim.tbl_contains(CONST_QUEUE_REQUESTS, method) then
     return self.Priority.Const
