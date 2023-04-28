@@ -54,6 +54,10 @@ local function make_capabilities(settings)
               scheme = "file",
               pattern = { glob = "**/*.{ts,js,jsx,tsx,mjs,mts,cjs,cts}", matches = "file" },
             },
+            {
+              scheme = "file",
+              pattern = { glob = "**/*", matches = "folder" },
+            },
           },
         },
       },
