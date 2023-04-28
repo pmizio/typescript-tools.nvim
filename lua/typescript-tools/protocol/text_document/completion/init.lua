@@ -28,7 +28,7 @@ function M.handler(request, response, params)
 
   -- tsserver protocol reference:
   -- https//github.com/microsoft/TypeScript/blob/8b482b513d87c6fcda8ece18b99f8a01cff5c605/lib/protocol.d.ts#L1631
-  local seq = request {
+  request {
     command = c.CommandTypes.CompletionInfo,
     arguments = vim.tbl_extend("force", {
       file = vim.uri_to_fname(text_document.uri),
@@ -46,7 +46,7 @@ function M.handler(request, response, params)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/9a83f2551ded0d88a0ba0ec9af260f83eb3568cd/lib/protocol.d.ts#L1824
-  response(seq, {
+  response {
     isIncomplete = body.isIncomplete or false,
     items = vim.tbl_map(function(item)
       local is_optional = item.kindModifiers
@@ -90,7 +90,7 @@ function M.handler(request, response, params)
         }, params.position),
       }
     end, body.entries or {}),
-  })
+  }
 
   return true
 end

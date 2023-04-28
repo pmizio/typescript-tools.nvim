@@ -5,10 +5,11 @@ local M = {}
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
+  -- local params = ctx.params
   local text_document = params.textDocument
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L1440
-  local seq = request {
+  request {
     command = c.CommandTypes.Quickinfo,
     arguments = vim.tbl_extend("force", {
       file = vim.uri_to_fname(text_document.uri),
@@ -32,10 +33,10 @@ function M.handler(request, response, params)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L1453
-  return response(seq, {
+  return response {
     contents = contents,
     range = utils.convert_tsserver_range_to_lsp(body),
-  })
+  }
 end
 
 return M

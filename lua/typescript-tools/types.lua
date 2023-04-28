@@ -16,8 +16,8 @@
 ---@field arguments table
 
 ---@alias TsserverRequestFn fun(request: TsserverRequest): number
----@alias LspResponseFn fun(seq: number, response: table|nil): boolean
----@alias TsserverProtocolHandler fun(request: TsserverRequestFn, response: LspResponseFn, params: table): boolean
+---@alias LspResponseFn fun(response: table|nil): boolean
+---@alias TsserverProtocolHandler fun(request: TsserverRequest, response: LspResponseFn, params: table): boolean
 
 ---@alias ServerType "syntax"|"diagnostic"
 

@@ -62,7 +62,7 @@ function Tsserver:handle_response(response)
 
   local handler = metadata.handler
 
-  coroutine.resume(handler, response.body or response)
+  coroutine.resume(handler, response.body or response, seq)
 
   self.pending_requests[seq] = nil
   self.requests_metadata[seq] = nil
@@ -87,16 +87,22 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
   local handler = coroutine.create(handler_module.handler)
 
-  local function request(tsseever_request)
-    return self.request_queue:enqueue {
+  local handler_context = {}
+
+  function handler_context.request(request)
+    handler_context.seq = self.request_queue:enqueue {
       method = method,
       handler = handler,
-      request = tsseever_request,
+      context = handler_context,
+      request = request,
       interrupt_diagnostic = handler_module.interrupt_diagnostic,
     }
+
+    return handler_context.seq
   end
 
-  local function response(seq, lsp_response, error)
+  function handler_context.response(response, error)
+    local seq = handler_context.seq
     local notify_reply = notify_reply_callback and vim.schedule_wrap(notify_reply_callback)
     local response_callback = callback and vim.schedule_wrap(callback)
 
@@ -108,7 +114,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
       if error then
         response_callback(error, error)
       else
-        response_callback(nil, lsp_response)
+        response_callback(nil, response)
 
         return true
       end
@@ -117,9 +123,11 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
     return false
   end
 
-  coroutine.resume(handler, request, response, params)
+  coroutine.resume(handler, handler_context.request, handler_context.response, params)
 
   self:send_queued_requests()
+
+  return handler_context.synthetic_seq or handler_context.seq
 end
 
 ---@private

@@ -74,21 +74,18 @@ function M.handler(request, response, params)
       detail = "Auto import from " .. utils.tsserver_docs_to_plain_text(source) .. "\n" .. detail
     end
 
-    return response(
-      seq,
-      vim.tbl_extend("force", params, {
-        detail = detail,
-        documentation = {
-          kind = c.MarkupKind.Markdown,
-          value = utils.tsserver_docs_to_plain_text(documentation, "\n"),
-        },
-        additionalTextEdits = make_text_edits(details.codeActions),
-        -- INFO: there is also `command` prop but I don't know there is usecase for that here,
-        -- or neovim even handle that for now i skip this
-      })
-    )
+    return response(vim.tbl_extend("force", params, {
+      detail = detail,
+      documentation = {
+        kind = c.MarkupKind.Markdown,
+        value = utils.tsserver_docs_to_plain_text(documentation, "\n"),
+      },
+      additionalTextEdits = make_text_edits(details.codeActions),
+      -- INFO: there is also `command` prop but I don't know there is usecase for that here,
+      -- or neovim even handle that for now i skip this
+    }))
   else
-    return response(seq, nil)
+    return response(nil)
   end
 end
 
