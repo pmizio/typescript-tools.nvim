@@ -17,7 +17,13 @@
 
 ---@alias TsserverRequestFn fun(request: TsserverRequest): number
 ---@alias LspResponseFn fun(response: table|nil): boolean
----@alias TsserverProtocolHandler fun(request: TsserverRequest, response: LspResponseFn, params: table): boolean
+---@class TsserverHandlerContext
+---@field seq number
+---@field synthetic_seq string|nil
+---@field request TsserverRequestFn
+---@field response LspResponseFn
+
+---@alias TsserverProtocolHandler fun(request: TsserverRequest, response: LspResponseFn, params: table, context: TsserverHandlerContext): boolean
 
 ---@alias ServerType "syntax"|"diagnostic"
 

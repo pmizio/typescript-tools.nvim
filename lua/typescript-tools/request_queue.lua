@@ -6,16 +6,10 @@ local CONST_QUEUE_REQUESTS = {
   c.LspMethods.DidClose,
 }
 
----@class HandlerContext
----@field seq number
----@field synthetic_seq string|nil
----@field request TsserverRequestFn
----@field response LspResponseFn
-
 ---@class RequestContainer
 ---@field method LspMethods | CustomMethods
 ---@field handler thread
----@field context HandlerContext
+---@field context TsserverHandlerContext
 ---@field request TsserverRequest
 ---@field priority Priority
 ---@field interrupt_diagnostic boolean|nil

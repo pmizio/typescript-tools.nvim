@@ -119,7 +119,13 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
     return false
   end
 
-  coroutine.resume(handler, handler_context.request, handler_context.response, params)
+  coroutine.resume(
+    handler,
+    handler_context.request,
+    handler_context.response,
+    params,
+    handler_context
+  )
 
   self:send_queued_requests()
 
