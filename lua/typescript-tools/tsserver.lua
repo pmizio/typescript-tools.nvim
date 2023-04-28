@@ -3,6 +3,7 @@ local Process = require "typescript-tools.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.protocol.progress"
 local module_mapper = require "typescript-tools.protocol.module_mapper"
+local PendingDiagnostic = require "typescript-tools.protocol.pending_diagnostic"
 local c = require "typescript-tools.protocol.constants"
 
 ---@class Tsserver
@@ -10,7 +11,7 @@ local c = require "typescript-tools.protocol.constants"
 ---@field request_queue RequestQueue
 ---@field pending_requests table<number|string, boolean|nil>
 ---@field requests_metadata RequestContainer[]
----@field pending_diagnostic_seq number
+---@field pending_diagnostic PendingDiagnostic|nil
 ---@field dispatchers Dispatchers
 
 ---@class Tsserver
@@ -42,9 +43,9 @@ end
 function Tsserver:handle_response(response)
   local seq = response.request_seq
 
-  -- INFO: seq in requestCompleted tsserver command
-  if not seq and type(response.body) == "table" then
-    seq = response.body.request_seq
+  if self.pending_diagnostic and self.pending_diagnostic:handle_response(response) then
+    self.pending_diagnostic = nil
+    return
   end
 
   handle_progress(response, self.dispatchers)
@@ -54,6 +55,8 @@ function Tsserver:handle_response(response)
   end
 
   local metadata = self.requests_metadata[seq]
+
+  self:dispatch_update_event(metadata.method, response)
 
   if not metadata then
     return
@@ -144,11 +147,24 @@ function Tsserver:send_queued_requests()
     end
 
     local seq = item.context.seq
+    P(item)
 
     self.process:write(vim.tbl_extend("force", {
       seq = seq,
       type = "request",
     }, item.request))
+
+    if item.method == c.CustomMethods.BatchDiagnostics then
+      if self.pending_diagnostic then
+        self.request_queue:clear_diagnostics()
+        self.process:cancel(self.pending_diagnostic:get_seq())
+        -- TODO: correct handling of diagnostic cancellation and retriggering after it
+        self.request_queue:enqueue(self.pending_diagnostic.request_metadata)
+      end
+
+      self.pending_diagnostic = PendingDiagnostic:new(item)
+      return
+    end
 
     self.pending_requests[seq] = true
     self.requests_metadata[seq] = item
