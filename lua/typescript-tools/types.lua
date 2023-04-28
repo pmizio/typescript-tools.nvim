@@ -15,6 +15,10 @@
 ---@field command CommandTypes
 ---@field arguments table
 
+---@alias TsserverRequestFn fun(request: TsserverRequest): number
+---@alias LspResponseFn fun(seq: number, response: table|nil): boolean
+---@alias TsserverProtocolHandler fun(request: TsserverRequestFn, response: LspResponseFn, params: table): boolean
+
 ---@alias ServerType "syntax"|"diagnostic"
 
 ---@class LspPosition

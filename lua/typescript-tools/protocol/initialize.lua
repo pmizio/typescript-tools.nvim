@@ -1,6 +1,7 @@
 local c = require "typescript-tools.protocol.constants"
 local make_capabilities = require "typescript-tools.capabilities"
-local protocol = require "typescript-tools.protocol"
+
+local M = {}
 
 ---@type TsserverRequest
 local configuration = {
@@ -36,26 +37,7 @@ local initial_compiler_options = {
   },
 }
 
----@return TsserverRequest | TsserverRequest[], function|nil
-local function initialize_creator()
-  local requests = {
-    configuration,
-    initial_compiler_options,
-  }
-
-  ---@return table
-  local function handler()
-    coroutine.yield(protocol.multi_response)
-    return { capabilities = make_capabilities() }
-  end
-
-  return requests, handler
-end
-
---return initialize_creator
-
-local M = {}
-
+---@type TsserverProtocolHandler
 function M.handler(request, response)
   request(configuration)
   local seq = request(initial_compiler_options)

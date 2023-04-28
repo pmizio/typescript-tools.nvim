@@ -1,6 +1,8 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
+local M = {}
+
 -- TODO: read configuration
 ---@param params table
 ---@return TsserverRequest
@@ -64,8 +66,6 @@ local function configure(params)
   }
 end
 
--- tsserver protocol reference:
--- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L1305
 ---@param params table
 ---@return TsserverRequest
 local function open_request(params)
@@ -87,22 +87,11 @@ local function open_request(params)
   }
 end
 
----@param _ string
----@param params table
----@return TsserverRequest | TsserverRequest[], function|nil
-local function did_open_creator(_, params)
-  return {
-    configure(params),
-    open_request(params),
-  }
-end
-
--- return did_open_creator
-
-local M = {}
-
+---@type TsserverProtocolHandler
 function M.handler(request, _, params)
   request(configure(params))
+  -- tsserver protocol reference:
+  -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L1305
   request(open_request(params))
 
   -- INFO: skip first response
