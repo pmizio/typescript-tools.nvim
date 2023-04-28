@@ -149,7 +149,6 @@ describe("Lsp request", function()
       label = "warn",
       sortText = "11",
     })
-    P(ret)
 
     local result = lsp_assert.response(ret)
     assert.is.table(result)
@@ -164,7 +163,6 @@ describe("Lsp request", function()
       textDocument = utils.get_text_document(),
       position = utils.make_position(7, 14),
     })
-    P(ret)
 
     local result = lsp_assert.response(ret)
 
@@ -198,7 +196,6 @@ describe("Lsp request", function()
       textDocument = utils.get_text_document(),
       range = utils.make_range(2, 0, 2, 50),
     })
-    P(ret)
 
     local result = lsp_assert.response(ret)
 
@@ -336,7 +333,6 @@ describe("Lsp request", function()
     local ret = vim.lsp.buf_request_sync(0, methods.FoldingRange, {
       textDocument = utils.get_text_document(),
     })
-    P(ret)
 
     local result = lsp_assert.response(ret)
 

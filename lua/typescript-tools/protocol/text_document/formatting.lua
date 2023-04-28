@@ -2,6 +2,8 @@ local api = vim.api
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
+local M = {}
+
 local function map_formatting_options(options)
   if not options then
     return nil
@@ -13,16 +15,20 @@ local function map_formatting_options(options)
   }
 end
 
----@param _ string
----@param params table
----@return TsserverRequest | TsserverRequest[], function|nil
-local function formatting_creator(_, params)
+---@type TsserverProtocolHandler
+function M.handler(request, response, params)
   local text_document = params.textDocument
   local range = params.range
+  local requested_bufnr = vim.uri_to_bufnr(text_document.uri)
 
   if not range then
-    local last_line = api.nvim_buf_line_count(0)
-    local last_line_content = api.nvim_buf_get_lines(0, last_line - 1, last_line, true)[1] or ""
+    local last_line = api.nvim_buf_line_count(requested_bufnr)
+    local last_line_content = api.nvim_buf_get_lines(
+      requested_bufnr,
+      last_line - 1,
+      last_line,
+      true
+    )[1] or ""
     local last_char = #last_line_content
 
     range = {
@@ -38,10 +44,10 @@ local function formatting_creator(_, params)
   end
 
   range = utils.convert_lsp_range_to_tsserver(range)
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/e14a2298c5add93816c6f487bcfc5ac72e3a4c59/lib/protocol.d.ts#L1493
-  ---@type TsserverRequest
-  local request = {
+  request {
     command = c.CommandTypes.Format,
     arguments = {
       file = vim.uri_to_fname(text_document.uri),
@@ -53,20 +59,16 @@ local function formatting_creator(_, params)
     },
   }
 
+  local body = coroutine.yield()
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/e14a2298c5add93816c6f487bcfc5ac72e3a4c59/lib/protocol.d.ts#L1574
-  ---@param body table
-  ---@return table
-  local function handler(body)
-    return vim.tbl_map(function(edit)
-      return {
-        newText = edit.newText,
-        range = utils.convert_tsserver_range_to_lsp(edit),
-      }
-    end, body)
-  end
-
-  return request, handler
+  return response(vim.tbl_map(function(edit)
+    return {
+      newText = edit.newText,
+      range = utils.convert_tsserver_range_to_lsp(edit),
+    }
+  end, body))
 end
 
-return formatting_creator
+return M

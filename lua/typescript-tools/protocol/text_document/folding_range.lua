@@ -1,12 +1,17 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
+local M = {}
+
 local tsserver_fold_kind_to_lsp_map = {
   comment = c.FoldingRangeKind.Comment,
   region = c.FoldingRangeKind.Region,
   imports = c.FoldingRangeKind.Imports,
 }
 
+---@param range LspRange
+---@param bufnr number
+---@return string|nil
 local function get_last_character(range, bufnr)
   -- when file changes between request and response vim.api.nvim_buf_get_text
   -- returns Index out of bounds
@@ -27,6 +32,9 @@ local function get_last_character(range, bufnr)
   return last_character_lines[1]
 end
 
+---@param span table
+---@param bufnr number
+---@return table
 local function as_folding_range(span, bufnr)
   local range = utils.convert_tsserver_range_to_lsp(span.textSpan)
   local kind = tsserver_fold_kind_to_lsp_map[span.kind]
@@ -45,34 +53,31 @@ local function as_folding_range(span, bufnr)
   }
 end
 
----@param _ string
----@param params table
----@return TsserverRequest | TsserverRequest[], function|nil, RequestOptions
-local function hover_creator(_, params)
+---@type TsserverProtocolHandler
+function M.handler(request, response, params)
   local text_document = params.textDocument
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/v5.0.2/src/server/protocol.ts#L377
-  ---@type TsserverRequest
-  local request = {
+  request {
     command = c.CommandTypes.GetOutliningSpans,
     arguments = {
       file = vim.uri_to_fname(text_document.uri),
     },
   }
 
+  local body = coroutine.yield()
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/v5.0.2/src/server/protocol.ts#L406
-  ---@param body table
-  ---@return table
-  local function handler(body)
+  vim.schedule(function()
     local requested_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
 
-    return vim.tbl_map(function(range)
+    response(vim.tbl_map(function(range)
       return as_folding_range(range, requested_bufnr)
-    end, body)
-  end
+    end, body))
+  end)
 
-  return request, handler, { schedule = true }
+  return true
 end
 
-return hover_creator
+return M

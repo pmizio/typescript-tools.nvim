@@ -9,8 +9,6 @@ function M.wait_for_lsp_initialization()
     -- to be sure everything is setup correctly wait a bit
     vim.wait(1000)
   end
-
-  vim.wait(1000)
 end
 
 ---@param file string

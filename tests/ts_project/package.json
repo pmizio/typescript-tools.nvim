@@ -6,6 +6,6 @@
   "author": "pmizio",
   "license": "MIT",
   "dependencies": {
-    "typescript": "4.8.4"
+    "typescript": "5.0"
   }
 }

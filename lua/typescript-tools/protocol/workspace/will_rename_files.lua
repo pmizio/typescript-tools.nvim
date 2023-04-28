@@ -1,6 +1,8 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
+local M = {}
+
 ---@param code_edits table
 ---@return table<string, table>|nil
 local function make_text_edits(code_edits)
@@ -28,10 +30,8 @@ local function make_text_edits(code_edits)
   return changes
 end
 
----@param _ string
----@param params table
----@return TsserverRequest | TsserverRequest[], function|nil
-local function hover_creator(_, params)
+---@type TsserverProtocolHandler
+function M.handler(request, response, params)
   -- in params there could be multiple files but in order fulfill request
   -- with multiple files we would need to send multiple requests to tsserver
   -- at the moment there is no abstraction to do that so we just take first file
@@ -41,8 +41,7 @@ local function hover_creator(_, params)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L511
-  ---@type TsserverRequest
-  local request = {
+  request {
     command = c.CommandTypes.GetEditsForFileRename,
     arguments = {
       oldFilePath = old_file_path,
@@ -50,17 +49,13 @@ local function hover_creator(_, params)
     },
   }
 
+  local body = coroutine.yield()
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L511
-  ---@param body table
-  ---@return table
-  local function handler(body)
-    return {
-      changes = make_text_edits(body),
-    }
-  end
-
-  return request, handler
+  return response {
+    changes = make_text_edits(body),
+  }
 end
 
-return hover_creator
+return M
