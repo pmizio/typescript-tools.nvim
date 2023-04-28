@@ -46,4 +46,26 @@ local function did_change_creator(_, params)
   }
 end
 
-return did_change_creator
+-- return did_change_creator
+
+local M = {}
+
+function M.handler(request, _, params)
+  local text_document = params.textDocument
+  local content_changes = params.contentChanges
+
+  request {
+    command = c.CommandTypes.UpdateOpen,
+    arguments = {
+      changedFiles = {
+        convert_text_changes(vim.uri_to_fname(text_document.uri), content_changes),
+      },
+      closedFiles = {},
+      openFiles = {},
+    },
+  }
+
+  return true
+end
+
+return M

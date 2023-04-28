@@ -91,4 +91,48 @@ local function completion_resolve_creator(_, params)
   return completion_resolve_request(params), handler
 end
 
-return completion_resolve_creator
+-- return completion_resolve_creator
+local M = {}
+
+function M.handler(request, response, params)
+  local seq = request(completion_resolve_request(params))
+
+  local body = coroutine.yield()
+
+  if body and body[1] then
+    local details = body[1]
+    local documentation = details.documentation or {}
+
+    if details.tags then
+      table.insert(documentation, { text = utils.tsserver_make_tags(details.tags) })
+    end
+
+    local detail = utils.tsserver_docs_to_plain_text(details.displayParts)
+
+    -- copied behavior from https://github.com/typescript-language-server/typescript-language-server/blob/70eae7e0885d9b5b7841cad3ba033f3c9c6955d2/src/completion.ts#LL496C18-L496C18
+    local source = details.sourceDisplay or details.deprecatedSource
+    if source and detail then
+      detail = "Auto import from " .. utils.tsserver_docs_to_plain_text(source) .. "\n" .. detail
+    end
+
+    response(
+      seq,
+      vim.tbl_extend("force", params, {
+        detail = detail,
+        documentation = {
+          kind = c.MarkupKind.Markdown,
+          value = utils.tsserver_docs_to_plain_text(documentation, "\n"),
+        },
+        additionalTextEdits = make_text_edits(details.codeActions),
+        -- INFO: there is also `command` prop but I don't know there is usecase for that here,
+        -- or neovim even handle that for now i skip this
+      })
+    )
+  else
+    response(seq, nil)
+  end
+
+  return true
+end
+
+return M

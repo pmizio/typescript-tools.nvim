@@ -18,4 +18,21 @@ local function did_close_creator(_, params)
   }
 end
 
-return did_close_creator
+-- return did_close_creator
+
+local M = {}
+
+function M.handler(request, _, params)
+  local text_document = params.textDocument
+
+  request {
+    command = c.CommandTypes.UpdateOpen,
+    arguments = {
+      closedFiles = { vim.uri_from_fname(text_document.uri) },
+      openFiles = {},
+      changedFiles = {},
+    },
+  }
+end
+
+return M
