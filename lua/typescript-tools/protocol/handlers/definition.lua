@@ -1,8 +1,7 @@
 local constants = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 
-local file_span_with_context_to_location_link = function(file_span, text_span)
-  local originSelectionRange = text_span and utils.convert_tsserver_range_to_lsp(text_span) or nil
+local file_span_with_context_to_location_link = function(file_span, originSelectionRange)
   local target = {
     uri = vim.uri_from_fname(file_span.file),
     range = utils.convert_tsserver_range_to_lsp(file_span),
@@ -39,8 +38,10 @@ end
 -- tsserver protocol reference:
 -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L668
 local definition_response_handler = function(_, body)
+  local originSelectionRange = body.textSpan and utils.convert_tsserver_range_to_lsp(body.textSpan)
+    or nil
   return vim.tbl_map(function(definition)
-    return file_span_with_context_to_location_link(definition, body.textSpan)
+    return file_span_with_context_to_location_link(definition, originSelectionRange)
   end, body.definitions)
 end
 

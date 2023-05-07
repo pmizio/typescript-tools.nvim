@@ -29,7 +29,7 @@ describe("Lsp request", function()
     })
 
     local result = lsp_assert.response(ret)
-    assert.are.same(#result, 4)
+    assert.are.same(#result, 3)
   end)
 
   it("should return correct response for " .. methods.Definition, function()
@@ -43,7 +43,7 @@ describe("Lsp request", function()
 
     local result = lsp_assert.response(ret)
     assert.are.same(#result, 1)
-    lsp_assert.range(result[1].range, 2, 9, 2, 13)
+    lsp_assert.range(result[1].targetSelectionRange, 2, 9, 2, 13)
   end)
 
   it("should return correct response for " .. methods.TypeDefinition, function()
