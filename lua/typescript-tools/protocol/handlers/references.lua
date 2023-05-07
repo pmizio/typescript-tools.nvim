@@ -17,7 +17,6 @@ end
 -- tsserver protocol reference:
 -- https://github.com/microsoft/TypeScript/blob/45148dd715a7c3776840778b4df41e7e0bd0bf12/lib/protocol.d.ts#L898
 local references_response_handler = function(_, body, params)
-  print([[[references.lua:19] -- params: ]] .. vim.inspect(params))
   local references = body.refs
 
   if not params.context or not params.context.includeDeclaration then
