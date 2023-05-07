@@ -1,4 +1,4 @@
-local log = require "vim.lsp.log"
+-- local log = require "vim.lsp.log"
 local Process = require "typescript-tools.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.protocol.progress"
@@ -39,6 +39,22 @@ function Tsserver:new(path, type, dispatchers)
   return obj
 end
 
+---@private
+---@param method LspMethods | CustomMethods
+---@param data table
+local function dispatch_update_event(method, data)
+  if not (method == c.LspMethods.DidOpen or method == c.LspMethods.DidChange) then
+    return
+  end
+
+  vim.schedule(function()
+    vim.api.nvim_exec_autocmds("User", {
+      pattern = "TypescriptTools_" .. method,
+      data = data,
+    })
+  end)
+end
+
 ---@param response table
 function Tsserver:handle_response(response)
   local seq = response.request_seq
@@ -56,7 +72,7 @@ function Tsserver:handle_response(response)
 
   local metadata = self.requests_metadata[seq]
 
-  self:dispatch_update_event(metadata.method, response)
+  dispatch_update_event(metadata.method, response)
 
   if not metadata then
     return
@@ -168,22 +184,6 @@ function Tsserver:send_queued_requests()
     self.pending_requests[seq] = true
     self.requests_metadata[seq] = item
   end
-end
-
----@private
----@param method LspMethods | CustomMethods
----@param data table
-function Tsserver:dispatch_update_event(method, data)
-  if not (method == c.LspMethods.DidOpen or method == c.LspMethods.DidChange) then
-    return
-  end
-
-  vim.schedule(function()
-    vim.api.nvim_exec_autocmds("User", {
-      pattern = "TypescriptTools_" .. method,
-      data = data,
-    })
-  end)
 end
 
 function Tsserver:terminate()

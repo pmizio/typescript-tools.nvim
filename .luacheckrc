@@ -1,9 +1,9 @@
----@diagnostic disable: lowercase-global
+---@diagnostic disable: lowercase-global, undefined-global
 ignore = {
   "631", -- max_line_length
 }
+globals = { "vim", "P" }
 read_globals = {
-  "vim",
   "describe",
   "it",
   "after_each",

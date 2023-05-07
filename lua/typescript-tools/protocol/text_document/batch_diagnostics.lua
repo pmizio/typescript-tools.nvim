@@ -52,7 +52,8 @@ function M.handler(request, response, params)
   -- ---@param command DiagnosticEventKind | string
   -- ---@return table
   -- local function handler(body, command)
-  local body, command = coroutine.yield()
+  -- INFO:  it's ok, we wait for response command
+  local body, command = coroutine.yield() -- luacheck: ignore
   local cache = {}
 
   repeat

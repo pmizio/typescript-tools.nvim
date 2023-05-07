@@ -1,8 +1,7 @@
 local lspProtocol = require "vim.lsp.protocol"
 local constants = require "typescript-tools.protocol.constants"
-local config = require "typescript-tools.config"
 
-local function make_capabilities(settings)
+local function make_capabilities()
   return {
     textDocumentSync = lspProtocol.TextDocumentSyncKind.Incremental,
     renameProvider = {
