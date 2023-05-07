@@ -26,10 +26,11 @@ describe("Lsp request", function()
     local ret = vim.lsp.buf_request_sync(0, methods.Reference, {
       textDocument = utils.get_text_document(),
       position = utils.make_position(0, 13),
+      context = { includeDeclaration = true },
     })
 
     local result = lsp_assert.response(ret)
-    assert.are.same(#result, 3)
+    assert.are.same(#result, 4)
   end)
 
   it("should return correct response for " .. methods.Definition, function()
