@@ -44,6 +44,11 @@ local request_diagnostics_debounced = utils.debounce(200, request_diagnostics)
 
 ---@param augroup number
 function M.setup_diagnostic_autocmds(augroup)
+  -- INFO: Skip diagnostics autocommands when running tests - they are tested separately
+  if _G.typescript_tools_busted_env then
+    return
+  end
+
   local pattern = { "TypescriptTools_" .. c.LspMethods.DidOpen }
 
   if plugin_config.publish_diagnostic_on == publish_diagnostic_mode.change then

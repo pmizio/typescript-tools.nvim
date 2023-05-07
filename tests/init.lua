@@ -34,13 +34,25 @@ vim.env.XDG_CACHE_HOME = get_root ".tests/cache"
 vim.o.noswapfile = true
 vim.cmd.packloadall { bang = true }
 
+_G.typescript_tools_busted_env = true
 _G.initialized = false
+_G.file_opened = false
 
 local old_handler = vim.lsp.handlers["$/progress"]
 vim.lsp.handlers["$/progress"] = function(...)
   _G.initialized = true
   old_handler(...)
 end
+
+local augroup = vim.api.nvim_create_augroup("TypescriptToolsTestsGroup", { clear = true })
+
+vim.api.nvim_create_autocmd("User", {
+  pattern = "TypescriptTools_textDocument/didOpen",
+  callback = function(e)
+    _G.file_opened = e.data.command == "updateOpen"
+  end,
+  group = augroup,
+})
 
 require("typescript-tools").setup {}
 

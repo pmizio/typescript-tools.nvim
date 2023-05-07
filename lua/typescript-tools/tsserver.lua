@@ -147,7 +147,6 @@ function Tsserver:send_queued_requests()
     end
 
     local seq = item.context.seq
-    P(item)
 
     self.process:write(vim.tbl_extend("force", {
       seq = seq,

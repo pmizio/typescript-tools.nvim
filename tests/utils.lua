@@ -5,9 +5,12 @@ function M.wait_for_lsp_initialization()
     vim.wait(10000, function()
       return _G.initialized
     end, 10)
+  end
 
-    -- to be sure everything is setup correctly wait a bit
-    vim.wait(1000)
+  if not _G.file_opened then
+    vim.wait(10000, function()
+      return _G.file_opened
+    end, 10)
   end
 end
 
@@ -22,6 +25,7 @@ function M.open_file(file, mode)
     vim.cmd ":cd tests/ts_project"
   end
 
+  _G.file_opened = false
   vim.cmd(":" .. mode .. " " .. file)
 end
 
