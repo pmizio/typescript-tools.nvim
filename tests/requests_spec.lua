@@ -439,19 +439,24 @@ describe("Lsp request", function()
     assert.is.table(result.edit.changes)
   end)
 
-  it("should return correct response for " .. custom_methods.BatchDiagnostic, function()
+  it("should return correct response for " .. custom_methods.BatchDiagnostics, function()
     utils.open_file "src/diagnostic1.ts"
     utils.open_file("src/diagnostic2.ts", "vs")
     utils.wait_for_lsp_initialization()
 
-    local f1 = "file://" .. vim.fn.getcwd() .. "/src/diagnostic1.ts"
-    local f2 = "file://" .. vim.fn.getcwd() .. "/src/diagnostic2.ts"
+    local f1 = vim.fn.getcwd() .. "/src/diagnostic1.ts"
+    local f2 = vim.fn.getcwd() .. "/src/diagnostic2.ts"
 
-    local ret = vim.lsp.buf_request_sync(0, custom_methods.BatchDiagnostic, {
+    vim.defer_fn(function() end, 1000)
+
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.BatchDiagnostics, {
       files = { f1, f2 },
     })
 
     local result = lsp_assert.response(ret)
+
+    f1 = vim.uri_from_fname(f1)
+    f2 = vim.uri_from_fname(f2)
 
     assert.is.same(2, #vim.tbl_values(result))
     assert.is.table(result[f1])

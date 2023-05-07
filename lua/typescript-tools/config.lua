@@ -1,85 +1,49 @@
+---@class Settings
+---@field plugin_name string
+---@field separate_diagnostic_server boolean
+---@field tsserver_logs string
+---@field publish_diagnostic_on publish_diagnostic_mode
 local M = {}
-
---- @private
 local __store = {}
 
-M.NAME = "typescript-tools"
-
-M.COMPOSITE_MODES = {
-  SINGLE = "single",
-  SEPARATE_DIAGNOSTIC = "separate_diagnostic",
+---@enum tsserver_log_level
+M.tsserver_log_level = {
+  normal = "normal",
+  terse = "terse",
+  verbose = "verbose",
+  off = "off",
 }
 
-vim.tbl_add_reverse_lookup(M.COMPOSITE_MODES)
-
-M.PUBLISH_DIAGNOSTIC_ON = {
-  CHANGE = "change",
-  INSERT_LEAVE = "insert_leave",
+---@enum publish_diagnostic_mode
+M.publish_diagnostic_mode = {
+  insert_leave = "insert_leave",
+  change = "change",
 }
 
-vim.tbl_add_reverse_lookup(M.PUBLISH_DIAGNOSTIC_ON)
+M.plugin_name = "typescript-tools"
 
---- @param settings table
-M.load_and_validate = function(settings)
-  --- @param enum table
-  --- @param key string
-  --- @param default_value any
-  --- @return function, string
-  local function validate_enum(enum, key, default_value)
-    local modes = table.concat(vim.tbl_values(enum), ", ")
-
-    return function(value)
-      if type(value) ~= "nil" and not enum[value] then
-        return false
-      end
-
-      if type(value) == "nil" and default_value then
-        settings[key] = default_value
-      end
-
-      return true
-    end,
-      "one of " .. modes
-  end
-
+---@param settings table
+function M.load_settings(settings)
   vim.validate {
-    settings = { settings, "table" },
-    ["settings.composite_mode"] = {
-      settings.composite_mode,
-      validate_enum(M.COMPOSITE_MODES, "composite_mode", M.COMPOSITE_MODES.SINGLE),
-    },
-    ["settings.publish_diagnostic_on"] = {
-      settings.publish_diagnostic_on,
-      validate_enum(
-        M.PUBLISH_DIAGNOSTIC_ON,
-        "publish_diagnostic_on",
-        M.PUBLISH_DIAGNOSTIC_ON.INSERT_LEAVE
-      ),
-    },
-    ["settings.debug"] = { settings.debug, "boolean", true },
-    ["settings.enable_formatting"] = { settings.enable_formatting, "boolean", true },
-    ["settings.enable_styled_components_plugin"] = {
-      settings.enable_styled_components_plugin,
+    settings = { settings, "table", true },
+    ["settings.separate_diagnostic_server"] = {
+      settings.separate_diagnostic_server,
       "boolean",
       true,
     },
+    ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
+    ["settings.publish_diagnostic_on"] = { settings.publish_diagnostic_on, "string", true },
   }
 
-  local logs = settings.tsserver_logs
+  __store = vim.tbl_deep_extend("force", __store, settings)
 
-  if logs then
-    vim.validate {
-      ["settings.tsserver_logs"] = { logs, "table" },
-      ["settings.tsserver_logs.verbosity"] = { logs.verbosity, "string" },
-      ["settings.tsserver_logs.file_basename"] = { logs.file_basename, "string" },
-    }
+  if not M.tsserver_log_level[settings.tsserver_logs] then
+    __store.tsserver_logs = "off"
   end
 
-  __store = vim.tbl_deep_extend("force", __store, settings)
-end
-
-M.set_global_npm_path = function(path)
-  __store.global_npm_path = path
+  if not M.publish_diagnostic_mode[settings.publish_diagnostic_on] then
+    __store.tsserver_logs = "insert_leave"
+  end
 end
 
 setmetatable(M, {

@@ -1,8 +1,8 @@
 local lspconfig = require "lspconfig"
 local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
-local rpc = require "typescript-tools.new.rpc"
-local plugin_config = require "typescript-tools.new.config"
+local rpc = require "typescript-tools.rpc"
+local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
