@@ -26,6 +26,7 @@ describe("Lsp request", function()
     local ret = vim.lsp.buf_request_sync(0, methods.Reference, {
       textDocument = utils.get_text_document(),
       position = utils.make_position(0, 13),
+      context = { includeDeclaration = true },
     })
 
     local result = lsp_assert.response(ret)
@@ -43,7 +44,7 @@ describe("Lsp request", function()
 
     local result = lsp_assert.response(ret)
     assert.are.same(#result, 1)
-    lsp_assert.range(result[1].range, 2, 9, 2, 13)
+    lsp_assert.range(result[1].targetSelectionRange, 2, 9, 2, 13)
   end)
 
   it("should return correct response for " .. methods.TypeDefinition, function()
