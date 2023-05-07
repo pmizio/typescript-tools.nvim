@@ -40,11 +40,12 @@ end
 -- tsserver protocol reference:
 -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L668
 local definition_response_handler = function(_, body)
-  local originSelectionRange = body.textSpan and utils.convert_tsserver_range_to_lsp(body.textSpan)
+  local origin_selection_range = body.textSpan
+      and utils.convert_tsserver_range_to_lsp(body.textSpan)
     or nil
 
   return vim.tbl_map(function(definition)
-    return file_span_with_context_to_location_link(definition, originSelectionRange)
+    return file_span_with_context_to_location_link(definition, origin_selection_range)
   end, body.definitions)
 end
 
