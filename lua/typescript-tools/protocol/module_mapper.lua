@@ -11,7 +11,7 @@ local remapped_methods = {
 }
 
 local noop_methods = { c.LspMethods.DidSave }
-vim.vim.tbl_add_reverse_lookup(noop_methods)
+vim.tbl_add_reverse_lookup(noop_methods)
 
 local M = {}
 

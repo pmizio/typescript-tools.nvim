@@ -193,6 +193,7 @@ return {
     Initialize = "initialize",
     Shutdown = "shutdown",
     DidOpen = "textDocument/didOpen",
+    DidChange = "textDocument/didChange",
     DidClose = "textDocument/didClose",
     DidSave = "textDocument/didSave",
     Rename = "textDocument/rename",
