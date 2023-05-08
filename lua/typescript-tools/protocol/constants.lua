@@ -193,7 +193,7 @@ return {
     Shutdown = "shutdown",
     DidOpen = "textDocument/didOpen",
     DidClose = "textDocument/didClose",
-    DidChange = "textDocument/didChange",
+    DidSave = "textDocument/didSave",
     Rename = "textDocument/rename",
     Completion = "textDocument/completion",
     CompletionResolve = "completionItem/resolve",

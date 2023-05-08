@@ -95,6 +95,11 @@ end
 function Tsserver:handle_request(method, params, callback, notify_reply_callback)
   local module = module_mapper.map_method_to_module(method)
 
+  -- INFO: skip sending request if it's a noop method
+  if not module then
+    return
+  end
+
   local ok, handler_module = pcall(require, "typescript-tools.protocol." .. module)
 
   if not ok or type(handler_module) ~= "table" then

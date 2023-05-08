@@ -10,13 +10,20 @@ local remapped_methods = {
   [c.CustomMethods.BatchDiagnostics] = "text_document.batch_diagnostics",
 }
 
+local noop_methods = { c.LspMethods.DidSave }
+vim.vim.tbl_add_reverse_lookup(noop_methods)
+
 local M = {}
 
 local cache = {}
 
 ---@param method string
----@return string
+---@return string|nil
 function M.map_method_to_module(method)
+  if noop_methods[method] then
+    return nil
+  end
+
   local module = remapped_methods[method] or cache[method]
 
   if module then
