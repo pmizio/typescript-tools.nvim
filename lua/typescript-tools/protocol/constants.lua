@@ -80,6 +80,7 @@ return {
     ProvideCallHierarchyIncomingCalls = "provideCallHierarchyIncomingCalls",
     ProvideCallHierarchyOutgoingCalls = "provideCallHierarchyOutgoingCalls",
     ProvideInlayHints = "provideInlayHints",
+    EncodedSemanticClassificationsFull = "encodedSemanticClassifications-full",
   },
   ScriptElementKind = {
     unknown = "",
@@ -207,6 +208,8 @@ return {
     RangeFormatting = "textDocument/rangeFormatting",
     PrepareCallHierarchy = "textDocument/prepareCallHierarchy",
     FoldingRange = "textDocument/foldingRange",
+    SemanticTokensFull = "textDocument/semanticTokens/full",
+    SemanticTokensRange = "textDocument/semanticTokens/range",
     IncomingCalls = "callHierarchy/incomingCalls",
     OutgoingCalls = "callHierarchy/outgoingCalls",
     WorkspaceSymbol = "workspace/symbol",
@@ -266,6 +269,10 @@ return {
     Warning = 2,
     Information = 3,
     Hint = 4,
+  },
+  DiagnosticTag = {
+    Unnecessary = 1,
+    Deprecated = 2,
   },
   -- https://github.com/microsoft/TypeScript/blob/7f292bf2a19aa14ed69a55e646111af9533d8f1c/src/server/protocol.ts#L699
   OrganizeImportsMode = {
