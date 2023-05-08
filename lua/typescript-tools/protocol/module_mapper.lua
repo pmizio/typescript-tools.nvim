@@ -6,6 +6,7 @@ local remapped_methods = {
   [c.LspMethods.OutgoingCalls] = "text_document.hierarchy_calls",
   [c.LspMethods.CodeActionResolve] = "text_document.code_action.resolve",
   [c.LspMethods.RangeFormatting] = "text_document.formatting",
+  [c.LspMethods.SemanticTokensFull] = "text_document.semantic_tokens",
   [c.CustomMethods.OrganizeImports] = "text_document.organize_imports",
   [c.CustomMethods.BatchDiagnostics] = "text_document.batch_diagnostics",
 }
