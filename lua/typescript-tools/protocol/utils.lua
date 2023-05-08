@@ -188,4 +188,20 @@ function M.tsserver_location_response(locations)
   end, locations)
 end
 
+---@param position number[]
+---@param bufnr number
+---@return number
+function M.get_offset_at_position(position, bufnr)
+  local line = position[1]
+  local column = position[2]
+  local err, line_offset = pcall(vim.api.nvim_buf_get_offset, bufnr, line)
+
+  -- if line is negative or line is greater than file length
+  if not err then
+    return 0
+  end
+
+  return line_offset + column
+end
+
 return M

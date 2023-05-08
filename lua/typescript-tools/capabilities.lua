@@ -24,6 +24,36 @@ local function make_capabilities()
     definitionProvider = true,
     typeDefinitionProvider = true,
     foldingRangeProvider = true,
+    semanticTokensProvider = {
+      documentSelector = nil,
+      legend = {
+        -- list taken from: https://github.com/microsoft/TypeScript/blob/main/src/services/classifier2020.ts#L10
+        tokenTypes = {
+          "class",
+          "enum",
+          "interface",
+          "namespace",
+          "typeParameter",
+          "type",
+          "parameter",
+          "variable",
+          "enumMember",
+          "property",
+          "function",
+          "member",
+        },
+        -- token from: https://github.com/microsoft/TypeScript/blob/main/src/services/classifier2020.ts#L14
+        tokenModifiers = {
+          "declaration",
+          "static",
+          "async",
+          "readonly",
+          "defaultLibrary",
+          "local",
+        },
+      },
+      full = true,
+    },
     declarationProvider = false,
     implementationProvider = true,
     referencesProvider = true,

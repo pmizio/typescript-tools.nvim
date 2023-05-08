@@ -28,32 +28,33 @@
 
 ## Supported lsp methods
 
-| Status | Request                         |
-| ------ | ------------------------------- |
-| ✅     | textDocument/completion         |
-| ✅     | textDocument/hover              |
-| ✅     | textDocument/rename             |
-| ✅     | textDocument/publishDiagnostics |
-| ✅     | textDocument/signatureHelp      |
-| ✅     | textDocument/references         |
-| ✅     | textDocument/definition         |
-| ✅     | textDocument/typeDefinition     |
-| ✅     | textDocument/implementation     |
-| ✅     | textDocument/documentSymbol     |
-| ✅     | textDocument/documentHighlight  |
-| ✅     | textDocument/codeAction         |
-| ✅     | textDocument/formatting         |
-| ✅     | textDocument/rangeFormatting    |
-| ✅     | textDocument/foldingRange       |
-| ✅     | callHierarchy/incomingCalls     |
-| ✅     | callHierarchy/outgoingCalls     |
-| ✅     | workspace/symbol                |
-| ✅     | workspace/willRenameFiles       |
-| ❌     | workspace/applyEdit - N/A       |
-| ❌     | textDocument/declaration - N/A  |
-| ❌     | window/logMessage - N/A         |
-| ❌     | window/showMessage - N/A        |
-| ❌     | window/showMessageRequest - N/A |
+| Status | Request                                                   |
+| ------ | ----------------------------------------------------------|
+| ✅     | textDocument/completion                                   |
+| ✅     | textDocument/hover                                        |
+| ✅     | textDocument/rename                                       |
+| ✅     | textDocument/publishDiagnostics                           |
+| ✅     | textDocument/signatureHelp                                |
+| ✅     | textDocument/references                                   |
+| ✅     | textDocument/definition                                   |
+| ✅     | textDocument/typeDefinition                               |
+| ✅     | textDocument/implementation                               |
+| ✅     | textDocument/documentSymbol                               |
+| ✅     | textDocument/documentHighlight                            |
+| ✅     | textDocument/codeAction                                   |
+| ✅     | textDocument/formatting                                   |
+| ✅     | textDocument/rangeFormatting                              |
+| ✅     | textDocument/foldingRange                                 |
+| ✅     | textDocument/semanticTokens/full (supported from TS v4.1) |
+| ✅     | callHierarchy/incomingCalls                               |
+| ✅     | callHierarchy/outgoingCalls                               |
+| ✅     | workspace/symbol                                          |
+| ✅     | workspace/willRenameFiles                                 |
+| ❌     | workspace/applyEdit - N/A                                 |
+| ❌     | textDocument/declaration - N/A                            |
+| ❌     | window/logMessage - N/A                                   |
+| ❌     | window/showMessage - N/A                                  |
+| ❌     | window/showMessageRequest - N/A                           |
 
 ## Development
 

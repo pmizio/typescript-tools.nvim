@@ -38,6 +38,22 @@ local convert_related_information = function(related_information)
   end, related_information)
 end
 
+---@param diagnostic table
+---@return table<DiagnosticTag>
+local function get_diagnostic_tags(diagnostic)
+  local tags = {}
+
+  if diagnostic.reportsUnnecessary then
+    table.insert(tags, c.DiagnosticTag.Unnecessary)
+  end
+
+  if diagnostic.reportsDeprecated then
+    table.insert(tags, c.DiagnosticTag.Deprecated)
+  end
+
+  return tags
+end
+
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
   request {
@@ -72,6 +88,7 @@ function M.handler(request, response, params)
         range = utils.convert_tsserver_range_to_lsp(diagnostic),
         relatedInformation = diagnostic.relatedInformation
           and convert_related_information(diagnostic.relatedInformation),
+        tags = get_diagnostic_tags(diagnostic),
       })
     end
 
