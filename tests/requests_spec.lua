@@ -446,31 +446,34 @@ describe("Lsp request", function()
     assert.is.table(result.edit.changes)
   end)
 
-  it("should return correct response for " .. custom_methods.BatchDiagnostics, function()
+  it("should return correct response for " .. custom_methods.Diagnostic, function()
     utils.open_file "src/diagnostic1.ts"
     utils.open_file("src/diagnostic2.ts", "vs")
     utils.wait_for_lsp_initialization()
 
-    local f1 = vim.fn.getcwd() .. "/src/diagnostic1.ts"
-    local f2 = vim.fn.getcwd() .. "/src/diagnostic2.ts"
+    local f1 = vim.uri_from_fname(vim.fn.getcwd() .. "/src/diagnostic1.ts")
+    local f2 = vim.uri_from_fname(vim.fn.getcwd() .. "/src/diagnostic2.ts")
 
-    local ret = vim.lsp.buf_request_sync(0, custom_methods.BatchDiagnostics, {
-      files = { f1, f2 },
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.Diagnostic, {
+      textDocument = { uri = f1 },
     })
 
     local result = lsp_assert.response(ret)
 
-    f1 = vim.uri_from_fname(f1)
-    f2 = vim.uri_from_fname(f2)
+    assert.is.table(result.relatedDocuments)
+
+    result = result.relatedDocuments
 
     assert.is.same(2, #vim.tbl_values(result))
-    assert.is.table(result[f1])
-    assert.is.table(result[f2])
-    assert.is.same(1, #result[f1])
-    assert.is.same(2, #result[f2])
-    assert.is.same(result[f1][1].message, "Type 'number' is not assignable to type 'string'.")
-    assert.is.same(result[f2][1].message, "Type 'string' is not assignable to type 'number'.")
-    assert.is.same(result[f2][2].message, "'num' is declared but its value is never read.")
+
+    local f1_items = result[f1].items
+    local f2_items = result[f2].items
+
+    assert.is.same(1, #f1_items)
+    assert.is.same(2, #f2_items)
+    assert.is.same(f1_items[1].message, "Type 'number' is not assignable to type 'string'.")
+    assert.is.same(f2_items[1].message, "Type 'string' is not assignable to type 'number'.")
+    assert.is.same(f2_items[2].message, "'num' is declared but its value is never read.")
   end)
 
   it("should return correct response for " .. methods.SemanticTokensFull, function()

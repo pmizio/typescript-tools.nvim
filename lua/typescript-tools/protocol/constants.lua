@@ -227,7 +227,7 @@ return {
   ---@enum CustomMethods
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
-    BatchDiagnostics = "typescriptTools/batchDiagnostics",
+    Diagnostic = "typescriptTools/diagnostic",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
@@ -343,5 +343,10 @@ return {
     Source = "source",
     SourceOrganizeImports = "source.organizeImports",
     SourceFixAll = "source.fixAll",
+  },
+  ---@enum DiagnosticReportKind
+  DocumentDiagnosticReportKind = {
+    Full = "full",
+    Unchanged = "unchanged",
   },
 }

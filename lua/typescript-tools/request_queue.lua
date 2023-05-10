@@ -78,7 +78,7 @@ function RequestQueue:clear_diagnostics()
   for i = #self.queue, 1, -1 do
     local el = self.queue[i]
 
-    if el.method == c.CustomMethods.BatchDiagnostics then
+    if el.method == c.CustomMethods.Diagnostic then
       table.remove(self.queue, i)
     end
   end

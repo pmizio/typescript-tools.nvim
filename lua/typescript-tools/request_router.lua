@@ -15,7 +15,7 @@ local router_config = {
   [c.LspMethods.DidChange] = route_type.both,
   [c.LspMethods.DidClose] = route_type.both,
   [c.LspMethods.Shutdown] = route_type.both,
-  [c.CustomMethods.BatchDiagnostics] = route_type.diagnostic,
+  [c.CustomMethods.Diagnostic] = route_type.diagnostic,
 }
 
 ---@param method LspMethods

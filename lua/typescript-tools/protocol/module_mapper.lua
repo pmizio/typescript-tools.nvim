@@ -8,7 +8,7 @@ local remapped_methods = {
   [c.LspMethods.RangeFormatting] = "text_document.formatting",
   [c.LspMethods.SemanticTokensFull] = "text_document.semantic_tokens",
   [c.CustomMethods.OrganizeImports] = "text_document.organize_imports",
-  [c.CustomMethods.BatchDiagnostics] = "text_document.batch_diagnostics",
+  [c.CustomMethods.Diagnostic] = "text_document.custom_diagnostic",
 }
 
 local noop_methods = { c.LspMethods.DidSave }

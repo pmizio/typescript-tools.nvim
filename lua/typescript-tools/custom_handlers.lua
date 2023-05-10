@@ -17,11 +17,15 @@ function M.setup_lsp_handlers(dispatchers)
     apply_workspace_edit(result)
   end
 
-  vim.lsp.handlers[c.CustomMethods.BatchDiagnostics] = function(_, result)
-    for file, diagnostics in pairs(result or {}) do
+  vim.lsp.handlers[c.CustomMethods.Diagnostic] = function(_, result)
+    if not result then
+      return
+    end
+
+    for file, report in pairs(result.relatedDocuments) do
       dispatchers.notification(c.LspMethods.PublishDiagnostics, {
         uri = file,
-        diagnostics = diagnostics,
+        diagnostics = report.items,
       })
     end
   end

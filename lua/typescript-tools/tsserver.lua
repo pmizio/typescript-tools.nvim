@@ -4,6 +4,7 @@ local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.protocol.progress"
 local module_mapper = require "typescript-tools.protocol.module_mapper"
 local PendingDiagnostic = require "typescript-tools.protocol.pending_diagnostic"
+local api = require "typescript-tools.api"
 local c = require "typescript-tools.protocol.constants"
 
 ---@class Tsserver
@@ -116,13 +117,15 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   }
 
   function handler_context.request(request)
+    local interrupt_diagnostic = handler_module.interrupt_diagnostic
+
     handler_context.seq = self.request_queue:enqueue {
       method = method,
       handler = handler,
       context = handler_context,
       request = request,
       priority = self.request_queue:get_queueing_type(method),
-      interrupt_diagnostic = handler_module.interrupt_diagnostic,
+      interrupt_diagnostic = interrupt_diagnostic or type(interrupt_diagnostic) == "nil",
     }
 
     return handler_context.seq
@@ -146,13 +149,18 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
     end
   end
 
-  coroutine.resume(
+  local _, err = coroutine.resume(
     handler,
     handler_context.request,
     handler_context.response,
     params,
     handler_context
   )
+
+  if err then
+    -- TODO: propper error logging
+    P(err)
+  end
 
   self:send_queued_requests()
 
@@ -169,26 +177,31 @@ function Tsserver:send_queued_requests()
 
     local seq = item.context.seq
 
+    if self.pending_diagnostic and item.interrupt_diagnostic then
+      self:interrupt_diagnostic()
+    end
+
     self.process:write(vim.tbl_extend("force", {
       seq = seq,
       type = "request",
     }, item.request))
 
-    if item.method == c.CustomMethods.BatchDiagnostics then
-      if self.pending_diagnostic then
-        self.request_queue:clear_diagnostics()
-        self.process:cancel(self.pending_diagnostic:get_seq())
-        -- TODO: correct handling of diagnostic cancellation and retriggering after it
-        self.request_queue:enqueue(self.pending_diagnostic.request_metadata)
-      end
-
+    if item.method == c.CustomMethods.Diagnostic then
       self.pending_diagnostic = PendingDiagnostic:new(item)
-      return
+    else
+      self.pending_requests[seq] = true
+      self.requests_metadata[seq] = item
     end
-
-    self.pending_requests[seq] = true
-    self.requests_metadata[seq] = item
   end
+end
+
+function Tsserver:interrupt_diagnostic()
+  self.request_queue:clear_diagnostics()
+  self.process:cancel(self.pending_diagnostic:get_seq())
+  self.pending_diagnostic = nil
+  vim.schedule(function()
+    api.request_diagnostics()
+  end)
 end
 
 function Tsserver:terminate()
