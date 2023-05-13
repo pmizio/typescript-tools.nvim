@@ -34,7 +34,6 @@ vim.env.XDG_CACHE_HOME = get_root ".tests/cache"
 vim.o.noswapfile = true
 vim.cmd.packloadall { bang = true }
 
-_G.typescript_tools_busted_env = true
 _G.initialized = false
 _G.file_opened = false
 

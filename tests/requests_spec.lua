@@ -456,7 +456,8 @@ describe("Lsp request", function()
 
     local ret = vim.lsp.buf_request_sync(0, custom_methods.Diagnostic, {
       textDocument = { uri = f1 },
-    })
+      -- INFO: diagnostic requests are slowest among all requests so we need to wait a bit longer
+    }, 3000)
 
     local result = lsp_assert.response(ret)
 

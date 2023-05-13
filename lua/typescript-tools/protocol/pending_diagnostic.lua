@@ -39,6 +39,14 @@ end
 ---@return boolean
 function PendingDiagnostic:handle_response(response)
   if is_diagnostic_event(response) then
+    local seq = response.body.request_seq
+
+    -- INFO: when previous diagnostic request was cancelled and new handler get event from old one,
+    -- we want to ignore this event and wait for new one
+    if seq and seq ~= self:get_seq() then
+      return false
+    end
+
     local handler = self.request_metadata.handler
 
     coroutine.resume(handler, response.body, response.event)
