@@ -7,6 +7,8 @@ local plugin_api = require "typescript-tools.api"
 
 local publish_diagnostic_mode = plugin_config.publish_diagnostic_mode
 
+local extensions_pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" }
+
 local M = {}
 
 local function request_diagnostics_api_wrapper()
@@ -24,6 +26,14 @@ function M.setup_diagnostic_autocmds(augroup)
     table.insert(pattern, "TypescriptTools_" .. c.LspMethods.DidChange)
   end
 
+  api.nvim_create_autocmd("InsertEnter", {
+    pattern = extensions_pattern,
+    callback = function()
+      vim.diagnostic.reset()
+    end,
+    group = augroup,
+  })
+
   api.nvim_create_autocmd("User", {
     pattern = pattern,
     callback = request_diagnostics_throttled,
@@ -32,7 +42,7 @@ function M.setup_diagnostic_autocmds(augroup)
 
   if plugin_config.publish_diagnostic_on == publish_diagnostic_mode.insert_leave then
     api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "TextChanged" }, {
-      pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" },
+      pattern = extensions_pattern,
       callback = request_diagnostics_debounced,
       group = augroup,
     })
