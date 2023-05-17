@@ -31,7 +31,7 @@ function M.setup_diagnostic_autocmds(augroup)
   })
 
   if plugin_config.publish_diagnostic_on == publish_diagnostic_mode.insert_leave then
-    api.nvim_create_autocmd({ "InsertLeave", "TextChanged" }, {
+    api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "TextChanged" }, {
       pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" },
       callback = request_diagnostics_debounced,
       group = augroup,

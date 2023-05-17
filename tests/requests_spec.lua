@@ -418,11 +418,11 @@ describe("Lsp request", function()
     -- maybe it's a bug of this version
     if utils.is_typescript_version "4.2" then
       assert.is.same(2, #result)
+      assert.is.same(result[1].title, "Infer function return type")
+      assert.is.same(result[2].title, "Remove variable statement")
     else
-      assert.is.same(3, #result)
-      assert.is.same(result[1].title, "Organize imports")
-      assert.is.same(result[2].title, "Sort imports")
-      assert.is.same(result[3].title, "Remove variable statement")
+      assert.is.same(1, #result)
+      assert.is.same(result[1].title, "Remove variable statement")
     end
   end)
 

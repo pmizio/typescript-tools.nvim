@@ -16,23 +16,6 @@ local make_lsp_code_action_kind = function(kind)
   return nil
 end
 
---- @param title string
---- @param destructive boolean
---- @return table
-local function make_imports_action(file, title, destructive)
-  return {
-    title = title,
-    kind = c.CodeActionKind.SourceOrganizeImports,
-    data = {
-      scope = {
-        type = "file",
-        args = { file = file },
-      },
-      skipDestructiveCodeActions = destructive,
-    },
-  }
-end
-
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params, ctx)
   local text_document = params.textDocument
@@ -93,11 +76,6 @@ function M.handler(request, response, params, ctx)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L585
-  if #code_actions == 0 then
-    table.insert(code_actions, make_imports_action(request_range.file, "Organize imports", false))
-    table.insert(code_actions, make_imports_action(request_range.file, "Sort imports", true))
-  end
-
   for _, fix in ipairs(body) do
     table.insert(code_actions, {
       title = fix.description,
