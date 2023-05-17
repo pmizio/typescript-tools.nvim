@@ -8,7 +8,9 @@ local custom_methods = c.CustomMethods
 describe("Lsp request", function()
   after_each(function()
     -- INFO: close all buffers
+    _G.file_closed = false
     vim.cmd "silent 1,$bd!"
+    utils.wait_for_lsp_did_close()
   end)
 
   it("should return correct response for " .. methods.Hover, function()
@@ -456,8 +458,7 @@ describe("Lsp request", function()
 
     local ret = vim.lsp.buf_request_sync(0, custom_methods.Diagnostic, {
       textDocument = { uri = f1 },
-      -- INFO: diagnostic requests are slowest among all requests so we need to wait a bit longer
-    }, 3000)
+    })
 
     local result = lsp_assert.response(ret)
 

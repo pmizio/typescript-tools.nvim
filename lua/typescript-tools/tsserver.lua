@@ -44,7 +44,13 @@ end
 ---@param method LspMethods | CustomMethods
 ---@param data table
 local function dispatch_update_event(method, data)
-  if not (method == c.LspMethods.DidOpen or method == c.LspMethods.DidChange) then
+  if
+    not (
+      method == c.LspMethods.DidOpen
+      or method == c.LspMethods.DidChange
+      or method == c.LspMethods.DidClose
+    )
+  then
     return
   end
 

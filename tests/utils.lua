@@ -14,6 +14,14 @@ function M.wait_for_lsp_initialization()
   end
 end
 
+function M.wait_for_lsp_did_close()
+  if not _G.file_closed then
+    vim.wait(10000, function()
+      return _G.file_closed
+    end, 10)
+  end
+end
+
 ---@param file string
 ---@param mode string|nil
 function M.open_file(file, mode)

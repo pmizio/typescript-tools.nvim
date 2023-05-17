@@ -36,6 +36,7 @@ vim.cmd.packloadall { bang = true }
 
 _G.initialized = false
 _G.file_opened = false
+_G.file_closed = false
 
 local old_handler = vim.lsp.handlers["$/progress"]
 vim.lsp.handlers["$/progress"] = function(...)
@@ -49,6 +50,14 @@ vim.api.nvim_create_autocmd("User", {
   pattern = "TypescriptTools_textDocument/didOpen",
   callback = function(e)
     _G.file_opened = e.data.command == "updateOpen"
+  end,
+  group = augroup,
+})
+
+vim.api.nvim_create_autocmd("User", {
+  pattern = "TypescriptTools_textDocument/didClose",
+  callback = function(e)
+    _G.file_closed = e.data.command == "updateOpen"
   end,
   group = augroup,
 })
