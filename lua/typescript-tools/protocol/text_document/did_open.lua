@@ -3,21 +3,38 @@ local utils = require "typescript-tools.protocol.utils"
 
 local M = {}
 
+local eol_chars = {
+  mac = "\r",
+  unix = "\n",
+  dos = "\r\n",
+}
+
+---@return string
+local function get_eol_chars()
+  return eol_chars[vim.bo.fileformat] or eol_chars.unix
+end
+
 -- TODO: read configuration
 ---@param params table
 ---@return TsserverRequest
 local function configure(params)
   local text_document = params.textDocument
 
+  local bo = vim.bo
+  local tab_size = bo.tabstop or 2
+  local indent_size = bo.shiftwidth or tab_size
+  local convert_tabs_to_spaces = bo.expandtab or true
+  local new_line_character = get_eol_chars()
+
   return {
     command = c.CommandTypes.Configure,
     arguments = {
       file = vim.uri_to_fname(text_document.uri),
       formatOptions = {
-        tabSize = 2,
-        indentSize = 2,
-        convertTabsToSpaces = true,
-        newLineCharacter = "\n",
+        tabSize = tab_size,
+        indentSize = indent_size,
+        convertTabsToSpaces = convert_tabs_to_spaces,
+        newLineCharacter = new_line_character,
         insertSpaceAfterCommaDelimiter = true,
         insertSpaceAfterConstructor = false,
         insertSpaceAfterSemicolonInForStatements = true,
