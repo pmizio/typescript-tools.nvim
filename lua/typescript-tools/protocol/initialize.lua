@@ -1,5 +1,5 @@
 local c = require "typescript-tools.protocol.constants"
-local make_capabilities = require "typescript-tools.capabilities"
+local capabilities = require "typescript-tools.capabilities"
 
 local M = {}
 
@@ -44,7 +44,7 @@ function M.handler(request, response)
   -- INFO: skip first response
   coroutine.yield()
 
-  response { capabilities = make_capabilities() }
+  response { capabilities = capabilities }
 end
 
 return M

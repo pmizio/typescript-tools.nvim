@@ -1,6 +1,6 @@
 local api = vim.api
 
-local constants = require "typescript-tools.protocol.constants"
+local c = require "typescript-tools.protocol.constants"
 
 local M = {}
 
@@ -24,7 +24,7 @@ function M.handle_command(params, callback, notify_reply_callback)
 end
 
 --- @param params table
-M[constants.InternalCommands.InvokeAdditionalRename] = function(params)
+M[c.InternalCommands.InvokeAdditionalRename] = function(params)
   local pos = params.arguments[2]
 
   api.nvim_win_set_cursor(0, { pos.line, pos.offset - 1 })

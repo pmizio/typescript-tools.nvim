@@ -5,7 +5,6 @@ local M = {}
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
-  -- local params = ctx.params
   local text_document = params.textDocument
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L1440
