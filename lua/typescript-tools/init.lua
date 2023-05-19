@@ -38,6 +38,7 @@ M.setup = function(config)
 
         return root_dir
       end,
+      single_file_support = true,
     },
   }
 

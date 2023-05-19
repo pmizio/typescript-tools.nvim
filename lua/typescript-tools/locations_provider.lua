@@ -35,24 +35,30 @@ function LocationsProvider:initialize()
     :match "^%s*(.-)%s*$"
 end
 
----@return table - plenary.nvim pth object
+---@param path table - plenary.nvim path object
+---@return boolean
+function LocationsProvider:tsserver_exists(path)
+  return path:exists() and path:is_file()
+end
+
+---@return table - plenary.nvim path object
 function LocationsProvider:get_tsserver_path()
   local tsserver_path = Path:new(self.root_dir, "node_modules", "typescript", "lib", "tsserver.js")
 
-  if not tsserver_path:exists() then
+  if not self:tsserver_exists(tsserver_path) then
     tsserver_path = Path:new(self.npm_global_path, "bin", "tsserver")
   end
 
   -- INFO: if there is no local or global tsserver just error out
   assert(
-    tsserver_path:exists(),
+    self:tsserver_exists(tsserver_path),
     "Cannot find tsserver executable in local project nor global npm installation."
   )
 
   return tsserver_path
 end
 
----@return table|nil - plenary.nvim pth object
+---@return table|nil - plenary.nvim path object
 function LocationsProvider:get_tsserver_plugins_path()
   local plugins_path = Path:new(self.npm_global_path, "lib")
 
