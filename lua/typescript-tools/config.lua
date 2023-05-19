@@ -32,23 +32,27 @@ function M.load_settings(settings)
       "boolean",
       true,
     },
-    ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
     ["settings.publish_diagnostic_on"] = { settings.publish_diagnostic_on, "string", true },
     ["settings.tsserver_plugins"] = { settings.tsserver_plugins, "table", true },
+    ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
   }
 
   __store = vim.tbl_deep_extend("force", __store, settings)
 
-  if not M.tsserver_log_level[settings.tsserver_logs] then
-    __store.tsserver_logs = "off"
+  if type(settings.separate_diagnostic_server) == "nil" then
+    __store.separate_diagnostic_server = true
   end
 
   if not M.publish_diagnostic_mode[settings.publish_diagnostic_on] then
-    __store.tsserver_logs = "insert_leave"
+    __store.publish_diagnostic_on = M.publish_diagnostic_mode.insert_leave
   end
 
   if not settings.tsserver_plugins then
     __store.tsserver_plugins = {}
+  end
+
+  if not M.tsserver_log_level[settings.tsserver_logs] then
+    __store.tsserver_logs = M.tsserver_log_level.off
   end
 end
 

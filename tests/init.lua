@@ -62,7 +62,11 @@ vim.api.nvim_create_autocmd("User", {
   group = augroup,
 })
 
-require("typescript-tools").setup {}
+require("typescript-tools").setup {
+  settings = {
+    separate_diagnostic_server = false,
+  },
+}
 
 function P(arg)
   print(vim.inspect(arg))
