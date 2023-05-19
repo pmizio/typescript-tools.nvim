@@ -1,4 +1,4 @@
--- local log = require "vim.lsp.log"
+local log = require "vim.lsp.log"
 local Process = require "typescript-tools.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.protocol.progress"
@@ -99,6 +99,8 @@ end
 ---@param callback LspCallback
 ---@param notify_reply_callback function|nil
 function Tsserver:handle_request(method, params, callback, notify_reply_callback)
+  local _ = log.trace() and log.trace("tsserver", "Handling request: ", method)
+
   local module = module_mapper.map_method_to_module(method)
 
   -- INFO: skip sending request if it's a noop method
@@ -109,9 +111,8 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   local ok, handler_module = pcall(require, "typescript-tools.protocol." .. module)
 
   if not ok or type(handler_module) ~= "table" then
-    print(method, module)
-    P(handler_module)
-    P(params)
+    local _ = log.debug() and log.debug("tsserver", "Unimplemented method: ", method)
+    local _ = log.debug() and log.debug("tsserver", "with params:", vim.inspect(params))
     return
   end
 
@@ -163,8 +164,9 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   )
 
   if err then
-    -- TODO: propper error logging
-    P(err)
+    local _ = log.error()
+      and log.error("tsserver", "Unexpected error while handling request: ", handler_context.method)
+    local _ = log.error() and log.error("tsserver", err)
   end
 
   self:send_queued_requests()
@@ -177,6 +179,7 @@ function Tsserver:send_queued_requests()
   while vim.tbl_isempty(self.pending_requests) and not self.request_queue:is_empty() do
     local item = self.request_queue:dequeue()
     if not item then
+      local _ = log.debug() and log.debug("tsserver", "dequeued item is nil")
       return
     end
 

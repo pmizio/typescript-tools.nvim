@@ -19,7 +19,7 @@ local SEVERITY_MAP = {
 local function category_to_severity(category)
   local severity = SEVERITY_MAP[category]
   if not severity then
-    log.warn("[tsserver] cannot find correct severity for: " .. category)
+    local _ = log.warn() and log.warn("tsserver", "cannot find correct severity for: ", category)
     return c.DiagnosticSeverity.Error
   end
 

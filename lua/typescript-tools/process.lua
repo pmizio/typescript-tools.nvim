@@ -114,7 +114,7 @@ local parse_response = function(initial_chunk, on_response)
 
       local ok, response = pcall(vim.json.decode, body, { luanil = { object = true } })
       if not ok or not response then
-        log.error("Invalid json: ", response)
+        local _ = log.error() and log.error("tsserver", "Invalid json: ", response)
         return
       end
 
@@ -160,8 +160,7 @@ function Process:start()
 
   self.stdout:read_start(function(err, chunk)
     if err then
-      -- TODO: any error handling
-      print "error on stdout"
+      local _ = log.error() and log.error("tsserver", "Read from stdout returned error: ", err)
       return
     end
 
@@ -175,7 +174,7 @@ function Process:start()
 
   self.stderr:read_start(function(_, chunk)
     if chunk then
-      local _ = log.error() and log.error("rpc", "tsserver", "stderr", chunk)
+      local _ = log.error() and log.error() and log.error("process", "tsserver", "stderr", chunk)
     end
   end)
 end
@@ -191,7 +190,7 @@ end
 function Process:write(request)
   local serialized_request = vim.json.encode(request)
   if not serialized_request then
-    -- TODO: propper error log here
+    local _ = log.error() and log.error("tsserver", "Failed to encode request: ", request)
     return
   end
 
