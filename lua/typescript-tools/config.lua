@@ -3,6 +3,7 @@
 ---@field separate_diagnostic_server boolean
 ---@field tsserver_logs string
 ---@field publish_diagnostic_on publish_diagnostic_mode
+---@field tsserver_plugins string[]
 local M = {}
 local __store = {}
 
@@ -33,6 +34,7 @@ function M.load_settings(settings)
     },
     ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
     ["settings.publish_diagnostic_on"] = { settings.publish_diagnostic_on, "string", true },
+    ["settings.tsserver_plugins"] = { settings.tsserver_plugins, "table", true },
   }
 
   __store = vim.tbl_deep_extend("force", __store, settings)
@@ -43,6 +45,10 @@ function M.load_settings(settings)
 
   if not M.publish_diagnostic_mode[settings.publish_diagnostic_on] then
     __store.tsserver_logs = "insert_leave"
+  end
+
+  if not settings.tsserver_plugins then
+    __store.tsserver_plugins = {}
   end
 end
 

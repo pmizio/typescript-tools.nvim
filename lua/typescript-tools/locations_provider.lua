@@ -52,4 +52,15 @@ function LocationsProvider:get_tsserver_path()
   return tsserver_path
 end
 
+---@return table|nil - plenary.nvim pth object
+function LocationsProvider:get_tsserver_plugins_path()
+  local plugins_path = Path:new(self.npm_global_path, "lib")
+
+  if not plugins_path:exists() then
+    return nil
+  end
+
+  return plugins_path
+end
+
 return LocationsProvider:new()

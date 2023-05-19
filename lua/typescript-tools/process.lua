@@ -51,6 +51,15 @@ function Process:new(type, on_response, on_exit)
   }
   -- stylua: ignore end
 
+  local plugins_path = locations_provider:get_tsserver_plugins_path()
+
+  if plugins_path and #plugin_config.tsserver_plugins > 0 then
+    table.insert(obj.args, "--pluginProbeLocations")
+    table.insert(obj.args, plugins_path:absolute())
+    table.insert(obj.args, "--globalPlugins")
+    table.insert(obj.args, table.concat(plugin_config.tsserver_plugins, ","))
+  end
+
   if plugin_config.tsserver_logs ~= "off" then
     local log_dir = Path:new(uv.os_tmpdir())
     table.insert(obj.args, "--logVerbosity")
