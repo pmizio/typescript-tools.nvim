@@ -18,11 +18,10 @@ local c = require "typescript-tools.protocol.constants"
 ---@class Tsserver
 local Tsserver = {}
 
----@param path table Plenary path object
 ---@param type ServerType
 ---@param dispatchers Dispatchers
 ---@return Tsserver
-function Tsserver:new(path, type, dispatchers)
+function Tsserver:new(type, dispatchers)
   local obj = {
     request_queue = RequestQueue:new(),
     pending_requests = {},
@@ -33,7 +32,7 @@ function Tsserver:new(path, type, dispatchers)
   setmetatable(obj, self)
   self.__index = self
 
-  obj.process = Process:new(path, type, function(response)
+  obj.process = Process:new(type, function(response)
     obj:handle_response(response)
   end, dispatchers.on_exit)
 

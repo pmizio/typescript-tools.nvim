@@ -1,8 +1,3 @@
-local api = vim.api
-local util = require "lspconfig.util"
-local configs = require "lspconfig.configs"
-local Path = require "plenary.path"
-
 local plugin_config = require "typescript-tools.config"
 local c = require "typescript-tools.protocol.constants"
 local Tsserver = require "typescript-tools.tsserver"
@@ -10,40 +5,19 @@ local autocommands = require "typescript-tools.autocommands"
 local custom_handlers = require "typescript-tools.custom_handlers"
 local request_router = require "typescript-tools.request_router"
 local internal_commands = require "typescript-tools.internal_commands"
+local locations_provider = require "typescript-tools.locations_provider"
 
 local M = {}
 
 ---@param dispatchers Dispatchers
 ---@return LspInterface
 function M.start(dispatchers)
-  local config = configs[plugin_config.plugin_name]
-  local bufnr = api.nvim_get_current_buf()
-  local bufname = api.nvim_buf_get_name(bufnr)
+  locations_provider:initialize()
 
-  assert(util.bufname_valid(bufname), "Invalid buffer name!")
-
-  local root_dir = config.get_root_dir(util.path.sanitize(bufname), bufnr)
-  local tsserver_path = Path:new(root_dir, "node_modules", "typescript", "lib", "tsserver.js")
-
-  local npm_global_path = vim.fn
-    .system([[node -p "require('path').resolve(process.execPath, '../..')"]])
-    :match "^%s*(.-)%s*$"
-
-  -- INFO: if we can't find local tsserver try to use global installed one
-  if not tsserver_path:exists() then
-    tsserver_path = Path:new(npm_global_path, "bin", "tsserver")
-  end
-
-  -- INFO: if there is no local or global tsserver just error out
-  assert(
-    tsserver_path:exists(),
-    "Cannot find tsserver executable in local project nor global npm installation."
-  )
-
-  local tsserver_syntax = Tsserver:new(tsserver_path, "syntax", dispatchers)
+  local tsserver_syntax = Tsserver:new("syntax", dispatchers)
   local tsserver_diagnostic = nil
   if plugin_config.separate_diagnostic_server then
-    tsserver_diagnostic = Tsserver:new(tsserver_path, "diagnostic", dispatchers)
+    tsserver_diagnostic = Tsserver:new("diagnostic", dispatchers)
   end
 
   autocommands.setup_autocommands(dispatchers)

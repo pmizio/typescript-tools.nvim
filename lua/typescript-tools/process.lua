@@ -2,6 +2,7 @@ local uv = vim.loop
 local log = require "vim.lsp.log"
 local Path = require "plenary.path"
 local plugin_config = require "typescript-tools.config"
+local locations_provider = require "typescript-tools.locations_provider"
 
 local HEADER = "Content-Length: "
 local CANCELLATION_PREFIX = "seq_"
@@ -21,12 +22,11 @@ local is_win = uv.os_uname().version:find "Windows"
 ---@class Process
 local Process = {}
 
----@param path table Plenary path object
 ---@param type ServerType
 ---@param on_response fun(response: table)
 ---@param on_exit fun(code: number, signal: number)
 ---@return Process
-function Process:new(path, type, on_response, on_exit)
+function Process:new(type, on_response, on_exit)
   local cancellation_dir =
     Path:new(uv.fs_mkdtemp(Path:new(uv.os_tmpdir(), "tsserver_nvim_XXXXXX"):absolute()))
     -- stylua: ignore start
@@ -36,7 +36,7 @@ function Process:new(path, type, on_response, on_exit)
     stdout = uv.new_pipe(false),
     stderr = uv.new_pipe(false),
     args = {
-      path:absolute(),
+      locations_provider:get_tsserver_path():absolute(),
       "--stdio",
       "--local", "en",
       "--useInferredProjectPerProjectRoot",
