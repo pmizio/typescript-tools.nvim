@@ -204,4 +204,14 @@ function M.get_offset_at_position(position, bufnr)
   return line_offset + column
 end
 
+---@param dispatchers Dispatchers
+---@param file_uri string
+---@param diagnostics Dispatchers
+function M.publish_diagnostics(dispatchers, file_uri, diagnostics)
+  dispatchers.notification(c.LspMethods.PublishDiagnostics, {
+    uri = file_uri,
+    diagnostics = diagnostics,
+  })
+end
+
 return M

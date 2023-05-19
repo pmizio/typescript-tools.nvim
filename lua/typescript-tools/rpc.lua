@@ -46,7 +46,7 @@ function M.start(dispatchers)
     tsserver_diagnostic = Tsserver:new(tsserver_path, "diagnostic", dispatchers)
   end
 
-  autocommands.setup_autocommands()
+  autocommands.setup_autocommands(dispatchers)
   custom_handlers.setup_lsp_handlers(dispatchers)
 
   return {

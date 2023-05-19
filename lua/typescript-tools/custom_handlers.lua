@@ -1,4 +1,5 @@
 local c = require "typescript-tools.protocol.constants"
+local utils = require "typescript-tools.protocol.utils"
 
 local M = {}
 
@@ -23,10 +24,7 @@ function M.setup_lsp_handlers(dispatchers)
     end
 
     for file, report in pairs(result.relatedDocuments) do
-      dispatchers.notification(c.LspMethods.PublishDiagnostics, {
-        uri = file,
-        diagnostics = report.items,
-      })
+      utils.publish_diagnostics(dispatchers, file, report.items)
     end
   end
 end
