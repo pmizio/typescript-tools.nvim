@@ -37,7 +37,7 @@ end
 
 ---@param path table - plenary.nvim path object
 ---@return boolean
-function LocationsProvider:tsserver_exists(path)
+local function tsserver_exists(path)
   return path:exists() and path:is_file()
 end
 
@@ -45,13 +45,13 @@ end
 function LocationsProvider:get_tsserver_path()
   local tsserver_path = Path:new(self.root_dir, "node_modules", "typescript", "lib", "tsserver.js")
 
-  if not self:tsserver_exists(tsserver_path) then
+  if not tsserver_exists(tsserver_path) then
     tsserver_path = Path:new(self.npm_global_path, "bin", "tsserver")
   end
 
   -- INFO: if there is no local or global tsserver just error out
   assert(
-    self:tsserver_exists(tsserver_path),
+    tsserver_exists(tsserver_path),
     "Cannot find tsserver executable in local project nor global npm installation."
   )
 
