@@ -34,17 +34,24 @@ function M.setup_diagnostic_autocmds(augroup, dispatchers)
   end
 
   if plugin_config.publish_diagnostic_on == publish_diagnostic_mode.insert_leave then
-    api.nvim_create_autocmd("InsertEnter", {
-      pattern = extensions_pattern,
+    api.nvim_create_autocmd("LspAttach", {
       callback = function()
-        proto_utils.publish_diagnostics(dispatchers, vim.uri_from_bufnr(0), {})
-      end,
-      group = augroup,
-    })
+        request_diagnostics_debounced()
 
-    api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "TextChanged" }, {
-      pattern = extensions_pattern,
-      callback = request_diagnostics_debounced,
+        api.nvim_create_autocmd("InsertEnter", {
+          pattern = extensions_pattern,
+          callback = function()
+            proto_utils.publish_diagnostics(dispatchers, vim.uri_from_bufnr(0), {})
+          end,
+          group = augroup,
+        })
+
+        api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "TextChanged" }, {
+          pattern = extensions_pattern,
+          callback = request_diagnostics_debounced,
+          group = augroup,
+        })
+      end,
       group = augroup,
     })
   end
