@@ -4,6 +4,8 @@
 ---@field tsserver_logs string
 ---@field publish_diagnostic_on publish_diagnostic_mode
 ---@field tsserver_plugins string[]
+---@field tsserver_format_options table
+---@field tsserver_file_preferences table
 local M = {}
 local __store = {}
 
@@ -34,6 +36,8 @@ function M.load_settings(settings)
     },
     ["settings.publish_diagnostic_on"] = { settings.publish_diagnostic_on, "string", true },
     ["settings.tsserver_plugins"] = { settings.tsserver_plugins, "table", true },
+    ["settings.tsserver_format_options"] = { settings.tsserver_format_options, "table", true },
+    ["settings.tsserver_file_preferences"] = { settings.tsserver_file_preferences, "table", true },
     ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
   }
 
@@ -49,6 +53,14 @@ function M.load_settings(settings)
 
   if not settings.tsserver_plugins then
     __store.tsserver_plugins = {}
+  end
+
+  if not settings.tsserver_format_options then
+    __store.tsserver_format_options = {}
+  end
+
+  if not settings.tsserver_file_preferences then
+    __store.tsserver_file_preferences = {}
   end
 
   if not M.tsserver_log_level[settings.tsserver_logs] then
