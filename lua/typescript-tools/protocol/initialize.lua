@@ -4,11 +4,6 @@ local locations_provider = require "typescript-tools.locations_provider"
 
 local M = {}
 
-local tsconfig_cache = {
-  path = "",
-  data = {},
-}
-
 local default_compiler_options = {
   module = "ESNext",
   target = "ES2020",
@@ -41,14 +36,10 @@ local function read_tsconfig()
   local config_path = locations_provider:get_tsconfig_path()
 
   if config_path then
-    if config_path:absolute() == tsconfig_cache.path then
-      return tsconfig_cache.data
-    end
-
     local ok, config = pcall(vim.json.decode, config_path:read(), { luanil = { object = true } })
 
     if ok and config then
-      local compiler_options = config.compilerOptions
+      local compiler_options = config.compilerOptions or {}
       local ret = {}
 
       for k, v in pairs(default_compiler_options) do
@@ -58,9 +49,6 @@ local function read_tsconfig()
           ret[k] = value
         end
       end
-
-      tsconfig_cache.path = config_path:absolute()
-      tsconfig_cache.data = ret
 
       return ret
     end

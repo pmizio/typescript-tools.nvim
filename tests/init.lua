@@ -39,9 +39,10 @@ _G.file_opened = false
 _G.file_closed = false
 
 local old_handler = vim.lsp.handlers["$/progress"]
-vim.lsp.handlers["$/progress"] = function(...)
-  _G.initialized = true
-  old_handler(...)
+vim.lsp.handlers["$/progress"] = function(err, result, ...)
+  local value = result.value or {}
+  _G.initialized = value.kind == "end"
+  old_handler(err, result, ...)
 end
 
 local augroup = vim.api.nvim_create_augroup("TypescriptToolsTestsGroup", { clear = true })
