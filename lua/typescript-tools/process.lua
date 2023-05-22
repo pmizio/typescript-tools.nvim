@@ -46,8 +46,8 @@ function Process:new(type, on_response, on_exit)
       cancellation_dir:joinpath(CANCELLATION_PREFIX .. "*"):absolute(),
     },
     cancellation_dir = cancellation_dir,
-    on_response=on_response,
-    on_exit=on_exit
+    on_response = on_response,
+    on_exit = on_exit
   }
   -- stylua: ignore end
 

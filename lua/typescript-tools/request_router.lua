@@ -5,7 +5,7 @@ local M = {}
 ---@enum route_type
 local route_type = {
   syntax = "syntax",
-  diagnostic = "diagnostic",
+  semantic = "semantic",
   both = "both",
 }
 
@@ -15,7 +15,8 @@ local router_config = {
   [c.LspMethods.DidChange] = route_type.both,
   [c.LspMethods.DidClose] = route_type.both,
   [c.LspMethods.Shutdown] = route_type.both,
-  [c.CustomMethods.Diagnostic] = route_type.diagnostic,
+  [c.LspMethods.SemanticTokensFull] = route_type.semantic,
+  [c.CustomMethods.Diagnostic] = route_type.semantic,
 }
 
 ---@param method LspMethods
@@ -30,18 +31,18 @@ local function get_route_config(method)
 end
 
 ---@param syntax Tsserver
----@param diagnostic Tsserver|nil
+---@param semantic Tsserver|nil
 ---@param method LspMethods
-function M.route_request(syntax, diagnostic, method, ...)
-  local cfg = not diagnostic and route_type.syntax or get_route_config(method)
+function M.route_request(syntax, semantic, method, ...)
+  local cfg = not semantic and route_type.syntax or get_route_config(method)
 
   -- INFO: when request is sent to both servers then prefer syntax one and return it's id
-  if diagnostic and cfg == route_type.both then
-    diagnostic:handle_request(method, ...)
+  if semantic and cfg == route_type.both then
+    semantic:handle_request(method, ...)
   end
 
-  if diagnostic and cfg == route_type.diagnostic then
-    return diagnostic:handle_request(method, ...)
+  if semantic and cfg == route_type.semantic then
+    return semantic:handle_request(method, ...)
   end
 
   if cfg == route_type.syntax or cfg == route_type.both then

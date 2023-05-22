@@ -84,6 +84,18 @@ function RequestQueue:clear_diagnostics()
   end
 end
 
+---@param seq number
+function RequestQueue:cancel(seq)
+  for i = #self.queue, 1, -1 do
+    local el = self.queue[i]
+
+    if el.context.seq == seq then
+      table.remove(self.queue, i)
+      return
+    end
+  end
+end
+
 ---@return boolean
 function RequestQueue:is_empty()
   return #self.queue == 0

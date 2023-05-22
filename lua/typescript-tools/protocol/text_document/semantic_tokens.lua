@@ -4,6 +4,10 @@ local bit = require "bit"
 
 local M = {}
 
+M.low_priority = true
+M.cancel_on_change = true
+M.interrupt_diagnostic = false
+
 local token_encoding_type_offset = 8
 local token_encoding_modifier_mask = bit.lshift(1, token_encoding_type_offset) - 1
 
@@ -147,7 +151,7 @@ function M.handler(request, response, params)
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/v5.0.2/src/server/protocol.ts#L910
   vim.schedule(function()
-    response { data = transform_spans(body.spans, requested_bufnr) }
+    response { data = transform_spans(body.spans or {}, requested_bufnr) }
   end)
 end
 

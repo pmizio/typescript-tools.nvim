@@ -26,7 +26,7 @@
 
 ---@alias TsserverProtocolHandler fun(request: TsserverRequest, response: LspResponseFn, params: table, context: TsserverHandlerContext): nil
 
----@alias ServerType "syntax"|"diagnostic"
+---@alias ServerType "syntax"|"semantic"
 
 ---@class LspPosition
 ---@field line number

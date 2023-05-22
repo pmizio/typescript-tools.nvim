@@ -15,9 +15,9 @@ function M.start(dispatchers)
   locations_provider:initialize()
 
   local tsserver_syntax = Tsserver:new("syntax", dispatchers)
-  local tsserver_diagnostic = nil
+  local tsserver_semantic = nil
   if plugin_config.separate_diagnostic_server then
-    tsserver_diagnostic = Tsserver:new("diagnostic", dispatchers)
+    tsserver_semantic = Tsserver:new("semantic", dispatchers)
   end
 
   autocommands.setup_autocommands(dispatchers)
@@ -29,21 +29,21 @@ function M.start(dispatchers)
         return internal_commands.handle_command(...)
       end
 
-      return request_router.route_request(tsserver_syntax, tsserver_diagnostic, method, ...)
+      return request_router.route_request(tsserver_syntax, tsserver_semantic, method, ...)
     end,
     notify = function(...)
-      request_router.route_request(tsserver_syntax, tsserver_diagnostic, ...)
+      request_router.route_request(tsserver_syntax, tsserver_semantic, ...)
     end,
     terminate = function()
       tsserver_syntax:terminate()
-      if tsserver_diagnostic then
-        tsserver_diagnostic:terminate()
+      if tsserver_semantic then
+        tsserver_semantic:terminate()
       end
     end,
     is_closing = function()
       local ret = tsserver_syntax:is_closing()
-      if tsserver_diagnostic then
-        ret = ret and tsserver_diagnostic:is_closing()
+      if tsserver_semantic then
+        ret = ret and tsserver_semantic:is_closing()
       end
 
       return ret

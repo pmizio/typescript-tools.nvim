@@ -12,6 +12,7 @@ local c = require "typescript-tools.protocol.constants"
 ---@field request_queue RequestQueue
 ---@field pending_requests table<number|string, boolean|nil>
 ---@field requests_metadata RequestContainer[]
+---@field requests_to_cancel_on_change table<number, table>
 ---@field pending_diagnostic PendingDiagnostic|nil
 ---@field dispatchers Dispatchers
 
@@ -26,6 +27,7 @@ function Tsserver:new(type, dispatchers)
     request_queue = RequestQueue:new(),
     pending_requests = {},
     requests_metadata = {},
+    requests_to_cancel_on_change = {},
     dispatchers = dispatchers,
   }
 
@@ -90,6 +92,7 @@ function Tsserver:handle_response(response)
 
   self.pending_requests[seq] = nil
   self.requests_metadata[seq] = nil
+  self.requests_to_cancel_on_change[seq] = nil
 
   self:send_queued_requests()
 end
@@ -125,14 +128,20 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   function handler_context.request(request)
     local interrupt_diagnostic = handler_module.interrupt_diagnostic
 
+    self:cancel_on_change_requests(method, params)
+
     handler_context.seq = self.request_queue:enqueue {
       method = method,
       handler = handler,
       context = handler_context,
       request = request,
-      priority = self.request_queue:get_queueing_type(method),
+      priority = self.request_queue:get_queueing_type(method, handler_module.low_priority),
       interrupt_diagnostic = interrupt_diagnostic or type(interrupt_diagnostic) == "nil",
     }
+
+    if handler_module.cancel_on_change and params then
+      self.requests_to_cancel_on_change[handler_context.seq] = params.textDocument
+    end
 
     return handler_context.seq
   end
@@ -210,6 +219,29 @@ function Tsserver:interrupt_diagnostic()
   vim.schedule(function()
     api.request_diagnostics()
   end)
+end
+
+---@param method LspMethods
+---@param params table|nil
+function Tsserver:cancel_on_change_requests(method, params)
+  if method ~= c.LspMethods.DidChange or not params then
+    return
+  end
+
+  local uri = params.textDocument.uri
+
+  for seq, text_document in pairs(self.requests_to_cancel_on_change) do
+    if uri == text_document.uri then
+      if self.pending_requests[seq] then
+        self.process:cancel(seq)
+        self.pending_requests[seq] = nil
+      else
+        self.request_queue:cancel(seq)
+      end
+
+      self.requests_to_cancel_on_change[seq] = nil
+    end
+  end
 end
 
 function Tsserver:terminate()
