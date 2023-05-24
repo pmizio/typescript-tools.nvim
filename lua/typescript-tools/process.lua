@@ -2,7 +2,7 @@ local uv = vim.loop
 local log = require "vim.lsp.log"
 local Path = require "plenary.path"
 local plugin_config = require "typescript-tools.config"
-local locations_provider = require "typescript-tools.locations_provider"
+local LocationsProvider = require "typescript-tools.locations_provider"
 
 local HEADER = "Content-Length: "
 local CANCELLATION_PREFIX = "seq_"
@@ -26,16 +26,19 @@ local Process = {}
 ---@param on_response fun(response: table)
 ---@param on_exit fun(code: number, signal: number)
 ---@return Process
-function Process:new(type, on_response, on_exit)
-  local cancellation_dir =
+function Process.new(type, on_response, on_exit)
+  local self = setmetatable({}, { __index = Process })
+
+  local locations_provider = LocationsProvider.get_instance()
+
+  self.handle = nil
+  self.stdin = uv.new_pipe(false)
+  self.stdout = uv.new_pipe(false)
+  self.stderr = uv.new_pipe(false)
+  self.cancellation_dir =
     Path:new(uv.fs_mkdtemp(Path:new(uv.os_tmpdir(), "tsserver_nvim_XXXXXX"):absolute()))
     -- stylua: ignore start
-  local obj = {
-    handle = nil,
-    stdin = uv.new_pipe(false),
-    stdout = uv.new_pipe(false),
-    stderr = uv.new_pipe(false),
-    args = {
+    self.args = {
       locations_provider:get_tsserver_path():absolute(),
       "--stdio",
       "--local", "en",
@@ -43,42 +46,37 @@ function Process:new(type, on_response, on_exit)
       "--validateDefaultNpmLocation",
       "--noGetErrOnBackgroundUpdate",
       "--cancellationPipeName",
-      cancellation_dir:joinpath(CANCELLATION_PREFIX .. "*"):absolute(),
-    },
-    cancellation_dir = cancellation_dir,
-    on_response = on_response,
-    on_exit = on_exit
-  }
+      self.cancellation_dir:joinpath(CANCELLATION_PREFIX .. "*"):absolute(),
+    }
   -- stylua: ignore end
+  self.on_response = on_response
+  self.on_exit = on_exit
 
   local plugins_path = locations_provider:get_tsserver_plugins_path()
 
   if plugins_path and #plugin_config.tsserver_plugins > 0 then
-    table.insert(obj.args, "--pluginProbeLocations")
-    table.insert(obj.args, plugins_path:absolute())
-    table.insert(obj.args, "--globalPlugins")
-    table.insert(obj.args, table.concat(plugin_config.tsserver_plugins, ","))
+    table.insert(self.args, "--pluginProbeLocations")
+    table.insert(self.args, plugins_path:absolute())
+    table.insert(self.args, "--globalPlugins")
+    table.insert(self.args, table.concat(plugin_config.tsserver_plugins, ","))
   end
 
   if plugin_config.tsserver_logs ~= "off" then
     local log_dir = Path:new(uv.os_tmpdir())
-    table.insert(obj.args, "--logVerbosity")
-    table.insert(obj.args, plugin_config.tsserver_logs)
-    table.insert(obj.args, "--logFile")
-    table.insert(obj.args, log_dir:joinpath("tsserver_" .. type .. ".log"):absolute())
+    table.insert(self.args, "--logVerbosity")
+    table.insert(self.args, plugin_config.tsserver_logs)
+    table.insert(self.args, "--logFile")
+    table.insert(self.args, log_dir:joinpath("tsserver_" .. type .. ".log"):absolute())
   end
 
   if is_win then
-    table.insert(obj.args, 2, "node")
-    table.insert(obj.args, 2, "/C")
+    table.insert(self.args, 2, "node")
+    table.insert(self.args, 2, "/C")
   end
 
-  setmetatable(obj, self)
-  self.__index = self
+  self:start()
 
-  obj:start()
-
-  return obj
+  return self
 end
 
 ---@param header_string string

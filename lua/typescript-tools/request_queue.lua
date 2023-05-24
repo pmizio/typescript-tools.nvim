@@ -29,16 +29,13 @@ local RequestQueue = {
 }
 
 ---@return RequestQueue
-function RequestQueue:new()
-  local obj = {
-    seq = 0,
-    queue = {},
-  }
+function RequestQueue.new()
+  local self = setmetatable({}, { __index = RequestQueue })
 
-  setmetatable(obj, self)
-  self.__index = self
+  self.seq = 0
+  self.queue = {}
 
-  return obj
+  return self
 end
 
 ---@param request RequestContainer

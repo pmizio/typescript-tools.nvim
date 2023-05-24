@@ -22,23 +22,20 @@ local Tsserver = {}
 ---@param type ServerType
 ---@param dispatchers Dispatchers
 ---@return Tsserver
-function Tsserver:new(type, dispatchers)
-  local obj = {
-    request_queue = RequestQueue:new(),
-    pending_requests = {},
-    requests_metadata = {},
-    requests_to_cancel_on_change = {},
-    dispatchers = dispatchers,
-  }
+function Tsserver.new(type, dispatchers)
+  local self = setmetatable({}, { __index = Tsserver })
 
-  setmetatable(obj, self)
-  self.__index = self
+  self.request_queue = RequestQueue.new()
+  self.pending_requests = {}
+  self.requests_metadata = {}
+  self.requests_to_cancel_on_change = {}
+  self.dispatchers = dispatchers
 
-  obj.process = Process:new(type, function(response)
-    obj:handle_response(response)
+  self.process = Process.new(type, function(response)
+    self:handle_response(response)
   end, dispatchers.on_exit)
 
-  return obj
+  return self
 end
 
 ---@private
@@ -204,7 +201,7 @@ function Tsserver:send_queued_requests()
     }, item.request))
 
     if item.method == c.CustomMethods.Diagnostic then
-      self.pending_diagnostic = PendingDiagnostic:new(item)
+      self.pending_diagnostic = PendingDiagnostic.new(item)
     else
       self.pending_requests[seq] = true
       self.requests_metadata[seq] = item

@@ -8,15 +8,12 @@ local PendingDiagnostic = {}
 
 ---@param request_metadata RequestContainer
 ---@return PendingDiagnostic
-function PendingDiagnostic:new(request_metadata)
-  local obj = {
-    request_metadata = request_metadata,
-  }
+function PendingDiagnostic.new(request_metadata)
+  local self = setmetatable({}, { __index = PendingDiagnostic })
 
-  setmetatable(obj, self)
-  self.__index = self
+  self.request_metadata = request_metadata
 
-  return obj
+  return self
 end
 
 ---@private

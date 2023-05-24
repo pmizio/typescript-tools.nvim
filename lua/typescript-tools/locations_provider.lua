@@ -6,23 +6,18 @@ local util = require "lspconfig.util"
 local plugin_config = require "typescript-tools.config"
 
 ---@class LocationsProvider
+---@field private instance LocationsProvider
 ---@field private root_dir string
 ---@field private npm_global_path string
 
 ---@class LocationsProvider
 local LocationsProvider = {}
 
+---@private
 ---@return LocationsProvider
-function LocationsProvider:new()
-  local obj = {}
+function LocationsProvider.new()
+  local self = setmetatable({}, { __index = LocationsProvider })
 
-  setmetatable(obj, self)
-  self.__index = self
-
-  return obj
-end
-
-function LocationsProvider:initialize()
   local config = configs[plugin_config.plugin_name]
   local bufnr = api.nvim_get_current_buf()
   local bufname = api.nvim_buf_get_name(bufnr)
@@ -33,6 +28,16 @@ function LocationsProvider:initialize()
   self.npm_global_path = vim.fn
     .system([[node -p "require('path').resolve(process.execPath, '../..')"]])
     :match "^%s*(.-)%s*$"
+
+  return self
+end
+
+function LocationsProvider.get_instance()
+  if not LocationsProvider.instance then
+    LocationsProvider.instance = LocationsProvider.new()
+  end
+
+  return LocationsProvider.instance
 end
 
 ---@param path table - plenary.nvim path object
@@ -69,4 +74,4 @@ function LocationsProvider:get_tsserver_plugins_path()
   return plugins_path
 end
 
-return LocationsProvider:new()
+return LocationsProvider
