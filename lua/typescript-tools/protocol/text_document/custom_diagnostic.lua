@@ -28,7 +28,7 @@ end
 
 --- @param related_information table
 --- @return table
-local convert_related_information = function(related_information)
+local function convert_related_information(related_information)
   return vim.tbl_map(function(info)
     return {
       message = info.message,

@@ -74,7 +74,7 @@ function RequestQueue:dequeue()
   return request
 end
 
-function RequestQueue:clear_diagnostics()
+function RequestQueue:cancel_diagnostics()
   for i = #self.queue, 1, -1 do
     local el = self.queue[i]
 

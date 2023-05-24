@@ -8,7 +8,7 @@ local M = {}
 function M.debounce(ms, fn)
   local timer = uv.new_timer()
 
-  local wrapped_fn = function()
+  local function wrapped_fn()
     timer:stop()
     timer:start(ms, 0, vim.schedule_wrap(fn))
   end

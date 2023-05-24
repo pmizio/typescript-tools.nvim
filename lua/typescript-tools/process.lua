@@ -89,7 +89,7 @@ end
 
 ---@param initial_chunk string
 ---@param on_response fun(response: table)
-local parse_response = function(initial_chunk, on_response)
+local function parse_response(initial_chunk, on_response)
   local buffer = initial_chunk or ""
 
   while true do

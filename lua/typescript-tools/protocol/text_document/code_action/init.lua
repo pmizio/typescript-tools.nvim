@@ -5,7 +5,7 @@ local M = {}
 
 --- @param kind string
 --- @return CodeActionKind|nil
-local make_lsp_code_action_kind = function(kind)
+local function make_lsp_code_action_kind(kind)
   if kind:find("extract", 1, true) then
     return c.CodeActionKind.RefactorExtract
   elseif kind:find("rewrite", 1, true) then

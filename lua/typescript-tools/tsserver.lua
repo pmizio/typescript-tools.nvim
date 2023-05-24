@@ -213,7 +213,7 @@ function Tsserver:send_queued_requests()
 end
 
 function Tsserver:interrupt_diagnostic()
-  self.request_queue:clear_diagnostics()
+  self.request_queue:cancel_diagnostics()
   self.process:cancel(self.pending_diagnostic:get_seq())
   self.pending_diagnostic = nil
   vim.schedule(function()
