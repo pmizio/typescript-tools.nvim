@@ -33,15 +33,25 @@ function M.setup_diagnostic_autocmds(augroup, dispatchers)
     })
   end
 
+  local initialized = false
+
   if plugin_config.publish_diagnostic_on == publish_diagnostic_mode.insert_leave then
     api.nvim_create_autocmd("LspAttach", {
-      callback = function()
+      callback = function(lsp_event)
+        local client = vim.lsp.get_client_by_id(lsp_event.data.client_id)
+
+        if (client and client.name ~= plugin_config.plugin_name) or initialized then
+          return
+        end
+
+        initialized = true
+
         request_diagnostics_debounced()
 
         api.nvim_create_autocmd("InsertEnter", {
           pattern = extensions_pattern,
-          callback = function()
-            proto_utils.publish_diagnostics(dispatchers, vim.uri_from_bufnr(0), {})
+          callback = function(e)
+            proto_utils.publish_diagnostics(dispatchers, vim.uri_from_bufnr(e.buf), {})
           end,
           group = augroup,
         })
