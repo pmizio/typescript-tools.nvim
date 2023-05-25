@@ -223,6 +223,7 @@ return {
     Progress = "$/progress",
     ExecuteCommand = "workspace/executeCommand",
     WillRenameFiles = "workspace/willRenameFiles",
+    CancelRequest = "$/cancelRequest",
   },
   ---@enum CustomMethods
   CustomMethods = {
