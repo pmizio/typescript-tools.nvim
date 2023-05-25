@@ -101,6 +101,12 @@ end
 function Tsserver:handle_request(method, params, callback, notify_reply_callback)
   local _ = log.trace() and log.trace("tsserver", "Handling request: ", method)
 
+  -- INFO: cancel request is special case, it need to be executed immediately
+  if method == c.LspMethods.CancelRequest and params then
+    self:cancel(params.id)
+    return
+  end
+
   local module = module_mapper.map_method_to_module(method)
 
   -- INFO: skip sending request if it's a noop method
@@ -218,6 +224,22 @@ function Tsserver:interrupt_diagnostic()
   end)
 end
 
+---@param seq number
+function Tsserver:cancel(seq)
+  if not seq then
+    return
+  end
+
+  if self.pending_requests[seq] then
+    self.process:cancel(seq)
+    self.pending_requests[seq] = nil
+  else
+    self.request_queue:cancel(seq)
+  end
+
+  self.requests_to_cancel_on_change[seq] = nil
+end
+
 ---@param method LspMethods
 ---@param params table|nil
 function Tsserver:cancel_on_change_requests(method, params)
@@ -229,14 +251,7 @@ function Tsserver:cancel_on_change_requests(method, params)
 
   for seq, text_document in pairs(self.requests_to_cancel_on_change) do
     if uri == text_document.uri then
-      if self.pending_requests[seq] then
-        self.process:cancel(seq)
-        self.pending_requests[seq] = nil
-      else
-        self.request_queue:cancel(seq)
-      end
-
-      self.requests_to_cancel_on_change[seq] = nil
+      self:cancel(seq)
     end
   end
 end
