@@ -1,6 +1,9 @@
+local lsp_util = require "vim.lsp.util"
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.utils"
 local proto_utils = require "typescript-tools.protocol.utils"
+
+local document_cache = {}
 
 local M = {}
 
@@ -114,6 +117,14 @@ end
 function M.handler(request, response, params)
   local text_document = params.textDocument
 
+  local document_version = lsp_util.buf_versions[vim.uri_to_bufnr(text_document.uri)]
+  local cache = document_cache[text_document.uri] or {}
+
+  if document_version == cache.version then
+    request { cache = cache.data }
+    return
+  end
+
   request {
     command = c.CommandTypes.NavTree,
     arguments = {
@@ -126,6 +137,11 @@ function M.handler(request, response, params)
   local lenses = {}
 
   walk_nav_tree(text_document, body, nil, lenses)
+
+  document_cache[text_document.uri] = {
+    version = document_version,
+    data = lenses,
+  }
 
   response(lenses)
 end

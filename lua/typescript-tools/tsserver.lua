@@ -197,22 +197,26 @@ function Tsserver:send_queued_requests()
       return
     end
 
-    local seq = item.context.seq
-
-    if self.pending_diagnostic and item.interrupt_diagnostic then
-      self:interrupt_diagnostic()
-    end
-
-    self.process:write(vim.tbl_extend("force", {
-      seq = seq,
-      type = "request",
-    }, item.request))
-
-    if item.method == c.CustomMethods.Diagnostic then
-      self.pending_diagnostic = PendingDiagnostic.new(item)
+    if item.request.cache then
+      item.context.response(item.request.cache)
     else
-      self.pending_requests[seq] = true
-      self.requests_metadata[seq] = item
+      local seq = item.context.seq
+
+      if self.pending_diagnostic and item.interrupt_diagnostic then
+        self:interrupt_diagnostic()
+      end
+
+      self.process:write(vim.tbl_extend("force", {
+        seq = seq,
+        type = "request",
+      }, item.request))
+
+      if item.method == c.CustomMethods.Diagnostic then
+        self.pending_diagnostic = PendingDiagnostic.new(item)
+      else
+        self.pending_requests[seq] = true
+        self.requests_metadata[seq] = item
+      end
     end
   end
 end

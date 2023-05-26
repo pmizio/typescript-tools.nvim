@@ -14,6 +14,8 @@
 ---@class TsserverRequest
 ---@field command CommandTypes
 ---@field arguments table
+-- INFO: custom field to handle cached request
+---@field cache table|nil
 
 ---@alias TsserverRequestFn fun(request: TsserverRequest): number
 ---@alias LspResponseFn fun(response: table|nil): boolean
