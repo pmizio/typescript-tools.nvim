@@ -65,6 +65,7 @@ vim.api.nvim_create_autocmd("User", {
 require("typescript-tools").setup {
   settings = {
     separate_diagnostic_server = false,
+    code_lens = "all",
   },
 }
 

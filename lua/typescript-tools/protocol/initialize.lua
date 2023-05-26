@@ -1,5 +1,6 @@
 local c = require "typescript-tools.protocol.constants"
 local capabilities = require "typescript-tools.capabilities"
+local config = require "typescript-tools.config"
 
 local M = {}
 
@@ -43,6 +44,10 @@ function M.handler(request, response)
   request(initial_compiler_options)
   -- INFO: skip first response
   coroutine.yield()
+
+  if config.code_lens == config.code_lens_mode.off then
+    capabilities.codeLensProvider = false
+  end
 
   response { capabilities = capabilities }
 end

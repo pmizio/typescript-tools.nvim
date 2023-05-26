@@ -4,6 +4,8 @@
 ---@field tsserver_logs string
 ---@field publish_diagnostic_on publish_diagnostic_mode
 ---@field tsserver_plugins string[]
+---@field code_lens code_lens_mode
+---@field disable_member_code_lens boolean
 local M = {}
 local __store = {}
 
@@ -21,6 +23,14 @@ M.publish_diagnostic_mode = {
   change = "change",
 }
 
+---@enum code_lens_mode
+M.code_lens_mode = {
+  all = "all",
+  implementations_only = "implementations_only",
+  references_only = "references_only",
+  off = "off",
+}
+
 M.plugin_name = "typescript-tools"
 
 ---@param settings table
@@ -34,6 +44,8 @@ function M.load_settings(settings)
     },
     ["settings.publish_diagnostic_on"] = { settings.publish_diagnostic_on, "string", true },
     ["settings.tsserver_plugins"] = { settings.tsserver_plugins, "table", true },
+    ["settings.code_lens"] = { settings.code_lens, "string", true },
+    ["settings.disable_member_code_lens"] = { settings.disable_member_code_lens, "boolean", true },
     ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
   }
 
@@ -53,6 +65,10 @@ function M.load_settings(settings)
 
   if not M.tsserver_log_level[settings.tsserver_logs] then
     __store.tsserver_logs = M.tsserver_log_level.off
+  end
+
+  if not M.code_lens_mode[settings.code_lens] then
+    __store.code_lens = M.code_lens_mode.off
   end
 end
 

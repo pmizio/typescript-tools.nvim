@@ -2,6 +2,7 @@ local lsp_util = require "vim.lsp.util"
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.utils"
 local proto_utils = require "typescript-tools.protocol.utils"
+local config = require "typescript-tools.config"
 
 local document_cache = {}
 
@@ -32,6 +33,10 @@ end
 ---@param parent table|nil - NavTreeItem
 ---@return boolean|nil
 local function fulfill_member_rules(item, parent)
+  if config.disable_member_code_lens then
+    return false
+  end
+
   if parent then
     local parent_span = parent.spans[1]
     local item_span = item.spans[1]
@@ -89,7 +94,10 @@ end
 ---@param parent table|nil - NavTreeItem
 ---@param lenses table
 local function walk_nav_tree(text_document, item, parent, lenses)
-  if resolve_support(kinds_with_implementations, item, parent) then
+  if
+    config.code_lens ~= config.code_lens_mode.references_only
+    and resolve_support(kinds_with_implementations, item, parent)
+  then
     table.insert(lenses, {
       range = proto_utils.convert_tsserver_range_to_lsp(item.spans[1]),
       data = {
@@ -99,7 +107,10 @@ local function walk_nav_tree(text_document, item, parent, lenses)
     })
   end
 
-  if resolve_support(kinds_with_references, item, parent) then
+  if
+    config.code_lens ~= config.code_lens_mode.implementations_only
+    and resolve_support(kinds_with_references, item, parent)
+  then
     table.insert(lenses, {
       range = proto_utils.convert_tsserver_range_to_lsp(item.spans[1]),
       data = {
