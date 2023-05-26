@@ -6,6 +6,7 @@ local module_mapper = require "typescript-tools.protocol.module_mapper"
 local PendingDiagnostic = require "typescript-tools.protocol.pending_diagnostic"
 local api = require "typescript-tools.api"
 local c = require "typescript-tools.protocol.constants"
+local proto_utils = require "typescript-tools.protocol.utils"
 
 ---@class Tsserver
 ---@field process Process
@@ -77,11 +78,11 @@ function Tsserver:handle_response(response)
 
   local metadata = self.requests_metadata[seq]
 
-  dispatch_update_event(metadata.method, response)
-
   if not metadata then
     return
   end
+
+  dispatch_update_event(metadata.method, response)
 
   local handler = metadata.handler
 
@@ -233,9 +234,15 @@ function Tsserver:cancel(seq)
 
   if self.pending_requests[seq] then
     self.process:cancel(seq)
+    self.requests_metadata[seq].context.response(proto_utils.cancelled_response())
+    self.requests_metadata[seq] = nil
     self.pending_requests[seq] = nil
   else
-    self.request_queue:cancel(seq)
+    local cancelled_req = self.request_queue:cancel(seq)
+
+    if cancelled_req then
+      cancelled_req.context.response(proto_utils.cancelled_response())
+    end
   end
 
   self.requests_to_cancel_on_change[seq] = nil

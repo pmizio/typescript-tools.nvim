@@ -354,4 +354,8 @@ return {
     Full = "full",
     Unchanged = "unchanged",
   },
+  ---@enum LspErrorCodes
+  LspErrorCodes = {
+    ServerCancelled = -32802,
+  },
 }
