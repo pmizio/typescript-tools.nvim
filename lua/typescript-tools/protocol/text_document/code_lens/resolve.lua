@@ -6,12 +6,6 @@ local M = {}
 M.low_priority = true
 M.cancel_on_change = true
 
----@param n number
----@return number
-local function render_number(n)
-  return n > 0 and n - 1 or n
-end
-
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
   local implementations = params.data.implementations
@@ -29,7 +23,16 @@ function M.handler(request, response, params)
     local body = coroutine.yield()
 
     if body then
-      title = "implementations: " .. render_number(#body)
+      local range = utils.convert_lsp_range_to_tsserver(params.range)
+      local filtered_body = vim.tbl_filter(function(imp)
+        return not (
+          vim.uri_from_fname(imp.file) == params.data.textDocument.uri
+          and imp.start.line == range.start.line
+          and imp.start.offset == range.start.offset
+        )
+      end, body)
+
+      title = "implementations: " .. #filtered_body
       arguments = {
         textDocument = params.data.textDocument,
         position = params.range.start,
@@ -41,7 +44,11 @@ function M.handler(request, response, params)
     local body = coroutine.yield()
 
     if body.refs then
-      title = "references: " .. render_number(#body.refs)
+      local refs = vim.tbl_filter(function(ref)
+        return not ref.isDefinition
+      end, body.refs)
+
+      title = "references: " .. #refs
       arguments = {
         textDocument = params.data.textDocument,
         position = params.range.start,

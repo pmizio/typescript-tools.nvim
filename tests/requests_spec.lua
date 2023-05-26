@@ -1,3 +1,4 @@
+local v = vim.version
 local utils = require "tests.utils"
 local lsp_assert = require "tests.lsp_asserts"
 local mocks = require "tests.mocks"
@@ -532,6 +533,13 @@ describe("Lsp request", function()
 
     assert.is.table(result)
     assert.is.table(result.command)
-    assert.is.same(result.command.title, "references: 2")
+
+    local version = v.parse(vim.env.TEST_TYPESCRIPT_VERSION)
+
+    if version and v.lt(version, { 4, 5 }) then
+      assert.is.same(result.command.title, "references: 1")
+    else
+      assert.is.same(result.command.title, "references: 2")
+    end
   end)
 end)
