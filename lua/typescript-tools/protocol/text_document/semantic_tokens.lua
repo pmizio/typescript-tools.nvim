@@ -51,7 +51,7 @@ local function get_character_position_at_offset(
   local current_offset = offset_from_last_iteration
 
   for line = line_from_last_iteration, #lines_lengths, 1 do
-    local current_line_length = lines_lengths[line + 1]
+    local current_line_length = lines_lengths[line + 1] or 0
     local offset_with_current_line = current_offset + current_line_length
 
     if offset_with_current_line > offset then

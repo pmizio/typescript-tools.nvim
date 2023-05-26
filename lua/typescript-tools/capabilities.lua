@@ -96,7 +96,7 @@ local capabilities = {
   callHierarchyProvider = true,
   workspaceSymbolProvider = true,
   codeLensProvider = {
-    resolveProvider = false,
+    resolveProvider = true,
   },
   executeCommandProvider = {
     commands = {

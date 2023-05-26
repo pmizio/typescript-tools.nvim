@@ -497,4 +497,41 @@ describe("Lsp request", function()
       }
     )
   end)
+
+  it("should return correct response for " .. methods.CodeLens, function()
+    utils.open_file "src/diagnostic1.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.CodeLens, {
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+
+    local file_uri = "file://" .. vim.fn.getcwd() .. "/src/diagnostic1.ts"
+    ---@diagnostic disable-next-line
+    assert.is.same(result[1].data.textDocument.uri, file_uri)
+  end)
+
+  it("should return correct response for " .. methods.CodeLensResolve, function()
+    utils.open_file "src/diagnostic1.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.CodeLensResolve, {
+      data = {
+        textDocument = utils.get_text_document(),
+      },
+      range = {
+        start = { character = 13, line = 0 },
+      },
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+    assert.is.table(result.command)
+    assert.is.same(result.command.title, "references: 2")
+  end)
 end)
