@@ -95,6 +95,16 @@ local capabilities = {
   documentRangeFormattingProvider = true,
   callHierarchyProvider = true,
   workspaceSymbolProvider = true,
+  codeLensProvider = {
+    resolveProvider = false,
+  },
+  executeCommandProvider = {
+    commands = {
+      c.InternalCommands.InvokeAdditionalRename,
+      c.InternalCommands.RequestReferences,
+      c.InternalCommands.RequestImplementations,
+    },
+  },
 }
 
 return capabilities

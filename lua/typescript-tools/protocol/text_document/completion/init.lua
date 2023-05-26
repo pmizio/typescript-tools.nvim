@@ -1,6 +1,7 @@
 local c = require "typescript-tools.protocol.constants"
 local item_kind_utils = require "typescript-tools.protocol.text_document.completion.item_kind_utils"
-local utils = require "typescript-tools.protocol.utils"
+local utils = require "typescript-tools.utils"
+local proto_utils = require "typescript-tools.protocol.utils"
 
 local M = {}
 
@@ -11,7 +12,7 @@ local function calculate_text_edit(replacement_span, new_text)
     return nil
   end
 
-  local replacement_range = utils.convert_tsserver_range_to_lsp(replacement_span)
+  local replacement_range = proto_utils.convert_tsserver_range_to_lsp(replacement_span)
 
   return {
     newText = new_text,
@@ -38,7 +39,7 @@ function M.handler(request, response, params)
         or nil,
       includeExternalModuleExports = true,
       includeInsertTextCompletions = true,
-    }, utils.convert_lsp_position_to_tsserver(params.position)),
+    }, proto_utils.convert_lsp_position_to_tsserver(params.position)),
   }
 
   local body = coroutine.yield()
@@ -50,11 +51,9 @@ function M.handler(request, response, params)
     isIncomplete = body.isIncomplete or false,
     items = vim.tbl_map(function(item)
       local is_optional = item.kindModifiers
-          and string.find(item.kindModifiers, "optional", 1, true)
-        or false
+        and utils.toboolean(string.find(item.kindModifiers, "optional", 1, true))
       local is_deprecated = item.kindModifiers
-          and string.find(item.kindModifiers, "deprecated", 1, true)
-        or false
+        and utils.toboolean(string.find(item.kindModifiers, "deprecated", 1, true))
       local insertText = item.insertText or item.name
       local kind = item_kind_utils.map_completion_item_kind(item.kind)
       local sortText = item.sortText

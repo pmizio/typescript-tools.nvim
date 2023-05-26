@@ -7,6 +7,7 @@ local remapped_methods = {
   [c.LspMethods.CodeActionResolve] = "text_document.code_action.resolve",
   [c.LspMethods.RangeFormatting] = "text_document.formatting",
   [c.LspMethods.SemanticTokensFull] = "text_document.semantic_tokens",
+  [c.LspMethods.CodeLensResolve] = "text_document.code_lens.resolve",
   [c.CustomMethods.OrganizeImports] = "text_document.organize_imports",
   [c.CustomMethods.Diagnostic] = "text_document.custom_diagnostic",
 }

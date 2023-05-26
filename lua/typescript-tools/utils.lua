@@ -52,4 +52,10 @@ function M.is_buf_hidden(bufnr)
   return bufinfo.hidden == 1
 end
 
+---@param value any
+---@return boolean
+function M.toboolean(value)
+  return not not value
+end
+
 return M
