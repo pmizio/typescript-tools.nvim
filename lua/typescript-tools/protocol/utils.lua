@@ -118,14 +118,11 @@ end
 function M.get_lsp_symbol_kind(script_element_kind)
   local kind = symbol_kind_map[script_element_kind]
 
-  if kind then
-    return kind
+  if not kind then
+    return c.SymbolKind.Variable
   end
 
-  vim.schedule_wrap(vim.notify)(
-    "Cannot find matching LSP script kind for: " .. script_element_kind,
-    vim.log.levels.ERROR
-  )
+  return kind
 end
 
 ---@param edits table
