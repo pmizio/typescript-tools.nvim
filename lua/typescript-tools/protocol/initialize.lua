@@ -32,26 +32,28 @@ local configuration = {
   },
 }
 
-local function read_tsconfig()
+local function read_compiler_options()
   local config_path = locations_provider:get_tsconfig_path()
 
-  if config_path then
-    local ok, config = pcall(vim.json.decode, config_path:read(), { luanil = { object = true } })
+  if not config_path then
+    return default_compiler_options
+  end
 
-    if ok and config then
-      local compiler_options = config.compilerOptions or {}
-      local ret = {}
+  local ok, config = pcall(vim.json.decode, config_path:read(), { luanil = { object = true } })
 
-      for k, v in pairs(default_compiler_options) do
-        local value = compiler_options[k]
+  if ok and config then
+    local compiler_options = config.compilerOptions or {}
+    local ret = {}
 
-        if value ~= nil and v ~= value then
-          ret[k] = value
-        end
+    for k, v in pairs(default_compiler_options) do
+      local value = compiler_options[k]
+
+      if value ~= nil and v ~= value then
+        ret[k] = value
       end
-
-      return ret
     end
+
+    return ret
   end
 
   return default_compiler_options
@@ -59,7 +61,7 @@ end
 
 ---@return TsserverRequest
 local function get_compiler_options()
-  local opts = read_tsconfig()
+  local opts = read_compiler_options()
 
   return {
     command = c.CommandTypes.CompilerOptionsForInferredProjects,
