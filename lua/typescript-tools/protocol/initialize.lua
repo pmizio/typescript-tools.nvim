@@ -1,6 +1,6 @@
 local c = require "typescript-tools.protocol.constants"
 local capabilities = require "typescript-tools.capabilities"
-local locations_provider = require "typescript-tools.locations_provider"
+local LocationsProvider = require "typescript-tools.locations_provider"
 
 local M = {}
 
@@ -33,7 +33,7 @@ local configuration = {
 }
 
 local function read_compiler_options()
-  local config_path = locations_provider:get_tsconfig_path()
+  local config_path = LocationsProvider.get_instance():get_tsconfig_path()
 
   if not config_path then
     return default_compiler_options
