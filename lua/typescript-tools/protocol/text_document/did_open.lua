@@ -54,15 +54,17 @@ local default_preferences = {
   includeInlayEnumMemberValueHints = false,
 }
 
+---@type table<"mac" | "unix" | "dos", string>
 local eol_chars = {
   mac = "\r",
   unix = "\n",
   dos = "\r\n",
 }
 
+---@param bo table
 ---@return string
-local function get_eol_chars()
-  return eol_chars[vim.bo.fileformat] or eol_chars.unix
+local function get_eol_chars(bo)
+  return eol_chars[bo.fileformat] or eol_chars.unix
 end
 
 ---@param params table
@@ -70,26 +72,34 @@ end
 local function configure(params)
   local text_document = params.textDocument
 
-  local bo = vim.bo
+  local bo = vim.bo[vim.uri_to_bufnr(text_document.uri)]
   local tab_size = bo.tabstop or 2
   local indent_size = bo.shiftwidth or tab_size
   local convert_tabs_to_spaces = bo.expandtab or true
-  local new_line_character = get_eol_chars()
+  local new_line_character = get_eol_chars(bo)
+
+  local preferences = plugin_config.tsserver_file_preferences
+  local format_options = plugin_config.tsserver_format_options
 
   return {
     command = c.CommandTypes.Configure,
     arguments = {
       file = vim.uri_to_fname(text_document.uri),
-      formatOptions = vim.tbl_extend("force", {
-        tabSize = tab_size,
-        indentSize = indent_size,
-        convertTabsToSpaces = convert_tabs_to_spaces,
-        newLineCharacter = new_line_character,
-      }, default_format_options, plugin_config.tsserver_format_options),
+      formatOptions = vim.tbl_extend(
+        "force",
+        {
+          tabSize = tab_size,
+          indentSize = indent_size,
+          convertTabsToSpaces = convert_tabs_to_spaces,
+          newLineCharacter = new_line_character,
+        },
+        default_format_options,
+        type(format_options) == "function" and format_options(bo.filetype) or format_options
+      ),
       preferences = vim.tbl_extend(
         "force",
         default_preferences,
-        plugin_config.tsserver_file_preferences
+        type(preferences) == "function" and preferences(bo.filetype) or preferences
       ),
     },
   }
