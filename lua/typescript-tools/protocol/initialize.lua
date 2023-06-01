@@ -1,7 +1,27 @@
 local c = require "typescript-tools.protocol.constants"
 local capabilities = require "typescript-tools.capabilities"
+local locations_provider = require "typescript-tools.locations_provider"
 
 local M = {}
+
+local tsconfig_cache = {
+  path = "",
+  data = {},
+}
+
+local default_compiler_options = {
+  module = "ESNext",
+  target = "ES2020",
+  jsx = "react",
+  allowJs = true,
+  strictNullChecks = true,
+  sourceMap = true,
+  allowSyntheticDefaultImports = true,
+  allowNonTsExtensions = true,
+  resolveJsonModule = true,
+  moduleResolution = "Node",
+  strictFunctionTypes = true,
+}
 
 ---@type TsserverRequest
 local configuration = {
@@ -17,30 +37,56 @@ local configuration = {
   },
 }
 
----@type TsserverRequest
-local initial_compiler_options = {
-  command = c.CommandTypes.CompilerOptionsForInferredProjects,
-  arguments = {
-    options = {
-      module = "ESNext",
-      moduleResolution = "Node",
-      target = "ES2020",
-      jsx = "react",
-      strictNullChecks = true,
-      strictFunctionTypes = true,
-      sourceMap = true,
-      allowJs = true,
-      allowSyntheticDefaultImports = true,
-      allowNonTsExtensions = true,
-      resolveJsonModule = true,
+local function read_tsconfig()
+  local config_path = locations_provider:get_tsconfig_path()
+
+  if config_path then
+    if config_path:absolute() == tsconfig_cache.path then
+      return tsconfig_cache.data
+    end
+
+    local ok, config = pcall(vim.json.decode, config_path:read(), { luanil = { object = true } })
+
+    if ok and config then
+      local compiler_options = config.compilerOptions
+      local ret = {}
+
+      for k, v in pairs(default_compiler_options) do
+        local value = compiler_options[k]
+
+        if value ~= nil and v ~= value then
+          ret[k] = value
+        end
+      end
+
+      tsconfig_cache.path = config_path:absolute()
+      tsconfig_cache.data = ret
+
+      return ret
+    end
+  end
+
+  return default_compiler_options
+end
+
+---@return TsserverRequest
+local function get_compiler_options()
+  local opts = read_tsconfig()
+
+  return {
+    command = c.CommandTypes.CompilerOptionsForInferredProjects,
+    arguments = {
+      options = vim.tbl_extend("force", {}, default_compiler_options, opts),
     },
-  },
-}
+  }
+end
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response)
   request(configuration)
-  request(initial_compiler_options)
+  -- tssever protocol reference:
+  -- https://github.com/microsoft/TypeScript/blob/2b7d517907de7026c83e54ceab59a3926877a5d3/src/server/protocol.ts#L1914
+  request(get_compiler_options())
   -- INFO: skip first response
   coroutine.yield()
 
