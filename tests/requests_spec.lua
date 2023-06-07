@@ -502,4 +502,53 @@ describe("Lsp request", function()
       }
     )
   end)
+
+  it("should return correct response for " .. methods.InlayHint, function()
+    utils.open_file "src/inlayHints.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.InlayHint, {
+      textDocument = utils.get_text_document(),
+      range = utils.make_range(0, 0, 9, 21),
+    })
+
+    if not utils.supports_capability "inlayHintsProvider" then
+      utils.print_skip "inlayHintsProvider not supported in typescript version below 4.4"
+      return
+    end
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+    assert.is.same(#result, 3)
+    assert.is.same(result[1], {
+      kind = 1,
+      label = ": string",
+      paddingLeft = true,
+      paddingRight = false,
+      position = {
+        character = 15,
+        line = 0,
+      },
+    })
+    assert.is.same(result[2], {
+      label = "= 0",
+      paddingLeft = true,
+      paddingRight = false,
+      position = {
+        character = 5,
+        line = 5,
+      },
+    })
+    assert.is.same(result[3], {
+      kind = 1,
+      label = ": string",
+      paddingLeft = true,
+      paddingRight = false,
+      position = {
+        character = 7,
+        line = 8,
+      },
+    })
+  end)
 end)

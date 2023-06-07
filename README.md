@@ -46,6 +46,7 @@
 | ✅     | textDocument/rangeFormatting                              |
 | ✅     | textDocument/foldingRange                                 |
 | ✅     | textDocument/semanticTokens/full (supported from TS v4.1) |
+| ✅     | textDocument/inlayHint (supported from TS v4.4)           |
 | ✅     | callHierarchy/incomingCalls                               |
 | ✅     | callHierarchy/outgoingCalls                               |
 | ✅     | workspace/symbol                                          |
@@ -56,6 +57,38 @@
 | ❌     | window/showMessage - N/A                                  |
 | ❌     | window/showMessageRequest - N/A                           |
 
+### Configuration
+
+You can pass custom configuration options that will be passed to `tsserver`
+instance. You can find available options in `typescript` repositorory (e.g.
+for version 5.0.4 of typescript):
+
+- [tsserver_file_preferences](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3439)
+- [tsserver_format_options](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3418)
+
+To pass those options to plugin pass them to the plugin `setup` function:
+
+```lua
+typescript_tools.setup({
+  settings = {
+    ...
+    tsserver_file_preferences = {
+      includeInlayParameterNameHints = "all",
+      includeCompletionsForModuleExports = true,
+      quotePreference = "auto",
+      ...
+    },
+    tsserver_format_options = {
+      allowIncompleteCompletions = false,
+      allowRenameOfImportPath = false,
+      ...
+    }
+  },
+})
+```
+
+The default values for `preferences` and `format_options` are in [this file](https://github.com/pmizio/typescript-tools.nvim/blob/master/lua/typescript-tools/protocol/text_document/did_open.lua#L8)
+
 ## Development
 
 Useful links:
@@ -65,9 +98,10 @@ Useful links:
 
 ### Run tests
 
-Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) to be checked out in the parent directory of _this_ repository.
-Make sure you have [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin.
-You can then run:
+Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
+to be checked out in the parent directory of _this_ repository. Make sure you
+have [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin. You
+can then run:
 
 ```bash
 make test
