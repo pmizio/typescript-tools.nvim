@@ -483,6 +483,11 @@ describe("Lsp request", function()
     utils.open_file "src/semanticTokens.ts"
     utils.wait_for_lsp_initialization()
 
+    if not utils.supports_capability "semanticTokensProvider" then
+      utils.print_skip "semanticTokensProvider not supported in typescript version below 4.1"
+      return
+    end
+
     local ret = vim.lsp.buf_request_sync(0, methods.SemanticTokensFull, {
       textDocument = utils.get_text_document(),
     })
@@ -507,11 +512,9 @@ describe("Lsp request", function()
       textDocument = utils.get_text_document(),
       range = utils.make_range(0, 0, 9, 21),
     })
-    local version = vim.env.TEST_TYPESCRIPT_VERSION and v.parse(vim.env.TEST_TYPESCRIPT_VERSION)
-      or nil
 
-    if version and v.lt(version, { 4, 4 }) then
-      assert.is.same(ret, nil)
+    if not utils.supports_capability "inlayHintsProvider" then
+      utils.print_skip "inlayHintsProvider not supported in typescript version below 4.4"
       return
     end
 
