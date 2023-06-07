@@ -223,6 +223,7 @@ return {
     Progress = "$/progress",
     ExecuteCommand = "workspace/executeCommand",
     WillRenameFiles = "workspace/willRenameFiles",
+    CancelRequest = "$/cancelRequest",
   },
   ---@enum CustomMethods
   CustomMethods = {
@@ -348,5 +349,9 @@ return {
   DocumentDiagnosticReportKind = {
     Full = "full",
     Unchanged = "unchanged",
+  },
+  ---@enum LspErrorCodes
+  LspErrorCodes = {
+    ServerCancelled = -32802,
   },
 }

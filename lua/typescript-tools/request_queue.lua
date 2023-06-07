@@ -82,13 +82,14 @@ function RequestQueue:cancel_diagnostics()
 end
 
 ---@param seq number
+---@return RequestContainer|nil
 function RequestQueue:cancel(seq)
   for i = #self.queue, 1, -1 do
     local el = self.queue[i]
 
     if el.context.seq == seq then
       table.remove(self.queue, i)
-      return
+      return el
     end
   end
 end

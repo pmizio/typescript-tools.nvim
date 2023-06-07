@@ -6,6 +6,7 @@ local module_mapper = require "typescript-tools.protocol.module_mapper"
 local PendingDiagnostic = require "typescript-tools.protocol.pending_diagnostic"
 local api = require "typescript-tools.api"
 local c = require "typescript-tools.protocol.constants"
+local proto_utils = require "typescript-tools.protocol.utils"
 
 ---@class Tsserver
 ---@field process Process
@@ -77,11 +78,11 @@ function Tsserver:handle_response(response)
 
   local metadata = self.requests_metadata[seq]
 
-  dispatch_update_event(metadata.method, response)
-
   if not metadata then
     return
   end
+
+  dispatch_update_event(metadata.method, response)
 
   local handler = metadata.handler
 
@@ -98,14 +99,21 @@ end
 ---@param params table|nil
 ---@param callback LspCallback
 ---@param notify_reply_callback function|nil
+---@return boolean, number|nil
 function Tsserver:handle_request(method, params, callback, notify_reply_callback)
   local _ = log.trace() and log.trace("tsserver", "Handling request: ", method)
+
+  -- INFO: cancel request is special case, it need to be executed immediately
+  if method == c.LspMethods.CancelRequest and params then
+    self:cancel(params.id)
+    return true
+  end
 
   local module = module_mapper.map_method_to_module(method)
 
   -- INFO: skip sending request if it's a noop method
   if not module then
-    return
+    return false
   end
 
   local ok, handler_module = pcall(require, "typescript-tools.protocol." .. module)
@@ -113,7 +121,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   if not ok or type(handler_module) ~= "table" then
     local _ = log.debug() and log.debug("tsserver", "Unimplemented method: ", method)
     local _ = log.debug() and log.debug("tsserver", "with params:", vim.inspect(params))
-    return
+    return false
   end
 
   local handler = coroutine.create(handler_module.handler)
@@ -144,7 +152,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   end
 
   function handler_context.response(response, error)
-    local seq = handler_context.seq
+    local seq = handler_context.synthetic_seq or handler_context.seq
     local notify_reply = notify_reply_callback and vim.schedule_wrap(notify_reply_callback)
     local response_callback = callback and vim.schedule_wrap(callback)
 
@@ -169,15 +177,18 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
     handler_context
   )
 
+  local seq = handler_context.synthetic_seq or handler_context.seq
+
   if err then
     local _ = log.error()
       and log.error("tsserver", "Unexpected error while handling request: ", handler_context.method)
     local _ = log.error() and log.error("tsserver", err)
+    return false, seq
   end
 
   self:send_queued_requests()
 
-  return handler_context.synthetic_seq or handler_context.seq
+  return true, seq
 end
 
 ---@private
@@ -218,6 +229,28 @@ function Tsserver:interrupt_diagnostic()
   end)
 end
 
+---@param seq number
+function Tsserver:cancel(seq)
+  if not seq then
+    return
+  end
+
+  if self.pending_requests[seq] then
+    self.process:cancel(seq)
+    self.requests_metadata[seq].context.response(proto_utils.cancelled_response())
+    self.requests_metadata[seq] = nil
+    self.pending_requests[seq] = nil
+  else
+    local cancelled_req = self.request_queue:cancel(seq)
+
+    if cancelled_req then
+      cancelled_req.context.response(proto_utils.cancelled_response())
+    end
+  end
+
+  self.requests_to_cancel_on_change[seq] = nil
+end
+
 ---@param method LspMethods
 ---@param params table|nil
 function Tsserver:cancel_on_change_requests(method, params)
@@ -229,14 +262,7 @@ function Tsserver:cancel_on_change_requests(method, params)
 
   for seq, text_document in pairs(self.requests_to_cancel_on_change) do
     if uri == text_document.uri then
-      if self.pending_requests[seq] then
-        self.process:cancel(seq)
-        self.pending_requests[seq] = nil
-      else
-        self.request_queue:cancel(seq)
-      end
-
-      self.requests_to_cancel_on_change[seq] = nil
+      self:cancel(seq)
     end
   end
 end
