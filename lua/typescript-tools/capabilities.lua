@@ -28,7 +28,7 @@ local function make_capabilities()
     hoverProvider = true,
     definitionProvider = true,
     typeDefinitionProvider = true,
-    inlayHintsProvider = utils.version_compare("gt", version, { 4, 3 }),
+    inlayHintsProvider = not utils.version_compare("lt", version, { 4, 4 }),
     foldingRangeProvider = true,
     semanticTokensProvider = not utils.version_compare("lt", version, { 4, 1 })
         and {

@@ -4,7 +4,6 @@ local mocks = require "tests.mocks"
 local c = require "typescript-tools.protocol.constants"
 local methods = c.LspMethods
 local custom_methods = c.CustomMethods
-local v = vim.version
 
 describe("Lsp request", function()
   after_each(function()
