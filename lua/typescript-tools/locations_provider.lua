@@ -74,4 +74,21 @@ function LocationsProvider:get_tsserver_plugins_path()
   return plugins_path
 end
 
+---@return table|nil - plenary.nvim path object
+function LocationsProvider:get_tsconfig_path()
+  local tsconfig = Path:new(self.root_dir, "tsconfig.json")
+
+  if tsconfig:exists() then
+    return tsconfig
+  end
+
+  local jsconfig = Path:new(self.root_dir, "jsconfig.json")
+
+  if jsconfig:exists() then
+    return jsconfig
+  end
+
+  return nil
+end
+
 return LocationsProvider

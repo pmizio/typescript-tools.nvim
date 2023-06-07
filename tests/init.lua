@@ -31,7 +31,7 @@ vim.env.XDG_CONFIG_HOME = get_root ".tests/config"
 vim.env.XDG_DATA_HOME = get_root ".tests/data"
 vim.env.XDG_STATE_HOME = get_root ".tests/state"
 vim.env.XDG_CACHE_HOME = get_root ".tests/cache"
-vim.o.noswapfile = true
+vim.opt.swapfile = false
 vim.cmd.packloadall { bang = true }
 
 _G.initialized = false
@@ -39,9 +39,10 @@ _G.file_opened = false
 _G.file_closed = false
 
 local old_handler = vim.lsp.handlers["$/progress"]
-vim.lsp.handlers["$/progress"] = function(...)
-  _G.initialized = true
-  old_handler(...)
+vim.lsp.handlers["$/progress"] = function(err, result, ...)
+  local value = result.value or {}
+  _G.initialized = value.kind == "end"
+  old_handler(err, result, ...)
 end
 
 local augroup = vim.api.nvim_create_augroup("TypescriptToolsTestsGroup", { clear = true })
