@@ -4,6 +4,7 @@ local mocks = require "tests.mocks"
 local c = require "typescript-tools.protocol.constants"
 local methods = c.LspMethods
 local custom_methods = c.CustomMethods
+local v = vim.version
 
 describe("Lsp request", function()
   after_each(function()
@@ -506,13 +507,10 @@ describe("Lsp request", function()
       textDocument = utils.get_text_document(),
       range = utils.make_range(0, 0, 9, 21),
     })
+    local version = vim.env.TEST_TYPESCRIPT_VERSION and v.parse(vim.env.TEST_TYPESCRIPT_VERSION)
+      or nil
 
-    if
-      vim.env.TEST_TYPESCRIPT_VERSION == "4.0"
-      or vim.env.TEST_TYPESCRIPT_VERSION == "4.1"
-      or vim.env.TEST_TYPESCRIPT_VERSION == "4.2"
-      or vim.env.TEST_TYPESCRIPT_VERSION == "4.3"
-    then
+    if version and v.lt(version, { 4, 4 }) then
       assert.is.same(ret, nil)
       return
     end
