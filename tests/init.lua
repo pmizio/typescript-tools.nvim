@@ -31,7 +31,7 @@ vim.env.XDG_CONFIG_HOME = get_root ".tests/config"
 vim.env.XDG_DATA_HOME = get_root ".tests/data"
 vim.env.XDG_STATE_HOME = get_root ".tests/state"
 vim.env.XDG_CACHE_HOME = get_root ".tests/cache"
-vim.o.noswapfile = true
+vim.opt.swapfile = false
 vim.cmd.packloadall { bang = true }
 
 _G.initialized = false
