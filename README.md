@@ -58,8 +58,11 @@
 | ❌     | window/showMessageRequest - N/A                           |
 
 ### Configuration
-You can pass custom configuration options that will be passed to `tsserver` instance. You can find 
-available options in `typescript` repositorory (e.g. for version 5.0.4 of typescript):
+
+You can pass custom configuration options that will be passed to `tsserver`
+instance. You can find available options in `typescript` repositorory (e.g.
+for version 5.0.4 of typescript):
+
 - [tsserver_file_preferences](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3439)
 - [tsserver_format_options](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3418)
 
@@ -95,9 +98,10 @@ Useful links:
 
 ### Run tests
 
-Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim) to be checked out in the parent directory of _this_ repository.
-Make sure you have [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin.
-You can then run:
+Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
+to be checked out in the parent directory of _this_ repository. Make sure you
+have [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin. You
+can then run:
 
 ```bash
 make test
