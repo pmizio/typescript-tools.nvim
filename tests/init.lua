@@ -66,6 +66,11 @@ vim.api.nvim_create_autocmd("User", {
 require("typescript-tools").setup {
   settings = {
     separate_diagnostic_server = false,
+    tsserver_file_preferences = {
+      includeInlayEnumMemberValueHints = true,
+      includeInlayFunctionLikeReturnTypeHints = true,
+      includeInlayVariableTypeHints = true,
+    },
   },
 }
 

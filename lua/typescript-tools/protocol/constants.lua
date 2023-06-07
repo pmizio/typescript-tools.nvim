@@ -217,6 +217,7 @@ return {
     FoldingRange = "textDocument/foldingRange",
     SemanticTokensFull = "textDocument/semanticTokens/full",
     SemanticTokensRange = "textDocument/semanticTokens/range",
+    InlayHint = "textDocument/inlayHint",
     IncomingCalls = "callHierarchy/incomingCalls",
     OutgoingCalls = "callHierarchy/outgoingCalls",
     WorkspaceSymbol = "workspace/symbol",

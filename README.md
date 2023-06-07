@@ -46,6 +46,7 @@
 | ✅     | textDocument/rangeFormatting                              |
 | ✅     | textDocument/foldingRange                                 |
 | ✅     | textDocument/semanticTokens/full (supported from TS v4.1) |
+| ✅     | textDocument/inlayHint (supported from TS v4.4)           |
 | ✅     | callHierarchy/incomingCalls                               |
 | ✅     | callHierarchy/outgoingCalls                               |
 | ✅     | workspace/symbol                                          |
@@ -55,6 +56,35 @@
 | ❌     | window/logMessage - N/A                                   |
 | ❌     | window/showMessage - N/A                                  |
 | ❌     | window/showMessageRequest - N/A                           |
+
+### Configuration
+You can pass custom configuration options that will be passed to `tsserver` instance. You can find 
+available options in `typescript` repositorory (e.g. for version 5.0.4 of typescript):
+- [preferences](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3439)
+- [format_options](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3418)
+
+To pass those options to plugin pass them to the plugin `setup` function:
+
+```lua
+typescript_tools.setup({
+  settings = {
+    ...
+    preferences = {
+      includeInlayParameterNameHints = "all",
+      includeCompletionsForModuleExports = true,
+      quotePreference = "auto",
+      ...
+    },
+    format_options = {
+      allowIncompleteCompletions = false,
+      allowRenameOfImportPath = false,
+      ...
+    }
+  },
+})
+```
+
+The default values for `preferences` and `format_options` are in [this file](https://github.com/pmizio/typescript-tools.nvim/blob/c2407e5eee4f140a7f420a0ab0ecb9f99e8a4bd0/lua/typescript-tools/protocol/handlers/did_open.lua#L5)
 
 ## Development
 

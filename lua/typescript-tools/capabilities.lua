@@ -75,6 +75,7 @@ local capabilities = {
     },
     resolveProvider = true,
   },
+  inlayHintProvider = true,
   workspace = {
     fileOperations = {
       willRename = {
