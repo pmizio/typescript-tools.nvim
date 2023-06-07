@@ -60,8 +60,8 @@
 ### Configuration
 You can pass custom configuration options that will be passed to `tsserver` instance. You can find 
 available options in `typescript` repositorory (e.g. for version 5.0.4 of typescript):
-- [preferences](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3439)
-- [format_options](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3418)
+- [tsserver_file_preferences](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3439)
+- [tsserver_format_options](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3418)
 
 To pass those options to plugin pass them to the plugin `setup` function:
 
@@ -69,13 +69,13 @@ To pass those options to plugin pass them to the plugin `setup` function:
 typescript_tools.setup({
   settings = {
     ...
-    preferences = {
+    tsserver_file_preferences = {
       includeInlayParameterNameHints = "all",
       includeCompletionsForModuleExports = true,
       quotePreference = "auto",
       ...
     },
-    format_options = {
+    tsserver_format_options = {
       allowIncompleteCompletions = false,
       allowRenameOfImportPath = false,
       ...
@@ -84,7 +84,7 @@ typescript_tools.setup({
 })
 ```
 
-The default values for `preferences` and `format_options` are in [this file](https://github.com/pmizio/typescript-tools.nvim/blob/c2407e5eee4f140a7f420a0ab0ecb9f99e8a4bd0/lua/typescript-tools/protocol/handlers/did_open.lua#L5)
+The default values for `preferences` and `format_options` are in [this file](https://github.com/pmizio/typescript-tools.nvim/blob/master/lua/typescript-tools/protocol/text_document/did_open.lua#L8)
 
 ## Development
 
