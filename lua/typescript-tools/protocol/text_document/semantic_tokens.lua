@@ -44,6 +44,10 @@ local function get_character_position_at_offset(
   offset_from_last_iteration,
   line_from_last_iteration
 )
+  if #lines_lengths == 0 then
+    return { line = 0, character = 0 }
+  end
+
   if #lines_lengths == 1 then
     return { line = 0, character = offset }
   end
@@ -64,15 +68,14 @@ end
 
 -- Transforms the semantic token spans given by the ts-server into lsp compatible spans.
 ---@param spans TssPosition - the spans given by ts-server
----@param requested_bufnr number
+---@param lines_lengths number[] - table with every line length in the file
 ---@return LspPosition[] - lsp compatible spans
-local function transform_spans(spans, requested_bufnr)
+local function transform_spans(spans, lines_lengths)
   local lsp_spans = {}
   local previous_line = 0
   local previous_token_start = 0
   ---@type number
   local previous_offset = 0
-  local lines_lengths = get_buffer_lines_lengths(requested_bufnr)
 
   for i = 1, #spans, 3 do
     -- ts-server sends us a packed array that contains 3 elements per 1 token:
@@ -133,6 +136,7 @@ function M.handler(request, response, params)
     { vim.api.nvim_buf_line_count(requested_bufnr), 0 },
     requested_bufnr
   )
+  local lines_lengths = get_buffer_lines_lengths(requested_bufnr)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/v5.0.2/src/server/protocol.ts#L879
@@ -151,7 +155,7 @@ function M.handler(request, response, params)
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/v5.0.2/src/server/protocol.ts#L910
   vim.schedule(function()
-    response { data = transform_spans(body.spans or {}, requested_bufnr) }
+    response { data = transform_spans(body.spans or {}, lines_lengths) }
   end)
 end
 
