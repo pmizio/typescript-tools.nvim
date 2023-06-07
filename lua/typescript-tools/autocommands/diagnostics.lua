@@ -8,7 +8,7 @@ local proto_utils = require "typescript-tools.protocol.utils"
 
 local publish_diagnostic_mode = plugin_config.publish_diagnostic_mode
 
-local extensions_pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" }
+local extensions_pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts", "*.html" }
 
 local M = {}
 

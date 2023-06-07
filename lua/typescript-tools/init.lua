@@ -23,6 +23,7 @@ M.setup = function(config)
         "typescript",
         "typescriptreact",
         "typescript.tsx",
+        "html",
       },
       root_dir = function(fname)
         -- INFO: stealed from:

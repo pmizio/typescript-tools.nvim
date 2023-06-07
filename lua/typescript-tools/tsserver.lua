@@ -7,6 +7,7 @@ local PendingDiagnostic = require "typescript-tools.protocol.pending_diagnostic"
 local api = require "typescript-tools.api"
 local c = require "typescript-tools.protocol.constants"
 local proto_utils = require "typescript-tools.protocol.utils"
+local html_support = require "typescript-tools.protocol.html_support"
 
 ---@class Tsserver
 ---@field process Process
@@ -111,6 +112,8 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
   local module = module_mapper.map_method_to_module(method)
 
+  local is_html = vim.bo.filetype == "html"
+
   -- INFO: skip sending request if it's a noop method
   if not module then
     return false
@@ -129,6 +132,8 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   local handler_context = {
     method = method,
   }
+
+  local requested_buffer_uri = params and params.textDocument and params.textDocument.uri or nil
 
   function handler_context.request(request)
     local interrupt_diagnostic = handler_module.interrupt_diagnostic
@@ -153,6 +158,17 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
   function handler_context.response(response, error)
     local seq = handler_context.synthetic_seq or handler_context.seq
+
+    if is_html then
+      local successfuly_rewritten, rewritten_response =
+        pcall(html_support.rewrite_response_uris, requested_buffer_uri, vim.deepcopy(response))
+      if successfuly_rewritten then
+        response = rewritten_response
+      else
+        print([[[tsserver.lua:155] -- rewritten_response: ]] .. vim.inspect(rewritten_response))
+      end
+    end
+
     local notify_reply = notify_reply_callback and vim.schedule_wrap(notify_reply_callback)
     local response_callback = callback and vim.schedule_wrap(callback)
 
@@ -166,6 +182,16 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
       else
         response_callback(nil, response)
       end
+    end
+  end
+
+  if is_html then
+    local succesfuly_rewritten, rewritten_params =
+      pcall(html_support.rewrite_request_uris, method, vim.deepcopy(params), requested_buffer_uri)
+    if succesfuly_rewritten then
+      params = rewritten_params
+    else
+      print([[[tsserver.lua:181] -- rewritten_params: ]] .. vim.inspect(rewritten_params))
     end
   end
 
