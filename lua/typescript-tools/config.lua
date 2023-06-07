@@ -4,7 +4,7 @@
 ---@field tsserver_logs string
 ---@field publish_diagnostic_on publish_diagnostic_mode
 ---@field tsserver_plugins string[]
----@field tsserver_format_options table
+---@field tsserver_format_options table|fun(filetype: string): table
 ---@field tsserver_file_preferences table|fun(filetype: string): table
 local M = {}
 local __store = {}
