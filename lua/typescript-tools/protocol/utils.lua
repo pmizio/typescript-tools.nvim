@@ -211,4 +211,14 @@ function M.publish_diagnostics(dispatchers, file_uri, diagnostics)
   })
 end
 
+---@param data table|nil
+function M.cancelled_response(data)
+  data = data or {}
+
+  return {
+    code = c.LspErrorCodes.RequestCancelled,
+    data = data,
+  }
+end
+
 return M
