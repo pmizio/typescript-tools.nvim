@@ -1,6 +1,6 @@
 local c = require "typescript-tools.protocol.constants"
-local capabilities = require "typescript-tools.capabilities"
-local LocationsProvider = require "typescript-tools.locations_provider"
+local make_capabilities = require "typescript-tools.capabilities"
+local LocationsProvider = require "typescript-tools.tsserver_provider"
 
 local M = {}
 
@@ -80,7 +80,7 @@ function M.handler(request, response)
   -- INFO: skip first response
   coroutine.yield()
 
-  response { capabilities = capabilities }
+  response { capabilities = make_capabilities() }
 end
 
 return M

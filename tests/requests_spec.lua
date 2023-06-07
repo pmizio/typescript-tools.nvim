@@ -482,6 +482,11 @@ describe("Lsp request", function()
     utils.open_file "src/semanticTokens.ts"
     utils.wait_for_lsp_initialization()
 
+    if not utils.supports_capability "semanticTokensProvider" then
+      utils.print_skip "semanticTokensProvider not supported in typescript version below 4.1"
+      return
+    end
+
     local ret = vim.lsp.buf_request_sync(0, methods.SemanticTokensFull, {
       textDocument = utils.get_text_document(),
     })

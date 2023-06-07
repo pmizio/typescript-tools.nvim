@@ -2,7 +2,7 @@ local uv = vim.loop
 local log = require "vim.lsp.log"
 local Path = require "plenary.path"
 local plugin_config = require "typescript-tools.config"
-local LocationsProvider = require "typescript-tools.locations_provider"
+local TsserverProvider = require "typescript-tools.tsserver_provider"
 
 local HEADER = "Content-Length: "
 local CANCELLATION_PREFIX = "seq_"
@@ -15,7 +15,7 @@ local is_win = uv.os_uname().version:find "Windows"
 ---@field private stdout uv.uv_pipe_t
 ---@field private stderr uv.uv_pipe_t
 ---@field private args string[]
----@field private cancellation_dir table Plenary path object
+---@field private cancellation_dir Path
 ---@field private on_response fun(response: table)
 ---@field private on_exit fun(code: number, signal: number)
 
@@ -29,7 +29,7 @@ local Process = {}
 function Process.new(type, on_response, on_exit)
   local self = setmetatable({}, { __index = Process })
 
-  local locations_provider = LocationsProvider.get_instance()
+  local tsserver_provider = TsserverProvider.get_instance()
 
   self.handle = nil
   self.stdin = uv.new_pipe(false)
@@ -39,7 +39,7 @@ function Process.new(type, on_response, on_exit)
     Path:new(uv.fs_mkdtemp(Path:new(uv.os_tmpdir(), "tsserver_nvim_XXXXXX"):absolute()))
     -- stylua: ignore start
     self.args = {
-      locations_provider:get_tsserver_path():absolute(),
+      tsserver_provider:get_executable_path():absolute(),
       "--stdio",
       "--local", "en",
       "--useInferredProjectPerProjectRoot",
@@ -52,7 +52,7 @@ function Process.new(type, on_response, on_exit)
   self.on_response = on_response
   self.on_exit = on_exit
 
-  local plugins_path = locations_provider:get_tsserver_plugins_path()
+  local plugins_path = tsserver_provider:get_plugins_path()
 
   if plugins_path and #plugin_config.tsserver_plugins > 0 then
     table.insert(self.args, "--pluginProbeLocations")

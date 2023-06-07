@@ -73,4 +73,17 @@ function M.is_typescript_version(version)
   return vim.env.TEST_TYPESCRIPT_VERSION == version
 end
 
+---@param capability string
+---@return boolean
+function M.supports_capability(capability)
+  return not not vim.lsp.get_active_clients({
+    name = require("typescript-tools.config").plugin_name,
+  })[1].server_capabilities[capability]
+end
+
+---@vararg string
+function M.print_skip(...)
+  print("\27[0;33mSkipped\27[0m ||      " .. table.concat({ ... }, " "))
+end
+
 return M
