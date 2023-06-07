@@ -7,6 +7,7 @@ return {
   InternalCommands = {
     InvokeAdditionalRename = "invoke_additional_rename",
   },
+  ---@enum CommandTypes
   CommandTypes = {
     JsxClosingTag = "jsxClosingTag",
     Brace = "brace",
@@ -82,6 +83,7 @@ return {
     ProvideInlayHints = "provideInlayHints",
     EncodedSemanticClassificationsFull = "encodedSemanticClassifications-full",
   },
+  ---@enum ScriptElementKind
   ScriptElementKind = {
     unknown = "",
     warning = "warning",
@@ -166,12 +168,15 @@ return {
     TSX = "TSX",
     JSX = "JSX",
   },
+  ---@enum DiagnosticEventKind
   DiagnosticEventKind = {
     SemanticDiag = "semanticDiag",
     SyntaxDiag = "syntaxDiag",
     SuggestionDiag = "suggestionDiag",
+    RequestCompleted = "requestCompleted",
   },
   RequestCompletedEventName = "requestCompleted",
+  ---@enum SignatureHelpTriggerReason
   SignatureHelpTriggerReason = {
     Invoked = "invoked",
     CharacterTyped = "characterTyped",
@@ -183,12 +188,14 @@ return {
     reference = "reference",
     writtenReference = "writtenReference",
   },
+  ---@enum LspMethods
   LspMethods = {
     Initialize = "initialize",
     Shutdown = "shutdown",
     DidOpen = "textDocument/didOpen",
-    DidClose = "textDocument/didClose",
     DidChange = "textDocument/didChange",
+    DidClose = "textDocument/didClose",
+    DidSave = "textDocument/didSave",
     Rename = "textDocument/rename",
     Completion = "textDocument/completion",
     CompletionResolve = "completionItem/resolve",
@@ -217,13 +224,16 @@ return {
     ExecuteCommand = "workspace/executeCommand",
     WillRenameFiles = "workspace/willRenameFiles",
   },
+  ---@enum CustomMethods
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
+    Diagnostic = "typescriptTools/diagnostic",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
     ProjectLoadingFinish = "projectLoadingFinish",
   },
+  ---@enum CompletionItemKind
   CompletionItemKind = {
     Text = 1,
     Method = 2,
@@ -264,17 +274,20 @@ return {
     PlainText = "plaintext",
     Markdown = "markdown",
   },
+  ---@enum DiagnosticSeverity
   DiagnosticSeverity = {
     Error = 1,
     Warning = 2,
     Information = 3,
     Hint = 4,
   },
+  ---@enum DiagnosticTag
   DiagnosticTag = {
     Unnecessary = 1,
     Deprecated = 2,
   },
   -- https://github.com/microsoft/TypeScript/blob/7f292bf2a19aa14ed69a55e646111af9533d8f1c/src/server/protocol.ts#L699
+  ---@enum OrganizeImportsMode
   OrganizeImportsMode = {
     All = "All",
     SortAndCombine = "SortAndCombine",
@@ -285,6 +298,7 @@ return {
     TriggerCharacter = 2,
     ContentChange = 3,
   },
+  ---@enum SymbolKind
   SymbolKind = {
     File = 1,
     Module = 2,
@@ -318,6 +332,7 @@ return {
     Read = 2,
     Write = 3,
   },
+  ---@enum CodeActionKind
   CodeActionKind = {
     Empty = "",
     QuickFix = "quickfix",
@@ -328,5 +343,10 @@ return {
     Source = "source",
     SourceOrganizeImports = "source.organizeImports",
     SourceFixAll = "source.fixAll",
+  },
+  ---@enum DiagnosticReportKind
+  DocumentDiagnosticReportKind = {
+    Full = "full",
+    Unchanged = "unchanged",
   },
 }

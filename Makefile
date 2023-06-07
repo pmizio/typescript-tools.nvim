@@ -1,5 +1,5 @@
 test:
-	nvim --headless --noplugin -u tests/minimal.vim -c "PlenaryBustedDirectory tests/$(file) {minimal_init = 'tests/minimal.vim'}"
+	nvim --headless --noplugin -u tests/init.lua -c "PlenaryBustedDirectory tests/$(file) {minimal_init = 'tests/init.lua'}"
 
 install_typescript_version:
 	npm i --prefix tests/ts_project typescript@$(version)

@@ -1,9 +1,18 @@
 local utils = require "tests.utils"
 local lsp_assert = require "tests.lsp_asserts"
-local methods = require("typescript-tools.protocol.constants").LspMethods
-local customMethods = require("typescript-tools.protocol.constants").CustomMethods
+local mocks = require "tests.mocks"
+local c = require "typescript-tools.protocol.constants"
+local methods = c.LspMethods
+local custom_methods = c.CustomMethods
 
 describe("Lsp request", function()
+  after_each(function()
+    -- INFO: close all buffers
+    _G.file_closed = false
+    vim.cmd "silent 1,$bd!"
+    utils.wait_for_lsp_did_close()
+  end)
+
   it("should return correct response for " .. methods.Hover, function()
     utils.open_file "src/index.ts"
     utils.wait_for_lsp_initialization()
@@ -373,12 +382,12 @@ describe("Lsp request", function()
     assert.is.same(0, #result[1].children[1].children)
   end)
 
-  it("should return correct response for " .. customMethods.OrganizeImports, function()
+  it("should return correct response for " .. custom_methods.OrganizeImports, function()
     utils.open_file "src/imported.ts"
     utils.wait_for_lsp_initialization()
 
     local file = vim.fs.dirname(vim.api.nvim_buf_get_name(0)) .. "/imports.ts"
-    local ret = vim.lsp.buf_request_sync(0, customMethods.OrganizeImports, {
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.OrganizeImports, {
       file = file,
       mode = "All",
     })
@@ -393,6 +402,80 @@ describe("Lsp request", function()
     assert.is.table(fileTextEdits)
     assert.is.same(1, #fileTextEdits)
     assert.are.same("import { export1 } from './exports'\n", fileTextEdits[1].newText)
+  end)
+
+  it("should return correct response for " .. methods.CodeAction, function()
+    utils.open_file "src/code_actions.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.CodeAction, {
+      textDocument = utils.get_text_document(),
+      range = utils.make_range(1, 0, 1, 0),
+      context = mocks.mocked_code_action_context,
+    })
+
+    local result = lsp_assert.response(ret)
+
+    -- INFO: TS 4.2 return completly different response than other versions IDK why,
+    -- maybe it's a bug of this version
+    if utils.is_typescript_version "4.2" then
+      assert.is.same(2, #result)
+      assert.is.same(result[1].title, "Infer function return type")
+      assert.is.same(result[2].title, "Remove variable statement")
+    else
+      assert.is.same(1, #result)
+      assert.is.same(result[1].title, "Remove variable statement")
+    end
+  end)
+
+  it("should return correct response for " .. methods.CodeActionResolve, function()
+    utils.open_file "src/code_actions.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.CodeActionResolve, {
+      kind = c.CodeActionKind.SourceOrganizeImports,
+      data = {
+        scope = {
+          type = "file",
+          args = { file = vim.fn.getcwd() .. "/src/code_actions.ts" },
+        },
+        skipDestructiveCodeActions = false,
+      },
+    })
+
+    local result = lsp_assert.response(ret)
+    assert.is.table(result.edit)
+    assert.is.table(result.edit.changes)
+  end)
+
+  it("should return correct response for " .. custom_methods.Diagnostic, function()
+    utils.open_file "src/diagnostic1.ts"
+    utils.open_file("src/diagnostic2.ts", "vs")
+    utils.wait_for_lsp_initialization()
+
+    local f1 = vim.uri_from_fname(vim.fn.getcwd() .. "/src/diagnostic1.ts")
+    local f2 = vim.uri_from_fname(vim.fn.getcwd() .. "/src/diagnostic2.ts")
+
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.Diagnostic, {
+      textDocument = { uri = f1 },
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result.relatedDocuments)
+
+    result = result.relatedDocuments
+
+    assert.is.same(2, #vim.tbl_values(result))
+
+    local f1_items = result[f1].items
+    local f2_items = result[f2].items
+
+    assert.is.same(1, #f1_items)
+    assert.is.same(2, #f2_items)
+    assert.is.same(f1_items[1].message, "Type 'number' is not assignable to type 'string'.")
+    assert.is.same(f2_items[1].message, "Type 'string' is not assignable to type 'number'.")
+    assert.is.same(f2_items[2].message, "'num' is declared but its value is never read.")
   end)
 
   it("should return correct response for " .. methods.SemanticTokensFull, function()
