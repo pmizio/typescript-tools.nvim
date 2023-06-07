@@ -1,100 +1,109 @@
-local lspProtocol = require "vim.lsp.protocol"
+local lsp_protocol = require "vim.lsp.protocol"
+local TsserverProvider = require "typescript-tools.tsserver_provider"
+local utils = require "typescript-tools.utils"
 local c = require "typescript-tools.protocol.constants"
 
-local capabilities = {
-  textDocumentSync = lspProtocol.TextDocumentSyncKind.Incremental,
-  renameProvider = {
-    -- tsserver doesn't have something like textDocument/prepareRename
-    prepareProvider = false,
-  },
-  completionProvider = {
-    resolveProvider = true,
-    triggerCharacters = {
-      ".",
-      '"',
-      "'",
-      "`",
-      "/",
-      "@",
-      "<",
+local function make_capabilities()
+  local tsserver_provider = TsserverProvider.get_instance()
+  local version = tsserver_provider:get_version()
+
+  return {
+    textDocumentSync = lsp_protocol.TextDocumentSyncKind.Incremental,
+    renameProvider = {
+      -- tsserver doesn't have something like textDocument/prepareRename
+      prepareProvider = false,
     },
-  },
-  hoverProvider = true,
-  definitionProvider = true,
-  typeDefinitionProvider = true,
-  foldingRangeProvider = true,
-  semanticTokensProvider = {
-    documentSelector = nil,
-    legend = {
-      -- list taken from: https://github.com/microsoft/TypeScript/blob/main/src/services/classifier2020.ts#L10
-      tokenTypes = {
-        "class",
-        "enum",
-        "interface",
-        "namespace",
-        "typeParameter",
-        "type",
-        "parameter",
-        "variable",
-        "enumMember",
-        "property",
-        "function",
-        "member",
-      },
-      -- token from: https://github.com/microsoft/TypeScript/blob/main/src/services/classifier2020.ts#L14
-      tokenModifiers = {
-        "declaration",
-        "static",
-        "async",
-        "readonly",
-        "defaultLibrary",
-        "local",
+    completionProvider = {
+      resolveProvider = true,
+      triggerCharacters = {
+        ".",
+        '"',
+        "'",
+        "`",
+        "/",
+        "@",
+        "<",
       },
     },
-    full = true,
-  },
-  declarationProvider = false,
-  implementationProvider = true,
-  referencesProvider = true,
-  documentSymbolProvider = true,
-  documentHighlightProvider = true,
-  signatureHelpProvider = {
-    triggerCharacters = { "(", ",", "<" },
-    retriggerCharacters = { ")" },
-  },
-  codeActionProvider = {
-    codeActionKinds = {
-      c.CodeActionKind.Empty,
-      c.CodeActionKind.QuickFix,
-      c.CodeActionKind.Refactor,
-      c.CodeActionKind.RefactorExtract,
-      c.CodeActionKind.RefactorInline,
-      c.CodeActionKind.RefactorRewrite,
-      c.CodeActionKind.Source,
-      c.CodeActionKind.SourceOrganizeImports,
-    },
-    resolveProvider = true,
-  },
-  workspace = {
-    fileOperations = {
-      willRename = {
-        filters = {
-          {
-            scheme = "file",
-            pattern = { glob = "**/*.{ts,js,jsx,tsx,mjs,mts,cjs,cts}", matches = "file" },
+    hoverProvider = true,
+    definitionProvider = true,
+    typeDefinitionProvider = true,
+    foldingRangeProvider = true,
+    semanticTokensProvider = not utils.version_compare("lt", version, { 4, 1 })
+        and {
+          documentSelector = nil,
+          legend = {
+            -- list taken from: https://github.com/microsoft/TypeScript/blob/main/src/services/classifier2020.ts#L10
+            tokenTypes = {
+              "class",
+              "enum",
+              "interface",
+              "namespace",
+              "typeParameter",
+              "type",
+              "parameter",
+              "variable",
+              "enumMember",
+              "property",
+              "function",
+              "member",
+            },
+            -- token from: https://github.com/microsoft/TypeScript/blob/main/src/services/classifier2020.ts#L14
+            tokenModifiers = {
+              "declaration",
+              "static",
+              "async",
+              "readonly",
+              "defaultLibrary",
+              "local",
+            },
           },
-          {
-            scheme = "file",
-            pattern = { glob = "**/*", matches = "folder" },
+          full = true,
+        }
+      or false,
+    declarationProvider = false,
+    implementationProvider = true,
+    referencesProvider = true,
+    documentSymbolProvider = true,
+    documentHighlightProvider = true,
+    signatureHelpProvider = {
+      triggerCharacters = { "(", ",", "<" },
+      retriggerCharacters = { ")" },
+    },
+    codeActionProvider = {
+      codeActionKinds = {
+        c.CodeActionKind.Empty,
+        c.CodeActionKind.QuickFix,
+        c.CodeActionKind.Refactor,
+        c.CodeActionKind.RefactorExtract,
+        c.CodeActionKind.RefactorInline,
+        c.CodeActionKind.RefactorRewrite,
+        c.CodeActionKind.Source,
+        c.CodeActionKind.SourceOrganizeImports,
+      },
+      resolveProvider = true,
+    },
+    workspace = {
+      fileOperations = {
+        willRename = {
+          filters = {
+            {
+              scheme = "file",
+              pattern = { glob = "**/*.{ts,js,jsx,tsx,mjs,mts,cjs,cts}", matches = "file" },
+            },
+            {
+              scheme = "file",
+              pattern = { glob = "**/*", matches = "folder" },
+            },
           },
         },
       },
     },
-  },
-  documentFormattingProvider = true,
-  documentRangeFormattingProvider = true,
-  callHierarchyProvider = true,
-  workspaceSymbolProvider = true,
-}
+    documentFormattingProvider = true,
+    documentRangeFormattingProvider = true,
+    callHierarchyProvider = true,
+    workspaceSymbolProvider = true,
+  }
+end
 
-return capabilities
+return make_capabilities

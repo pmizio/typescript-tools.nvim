@@ -40,8 +40,8 @@ function M.throttle(ms, fn)
   return wrapped_fn, timer
 end
 
---- @param bufnr number
---- @return boolean
+---@param bufnr number
+---@return boolean
 function M.is_buf_hidden(bufnr)
   local bufinfo = vim.fn.getbufinfo(bufnr)[1]
 
@@ -50,6 +50,17 @@ function M.is_buf_hidden(bufnr)
   end
 
   return bufinfo.hidden == 1
+end
+
+---@param mode "lt"|"gt"|"eq"
+---@param version1 Version|nil
+---@param version2 number[]
+function M.version_compare(mode, version1, version2)
+  if version1 == nil then
+    return false
+  end
+
+  return vim.version[mode](version1, version2)
 end
 
 return M
