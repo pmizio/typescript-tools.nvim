@@ -159,16 +159,6 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   function handler_context.response(response, error)
     local seq = handler_context.synthetic_seq or handler_context.seq
 
-    if is_html then
-      local successfuly_rewritten, rewritten_response =
-        pcall(html_support.rewrite_response_uris, requested_buffer_uri, vim.deepcopy(response))
-      if successfuly_rewritten then
-        response = rewritten_response
-      else
-        print([[[tsserver.lua:155] -- rewritten_response: ]] .. vim.inspect(rewritten_response))
-      end
-    end
-
     local notify_reply = notify_reply_callback and vim.schedule_wrap(notify_reply_callback)
     local response_callback = callback and vim.schedule_wrap(callback)
 
@@ -186,8 +176,12 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   end
 
   if is_html then
-    local succesfuly_rewritten, rewritten_params =
-      pcall(html_support.rewrite_request_uris, method, vim.deepcopy(params), requested_buffer_uri)
+    local succesfuly_rewritten, rewritten_params = pcall(
+      html_support.rewrite_request_document_change_params,
+      method,
+      vim.deepcopy(params),
+      requested_buffer_uri
+    )
     if succesfuly_rewritten then
       params = rewritten_params
     else

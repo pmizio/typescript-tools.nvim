@@ -1,13 +1,13 @@
 local plugin_config = require "typescript-tools.config"
 
--- Basic idea is for HTML support is to whenever we edit a file we create an empty buffer
--- and replace every character with " " - space. Then we use treesitter to get all of the script tags
--- from the file and we insert them into the empty buffer in the same positions that they
--- were in original buffer. Because of that we don't have to translate any positions anywhere.
+-- Basic idea is for HTML support is to whenever we edit a file we create a copy of the file and
+-- replace every character with " " - space. Then we use treesitter to get all of the script
+-- tags from the original file and we insert them into the empty copy in the same positions that they
+-- were in original buffer. Because of that we don't have to translate any positions anywhere. Then we
+-- override 'didOpen' and 'didChange' events of the tsserver so tsserver thinks that the changes were
+-- made to the original copy and not the original file.
 
 local M = {}
-
-local VIRTUAL_DOCUMENT_EXTENSION = ".js"
 
 local SCRIPT_TEXT_HTML_QUERY = [[
    (script_element
@@ -25,18 +25,6 @@ local function is_position_between_range(position, range)
     or (position.line == start_row and position.character < start_col)
     or (position.line == end_row and position.character > end_col)
   )
-end
-
-local function initialize_virtual_document()
-  -- creating path in the same directory as edited file so every setting set up for directory will apply
-  local virtual_document_path = vim.api.nvim_buf_get_name(0) .. "-tmp" .. VIRTUAL_DOCUMENT_EXTENSION
-  M.virtual_document_uri = "file://" .. virtual_document_path
-  -- uri_to_bufnr creates a buffer if it doesn't exist
-  M.virtual_document_bufnr = vim.uri_to_bufnr(M.virtual_document_uri)
-
-  vim.api.nvim_buf_set_name(M.virtual_document_bufnr, virtual_document_path)
-  vim.api.nvim_buf_set_option(M.virtual_document_bufnr, "swapfile", false)
-  vim.api.nvim_buf_set_option(M.virtual_document_bufnr, "buftype", "nowrite")
 end
 
 --- @param bufnr number - buffer number to extract nodes from
@@ -68,12 +56,12 @@ local function extract_script_text_nodes(bufnr)
   return nodes
 end
 
+--- @param bufnr number - buffer number to extract nodes from
 --- @return table - extracts code chunks from script tags including their ranges and texts
-local function extract_js_script_code_ranges()
-  local script_nodes = extract_script_text_nodes(0)
+local function extract_js_script_code_ranges(bufnr)
+  local script_nodes = extract_script_text_nodes(bufnr)
   local code_chunks = {}
   for _, script_node in ipairs(script_nodes) do
-    local text = vim.treesitter.get_node_text(script_node, 0)
     -- we are taking positions of start and end tags because (raw_text) does not include whitespace
     -- and we need to take range between the tags
     local script_start_tag_node = script_node:prev_sibling()
@@ -96,15 +84,12 @@ end
 --- Gets the content from buffer, replaces everything with empty lines and then inserts code chunks
 --- at correct positions and replaces virtual document with those lines.
 --- @param original_buffer_uri string - uri of the buffer to extract code from
-function M.update_virtual_document(original_buffer_uri)
-  if not M.virtual_document_bufnr then
-    initialize_virtual_document()
-  end
+--- @return table - list of all script lines without HTML tags
+function M.get_virtual_document_lines(original_buffer_uri)
+  local original_file_bufnr = vim.uri_to_bufnr(original_buffer_uri)
+  local requested_buf_all_lines = vim.api.nvim_buf_get_lines(original_file_bufnr, 0, -1, false)
 
-  local requested_buf_all_lines =
-    vim.api.nvim_buf_get_lines(vim.uri_to_bufnr(original_buffer_uri), 0, -1, false)
-
-  local scripts_ranges = extract_js_script_code_ranges()
+  local scripts_ranges = extract_js_script_code_ranges(original_file_bufnr)
 
   local function replace_char(pos, str, r)
     return str:sub(1, pos - 1) .. r .. str:sub(pos + 1)
@@ -134,80 +119,46 @@ function M.update_virtual_document(original_buffer_uri)
     end
   end
 
-  -- this line throws E565: Not allowed to change text or change window sometimes and nned to investigate why
-  vim.api.nvim_buf_set_lines(M.virtual_document_bufnr, 0, -1, false, requested_buf_all_lines)
-
-  return M.virtual_document_bufnr
+  return requested_buf_all_lines
 end
 
-function M.rewrite_request_uris(method, params, current_buffer_uri)
+-- file:///Users/jaroslaw.glegola/Documents/Praca/node-typescript-boilerplate-main/src/test.html
+-- file:///Users/jaroslaw.glegola/Documents/Praca/node-typescript-boilerplate-main/src/test.html-tmp.js
+--- To get only results from JS content we override the `didOpen` and `didChange` requests to simulate
+--- opening file that does not contain HTML. Firstly we remove all of the HTML tags from HTML file
+--- and then when one of those requests come we just override the content with code without HTML tags.
+--- Thanks to that tsserver thinks that the HTML file is not HTML file but JS file
+--- @param method string - LSP method of the request
+--- @param params table - LSP params of the request
+--- @param current_buffer_uri string - uri of the current buffer
+function M.rewrite_request_document_change_params(method, params, current_buffer_uri)
   if not current_buffer_uri then
     return params
   end
 
-  M.update_virtual_document(current_buffer_uri)
-
-  local function replace_original_uri_to_virtual_document_uri(tbl)
-    for key, value in pairs(tbl) do
-      if type(value) == "table" then
-        replace_original_uri_to_virtual_document_uri(value) -- Recursive call for nested tables
-      elseif type(value) == "string" and value == current_buffer_uri then
-        tbl[key] = M.virtual_document_uri
-      end
-    end
-
-    -- in those methods there are whole contents of the file so we need to rewrite them as well
-    if tbl.text and (method == "textDocument/didOpen") then
-      tbl.text =
-        table.concat(vim.api.nvim_buf_get_lines(M.virtual_document_bufnr, 0, -1, false), "\n")
-    end
-
-    if tbl.text and (method == "textDocument/didChange") then
-      local start_row = tbl.range.start.line
-      local start_col = tbl.range.start.character
-      local end_row = tbl.range["end"].line
-      local end_col = tbl.range["end"].character
-      tbl.text = table.concat(
-        vim.api.nvim_buf_get_text(
-          M.virtual_document_bufnr,
-          start_row,
-          start_col,
-          end_row,
-          end_col,
-          {}
-        ),
-        "\n"
-      )
-    end
+  if params.textDocument.text and (method == "textDocument/didOpen") then
+    params.textDocument = {
+      languageId = "javascript",
+      text = table.concat(M.get_virtual_document_lines(current_buffer_uri), "\n"),
+      uri = params.textDocument.uri,
+      version = params.textDocument.version,
+    }
   end
 
-  replace_original_uri_to_virtual_document_uri(params)
+  if params.contentChanges and (method == "textDocument/didChange") then
+    local lines = M.get_virtual_document_lines(current_buffer_uri)
+    params.contentChanges = {
+      {
+        range = {
+          start = { character = 0, line = 0 },
+          ["end"] = { character = 0, line = #lines + 1 },
+        },
+        text = table.concat(lines, "\n"),
+      },
+    }
+  end
 
   return params
-end
-
-function M.rewrite_response_uris(original_uri, response)
-  if not original_uri then
-    return response
-  end
-
-  local function replace_virtual_document_uri_with_original_uri(tbl)
-    for key, value in pairs(tbl) do
-      if key == M.virtual_document_uri then
-        tbl[original_uri] = tbl[M.virtual_document_uri]
-        tbl[M.virtual_document_uri] = nil
-        replace_virtual_document_uri_with_original_uri(tbl[original_uri]) -- Recursive call for nested tables
-      elseif type(value) == "table" then
-        replace_virtual_document_uri_with_original_uri(value) -- Recursive call for nested tables
-      elseif type(value) == "string" and value == M.virtual_document_uri then
-        tbl[key] = original_uri
-      end
-    end
-  end
-
-  replace_virtual_document_uri_with_original_uri(response)
-
-  return response
 end
 
 function M.create_redirect_handlers()
