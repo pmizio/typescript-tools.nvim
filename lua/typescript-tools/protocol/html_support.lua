@@ -56,6 +56,7 @@ local function extract_script_text_nodes(bufnr)
   return nodes
 end
 
+-- TODO fix empty script tag case <script></script>
 --- @param bufnr number - buffer number to extract nodes from
 --- @return table - extracts code chunks from script tags including their ranges and texts
 local function extract_js_script_code_ranges(bufnr)
@@ -67,14 +68,18 @@ local function extract_js_script_code_ranges(bufnr)
     local script_start_tag_node = script_node:prev_sibling()
     local script_end_tag_node = script_node:next_sibling()
 
-    local _, _, start_row, start_col = script_start_tag_node:range()
-    local end_row, end_col = script_end_tag_node:range()
+    local _, _, start_tag_end_row, start_tag_end_column = script_start_tag_node:range()
+    local end_tag_start_row, end_tag_start_column = script_end_tag_node:range()
     -- TS indexes rows from 0 and columns from 0. Nvim indexes rows from 1 and columns from 0.
     -- start_row + 1 because of indexing difference
     -- start_col + 1 because we want to take the first character after opening script tag
     -- end_row + 1 because of indexing difference
+    local code_start_column = start_tag_end_column + 1
+    local code_end_column = end_tag_start_column == 0 and 0
+      or end_tag_start_column == code_start_column and code_start_column
+      or end_tag_start_column
     table.insert(code_chunks, {
-      range = { start_row + 1, start_col + 1, end_row + 1, end_col == 0 and 0 or end_col - 1 },
+      range = { start_tag_end_row + 1, code_start_column, end_tag_start_row + 1, code_end_column },
     })
   end
 
@@ -88,42 +93,48 @@ end
 function M.get_virtual_document_lines(original_buffer_uri)
   local original_file_bufnr = vim.uri_to_bufnr(original_buffer_uri)
   local requested_buf_all_lines = vim.api.nvim_buf_get_lines(original_file_bufnr, 0, -1, false)
+  local requested_buf_emptied_lines = vim.tbl_map(function(line)
+    return string.rep(" ", #line)
+  end, requested_buf_all_lines)
 
   local scripts_ranges = extract_js_script_code_ranges(original_file_bufnr)
 
-  local function replace_char(pos, str, r)
-    return str:sub(1, pos - 1) .. r .. str:sub(pos + 1)
+  local function replace_char(pos, string_to_replace, string_to_replace_with)
+    local char = string.sub(string_to_replace_with, pos, pos)
+    return table.concat(
+      { string_to_replace:sub(1, pos - 1), char, string_to_replace:sub(pos + 1) },
+      ""
+    )
   end
 
-  -- this might be not that performant but we should observe how it performs
-  for line_index, line in ipairs(requested_buf_all_lines) do
-    for character_index = 1, #line do
-      local is_position_in_script = false
+  for _, script_range in ipairs(scripts_ranges) do
+    local range = script_range.range
 
-      for _, script_range in ipairs(scripts_ranges) do
-        if
-          is_position_between_range(
-            { line = line_index, character = character_index },
-            script_range.range
-          )
-        then
-          is_position_in_script = true
-          break
-        end
+    -- start line
+    for i = range[2], #requested_buf_emptied_lines[range[1]] do
+      if is_position_between_range({ line = range[1], character = i }, script_range.range) then
+        requested_buf_emptied_lines[range[1]] =
+          replace_char(i, requested_buf_emptied_lines[range[1]], requested_buf_all_lines[range[1]])
       end
+    end
 
-      if not is_position_in_script then
-        requested_buf_all_lines[line_index] =
-          replace_char(character_index, requested_buf_all_lines[line_index], " ")
+    -- lines in the middle
+    for i = range[1] + 1, range[3] - 1 do
+      requested_buf_emptied_lines[i] = requested_buf_all_lines[i]
+    end
+
+    -- end line
+    for i = 1, range[4] do
+      if is_position_between_range({ line = range[3], character = i }, script_range.range) then
+        requested_buf_emptied_lines[range[3]] =
+          replace_char(i, requested_buf_emptied_lines[range[3]], requested_buf_all_lines[range[3]])
       end
     end
   end
 
-  return requested_buf_all_lines
+  return requested_buf_emptied_lines
 end
 
--- file:///Users/jaroslaw.glegola/Documents/Praca/node-typescript-boilerplate-main/src/test.html
--- file:///Users/jaroslaw.glegola/Documents/Praca/node-typescript-boilerplate-main/src/test.html-tmp.js
 --- To get only results from JS content we override the `didOpen` and `didChange` requests to simulate
 --- opening file that does not contain HTML. Firstly we remove all of the HTML tags from HTML file
 --- and then when one of those requests come we just override the content with code without HTML tags.
@@ -161,26 +172,37 @@ function M.rewrite_request_document_change_params(method, params, current_buffer
   return params
 end
 
+-- create autocmd on bufenter to override this handlers and the unoverride
 function M.create_redirect_handlers()
-  local baseHoverHandler = vim.lsp.handlers["textDocument/hover"]
-  vim.lsp.handlers["textDocument/hover"] = function(err, res, ctx, config)
-    if not res then
-      return baseHoverHandler(err, res, ctx, config)
-    end
+  local function redirect_handler(base_handler)
+    return function(err, res, ctx, config)
+      if not res then
+        return base_handler(err, res, ctx, config)
+      end
 
-    local request_start_range = res.range.start
-    local client = vim.lsp.get_client_by_id(ctx.client_id)
-    local script_nodes = extract_script_text_nodes(0)
-    for _, script_node in ipairs(script_nodes) do
-      if
-        is_position_between_range(request_start_range, script_node:range())
-        and client.name == plugin_config.plugin_name
-      then
-        baseHoverHandler(err, res, ctx, config)
-        return
+      local request_start_range = res.range.start
+      local client = vim.lsp.get_client_by_id(ctx.client_id)
+      local script_nodes = extract_script_text_nodes(0)
+      for _, script_node in ipairs(script_nodes) do
+        if
+          -- TODO this line throws an error
+          is_position_between_range(request_start_range, script_node:range())
+          and client.name == plugin_config.plugin_name
+        then
+          base_handler(err, res, ctx, config)
+          return
+        end
       end
     end
   end
+
+  vim.lsp.handlers["textDocument/hover"] = redirect_handler(vim.lsp.handlers["textDocument/hover"])
+  vim.lsp.handlers["textDocument/definition"] =
+    redirect_handler(vim.lsp.handlers["textDocument/definition"])
+  vim.lsp.handlers["textDocument/references"] =
+    redirect_handler(vim.lsp.handlers["textDocument/references"])
 end
+
+M.create_redirect_handlers()
 
 return M

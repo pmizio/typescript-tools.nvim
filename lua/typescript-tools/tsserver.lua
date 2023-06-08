@@ -112,8 +112,6 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
   local module = module_mapper.map_method_to_module(method)
 
-  local is_html = vim.bo.filetype == "html"
-
   -- INFO: skip sending request if it's a noop method
   if not module then
     return false
@@ -134,6 +132,8 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   }
 
   local requested_buffer_uri = params and params.textDocument and params.textDocument.uri or nil
+  local bufnr = requested_buffer_uri and vim.uri_to_bufnr(requested_buffer_uri) or nil
+  local is_html = bufnr and vim.bo[bufnr].filetype == "html" or nil
 
   function handler_context.request(request)
     local interrupt_diagnostic = handler_module.interrupt_diagnostic
