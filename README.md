@@ -1,5 +1,5 @@
 <h1 align="center">typescript-tools.nvim</h1>
-<p align="center"><sup>Typescript integration NeoVim deserves ⚡</sup></p>
+<p align="center"><sup>TypeScript integration NeoVim deserves ⚡</sup></p>
 
 ### 🚧 Warning 🚧
 
