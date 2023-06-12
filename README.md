@@ -7,10 +7,6 @@ The plugin is in the early stages of development, so you may encounter bugs.
 
 ### ⁉️ Why?
 
-If you work on huge TS/JS project you exactly know why this plugin come into existance -
-typescript-language-server can be very, very slow in this type of projects.
-Beside slowness it also often miss completions or just simply crash.
-
 If you work on a large TS/JS project, you probably understand why this plugin came into existence.
 The typescript-language-server can be extremely slow in such projects,
 and it often fails to provide accurate completions or just crash.
