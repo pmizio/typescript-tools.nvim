@@ -160,7 +160,7 @@ The default values for `preferences` and `format_options` are in [this file](htt
     To get IntelliSense for `styled-components`, you need to install the tsserver plugin globally, which enables support for it:
   </p>
 
-```shellscript
+```
 npm i -g typescript-styled-plugin
 ```
 
