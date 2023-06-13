@@ -179,8 +179,69 @@ require("typescript-tools").setup {
 
 ## Supported LSP methods
 
-| Status | Request                 |
-| ------ | ----------------------- |
-| ✅     | textDocument/completion |
-| ✅     | textDocument/hover      |
-| ✅     | textDocument            |
+| Status | Request                                                                        |
+| ------ | ------------------------------------------------------------------------------ |
+| ✅     | textDocument/completion                                                        |
+| ✅     | textDocument/hover                                                             |
+| ✅     | textDocument/rename                                                            |
+| ✅     | textDocument/publishDiagnostics                                                |
+| ✅     | textDocument/signatureHelp                                                     |
+| ✅     | textDocument/references                                                        |
+| ✅     | textDocument/definition                                                        |
+| ✅     | textDocument/typeDefinition                                                    |
+| ✅     | textDocument/implementation                                                    |
+| ✅     | textDocument/documentSymbol                                                    |
+| ✅     | textDocument/documentHighlight                                                 |
+| ✅     | textDocument/codeAction                                                        |
+| ✅     | textDocument/formatting                                                        |
+| ✅     | textDocument/rangeFormatting                                                   |
+| ✅     | textDocument/foldingRange                                                      |
+| ✅     | textDocument/semanticTokens/full (supported from TS v4.1)                      |
+| ✅     | textDocument/inlayHint (supported from TS v4.4)                                |
+| ✅     | callHierarchy/incomingCalls                                                    |
+| ✅     | callHierarchy/outgoingCalls                                                    |
+| 🚧     | textDocument/codeLens(https://github.com/pmizio/typescript-tools.nvim/pull/39) |
+| 🚧     | textDocument/linkedEditingRange (planned)                                      |
+| ✅     | workspace/symbol                                                               |
+| ✅     | workspace/willRenameFiles                                                      |
+| ❌     | workspace/applyEdit - N/A                                                      |
+| ❌     | textDocument/declaration - N/A                                                 |
+| ❌     | window/logMessage - N/A                                                        |
+| ❌     | window/showMessage - N/A                                                       |
+| ❌     | window/showMessageRequest - N/A                                                |
+
+## 🚦 Roadmap
+
+- `textDocument/codeLens` - [#39](https://github.com/pmizio/typescript-tools.nvim/pull/39)
+- `textDocument/linkedEditingRange` - [#32](https://github.com/pmizio/typescript-tools.nvim/pull/32)
+- Embedded language support(JS inside of HTML) - [#43](https://github.com/pmizio/typescript-tools.nvim/pull/43)
+
+## 🔨 Development
+
+Useful links:
+
+- [nvim-lua-guide](https://github.com/nanotee/nvim-lua-guide)
+- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
+
+### 🐛 Run tests
+
+Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
+to be checked out in the parent directory of _this_ repository. Make sure you
+have [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin. You
+can then run:
+
+```bash
+make test
+```
+
+Or if you want to run a single test file:
+
+```bash
+make file=test_spec.lua test
+```
+
+## 💐 Credits
+
+- [null-ls.nvim](https://github.com/jose-elias-alvarez/null-ls.nvim) - for the idea to monkeypatch nvim API to start a custom LSP I/O loop
+- [typescript-language-server](https://github.com/typescript-language-server/typescript-language-server) - for ideas on how to translate certain Tsserver responses
+- [Visual Studio Code(TypeScript extension)](https://github.com/microsoft/vscode/tree/main/extensions/typescript-language-features) - for insights on using the Tsserver protocol and performance optimizations
