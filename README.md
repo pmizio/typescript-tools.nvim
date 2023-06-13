@@ -14,7 +14,7 @@ Please note that the plugin is currently in the early beta version, which means 
 
 ### ✨ Features
 
-- ⚡ Blazing fast, thanks to the utilization of the native Tsserver communication protocol, similar to Visual Studio Code
+- ⚡ Blazingly fast, thanks to the utilization of the native Tsserver communication protocol, similar to Visual Studio Code
 - 🪭 Supports a wide range of TypeScript versions 4.0 and above
 - 🌍 Supports the nvim LSP plugin ecosystem
 - 🔀 Supports multiple instances of Tsserver
