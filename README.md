@@ -162,7 +162,7 @@ The default values for `preferences` and `format_options` are in [this file](htt
   <summary>Show more</summary>
   <p>
     <br>
-    To get IntelliSense for `styled-components`, you need to install the tsserver plugin globally, which enables support for it:
+    To get IntelliSense for <code>styled-components</code>, you need to install the tsserver plugin globally, which enables support for it:
   </p>
 
 ```
