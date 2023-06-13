@@ -28,17 +28,19 @@ Please note that the plugin is currently in the early beta version, which means 
 
 <details>
   <summary>If you're interested in learning more about the technical details of the plugin, you can click here.</summary>
-\
+  <p>
+    <br>
+    This plugin functions exactly like the bundled TypeScript support extension in Visual Studio Code.
+    Thanks to the new (0.8.0) NeoVim API, it is now possible to pass a Lua function as the LSP start command.
+    As a result, the plugin spawns a custom version of the I/O loop to communicate directly with Tsserver
+    using its native protocol, without the need for any additional proxy.
+    The Tsserver protocol, which is a JSON-based communication protocol, likely served as inspiration for the LSP.
+    However, it is incompatible with the LSP. To address this, the I/O loop provided by this plugin features a
+    translation layer that converts all messages to and from the Tsserver format.
 
-This plugin functions exactly like the bundled TypeScript support extension in Visual Studio Code.
-Thanks to the new (0.8.0) NeoVim API, it is now possible to pass a Lua function as the LSP start command.
-As a result, the plugin spawns a custom version of the I/O loop to communicate directly with Tsserver
-using its native protocol, without the need for any additional proxy.
-The Tsserver protocol, which is a JSON-based communication protocol, likely served as inspiration for the LSP.
-However, it is incompatible with the LSP. To address this, the I/O loop provided by this plugin features a
-translation layer that converts all messages to and from the Tsserver format.
+    In summary, the architecture of this plugin can be visualized as shown in the diagram below:
 
-In summary, the architecture of this plugin can be visualized as shown in the diagram below:
+  </p>
 
 ```lua
  NeoVim                                                    Tsserver Instance
@@ -154,11 +156,12 @@ The default values for `preferences` and `format_options` are in [this file](htt
 
 <details>
   <summary>Show more</summary>
+  <p>
+    <br>
+    To get IntelliSense for `styled-components`, you need to install the tsserver plugin globally, which enables support for it:
+  </p>
 
-To get IntelliSense for `styled-components`, you need to install the tsserver plugin globally, which enables support for it:
-\
-
-```bash
+```console
 npm i -g typescript-styled-plugin
 ```
 
@@ -181,4 +184,4 @@ require("typescript-tools").setup {
 | ------ | ----------------------- |
 | ✅     | textDocument/completion |
 | ✅     | textDocument/hover      |
-| ✅     | textDocument/rename     |
+| ✅     | textDocument            |
