@@ -22,10 +22,13 @@ Please note that the plugin is currently in the early beta version, which means 
 - 💅 Provides out-of-the-box support for styled-components, which is not enabled by default (see Installation and [Configuration](#-styled-components-support))
 - ✨ Improved code refactor capabilities e.g. extracting to variable or function
 
+![Preview](https://github.com/pmizio/typescript-tools.nvim/assets/4346598/f2b225ac-fc26-4ad7-a36b-c4d615b78255)
+
 ### 🚀 How it works?
 
 <details>
   <summary>If you're interested in learning more about the technical details of the plugin, you can click here.</summary>
+
 This plugin functions exactly like the bundled TypeScript support extension in Visual Studio Code.
 Thanks to the new (0.8.0) NeoVim API, it is now possible to pass a Lua function as the LSP start command.
 As a result, the plugin spawns a custom version of the I/O loop to communicate directly with Tsserver
