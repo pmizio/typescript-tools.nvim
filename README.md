@@ -1,27 +1,31 @@
 <h1 align="center">typescript-tools.nvim</h1>
-<p align="center"><sup>TypeScript integration NeoVim deserves ⚡</sup></p>
+<p align="center"><sup>⚡ TypeScript integration NeoVim deserves ⚡</sup></p>
 
 ### 🚧 Warning 🚧
 
-The plugin is in the early stages of development, so you may encounter bugs.
+Please note that the plugin is currently in the early beta version, which means you may encounter bugs.
 
 ### ⁉️ Why?
 
-If you work on a large TS/JS project, you probably understand why this plugin came into existence.
-The typescript-language-server can be extremely slow in such projects,
-and it often fails to provide accurate completions or just crash.
+1. Drop in, pure lua replacement for `typescript-language-server`
+2. If you work on a large TS/JS project, you probably understand why this plugin came into existence.
+   The `typescript-language-server` can be extremely slow in such projects,
+   and it often fails to provide accurate completions or just crash.
 
 ### ✨ Features
 
-- Supports a wide range of TypeScript versions 4.0 and above
-- Supports the nvim LSP plugin ecosystem
-- Utilizes the native Tsserver communication protocol, similar to Visual Studio Code
-- Supports multiple instances of Tsserver
-- Supports both local and global installations of TypeScript
-- Provides out-of-the-box support for styled-components, which is not enabled by default (see Installation and Configuration)
+- ⚡ Blazing fast, thanks to the utilization of the native Tsserver communication protocol, similar to Visual Studio Code
+- 🪭 Supports a wide range of TypeScript versions 4.0 and above
+- 🌍 Supports the nvim LSP plugin ecosystem
+- 🔀 Supports multiple instances of Tsserver
+- 💻 Supports both local and global installations of TypeScript
+- 💅 Provides out-of-the-box support for styled-components, which is not enabled by default (see Installation and [Configuration](#-styled-components-support))
+- ✨ Improved code refactor capabilities e.g. extracting to variable or function
 
 ### 🚀 How it works?
 
+<details>
+  <summary>If you're interested in learning more about the technical details of the plugin, you can click here.</summary>
 This plugin functions exactly like the bundled TypeScript support extension in Visual Studio Code.
 Thanks to the new (0.8.0) NeoVim API, it is now possible to pass a Lua function as the LSP start command.
 As a result, the plugin spawns a custom version of the I/O loop to communicate directly with Tsserver
@@ -56,15 +60,20 @@ In summary, the architecture of this plugin can be visualized as shown in the di
 └────────────────────────────────────────────┘            └────────────────┘
 ```
 
-### ⚡️ Requirements
+</details>
+
+### 📦 Installation
+
+> ❗️ IMPORTANT: As mentioned earlier, this plugin serves as a replacement for `typescript-language-server`,
+> so you should remove the `nvim-lspconfig` setup for it.
+
+#### ⚡️ Requirements
 
 - NeoVim >= 0.8.0
 - [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 - TypeScript >= 4.0
 - Node supported suitable for TypeScript version you use
-
-### 📦 Installation
 
 #### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
@@ -91,6 +100,7 @@ But you can pass plugin-specific options through the `settings` parameter, which
 
 ```lua
 require("typescript-tools").setup {
+  on_attach = function() ... end,
   ...
   settings = {
     -- spawn additional tsserver instance to calculate diagnostics on it
@@ -107,7 +117,7 @@ require("typescript-tools").setup {
 ```
 
 You can pass custom configuration options that will be passed to `tsserver`
-instance. You can find available options in `typescript` repositorory (e.g.
+instance. You can find available options in `typescript` repository (e.g.
 for version 5.0.4 of typescript):
 
 - [tsserver_file_preferences](https://github.com/microsoft/TypeScript/blob/v5.0.4/src/server/protocol.ts#L3439)
@@ -161,69 +171,8 @@ require("typescript-tools").setup {
 
 ## Supported LSP methods
 
-| Status | Request                                                                        |
-| ------ | ------------------------------------------------------------------------------ |
-| ✅     | textDocument/completion                                                        |
-| ✅     | textDocument/hover                                                             |
-| ✅     | textDocument/rename                                                            |
-| ✅     | textDocument/publishDiagnostics                                                |
-| ✅     | textDocument/signatureHelp                                                     |
-| ✅     | textDocument/references                                                        |
-| ✅     | textDocument/definition                                                        |
-| ✅     | textDocument/typeDefinition                                                    |
-| ✅     | textDocument/implementation                                                    |
-| ✅     | textDocument/documentSymbol                                                    |
-| ✅     | textDocument/documentHighlight                                                 |
-| ✅     | textDocument/codeAction                                                        |
-| ✅     | textDocument/formatting                                                        |
-| ✅     | textDocument/rangeFormatting                                                   |
-| ✅     | textDocument/foldingRange                                                      |
-| ✅     | textDocument/semanticTokens/full (supported from TS v4.1)                      |
-| ✅     | textDocument/inlayHint (supported from TS v4.4)                                |
-| ✅     | callHierarchy/incomingCalls                                                    |
-| ✅     | callHierarchy/outgoingCalls                                                    |
-| 🚧     | textDocument/codeLens(https://github.com/pmizio/typescript-tools.nvim/pull/39) |
-| 🚧     | textDocument/linkedEditingRange (planned)                                      |
-| ✅     | workspace/symbol                                                               |
-| ✅     | workspace/willRenameFiles                                                      |
-| ❌     | workspace/applyEdit - N/A                                                      |
-| ❌     | textDocument/declaration - N/A                                                 |
-| ❌     | window/logMessage - N/A                                                        |
-| ❌     | window/showMessage - N/A                                                       |
-| ❌     | window/showMessageRequest - N/A                                                |
-
-## 🚦 Roadmap
-
-- `textDocument/codeLens` - https://github.com/pmizio/typescript-tools.nvim/pull/39
-- `textDocument/linkedEditingRange` - https://github.com/pmizio/typescript-tools.nvim/pull/32
-- Embedded language support(JS inside of HTML) - https://github.com/pmizio/typescript-tools.nvim/pull/43
-
-## 🔨 Development
-
-Useful links:
-
-- [nvim-lua-guide](https://github.com/nanotee/nvim-lua-guide)
-- [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
-
-### 🐛 Run tests
-
-Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
-to be checked out in the parent directory of _this_ repository. Make sure you
-have [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin. You
-can then run:
-
-```bash
-make test
-```
-
-Or if you want to run a single test file:
-
-```bash
-make file=test_spec.lua test
-```
-
-## 💐 Credits
-
-- [null-ls.nvim](https://github.com/jose-elias-alvarez/null-ls.nvim) - for idea to monkeypatch nvim API to start a custom LSP I/O loop
-- [typescript-language-server](https://github.com/typescript-language-server/typescript-language-server) - for ideas how to translate certain tsserver responses
-- [VisualStudio Code(TypeScript extension)](https://github.com/microsoft/vscode/tree/main/extensions/typescript-language-features) - for insights on using the tsserver protocol and performance optimizations
+| Status | Request                 |
+| ------ | ----------------------- |
+| ✅     | textDocument/completion |
+| ✅     | textDocument/hover      |
+| ✅     | textDocument/rename     |
