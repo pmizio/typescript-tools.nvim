@@ -22,7 +22,7 @@ Please note that the plugin is currently in the early beta version, which means 
 - 💅 Provides out-of-the-box support for styled-components, which is not enabled by default (see Installation and [Configuration](#-styled-components-support))
 - ✨ Improved code refactor capabilities e.g. extracting to variable or function
 
-![Preview](https://github.com/pmizio/typescript-tools.nvim/assets/4346598/f2b225ac-fc26-4ad7-a36b-c4d615b78255)
+![code_action](https://github.com/pmizio/typescript-tools.nvim/assets/4346598/df62f7dc-aeb4-4e48-96a7-1908d97091a1)
 
 ### 🚀 How it works?
 
