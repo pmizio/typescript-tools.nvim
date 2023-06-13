@@ -37,10 +37,9 @@ Please note that the plugin is currently in the early beta version, which means 
     The Tsserver protocol, which is a JSON-based communication protocol, likely served as inspiration for the LSP.
     However, it is incompatible with the LSP. To address this, the I/O loop provided by this plugin features a
     translation layer that converts all messages to and from the Tsserver format.
-
-    In summary, the architecture of this plugin can be visualized as shown in the diagram below:
-
   </p>
+
+In summary, the architecture of this plugin can be visualized as shown in the diagram below:
 
 ```lua
  NeoVim                                                    Tsserver Instance
@@ -161,7 +160,7 @@ The default values for `preferences` and `format_options` are in [this file](htt
     To get IntelliSense for `styled-components`, you need to install the tsserver plugin globally, which enables support for it:
   </p>
 
-```console
+```shellscript
 npm i -g typescript-styled-plugin
 ```
 
