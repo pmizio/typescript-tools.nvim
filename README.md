@@ -28,7 +28,7 @@ Please note that the plugin is currently in the early beta version, which means 
 
 <details>
   <summary>If you're interested in learning more about the technical details of the plugin, you can click here.</summary>
-
+\
 
 This plugin functions exactly like the bundled TypeScript support extension in Visual Studio Code.
 Thanks to the new (0.8.0) NeoVim API, it is now possible to pass a Lua function as the LSP start command.
@@ -155,9 +155,8 @@ The default values for `preferences` and `format_options` are in [this file](htt
 <details>
   <summary>Show more</summary>
 
-
 To get IntelliSense for `styled-components`, you need to install the tsserver plugin globally, which enables support for it:
-
+\
 
 ```bash
 npm i -g typescript-styled-plugin
