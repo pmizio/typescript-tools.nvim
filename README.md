@@ -83,7 +83,11 @@ In summary, the architecture of this plugin can be visualized as shown in the di
 #### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
-{ "pmizio/typescript-tools.nvim", opts = {} }
+{
+  "pmizio/typescript-tools.nvim",
+  dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+  opts = {},
+}
 ```
 
 #### [packer.nvim](https://github.com/wbthomason/packer.nvim)
@@ -91,6 +95,7 @@ In summary, the architecture of this plugin can be visualized as shown in the di
 ```lua
 use {
   "pmizio/typescript-tools.nvim"
+  requires = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
   config = function()
     require("typescript-tools").setup {}
   end,
