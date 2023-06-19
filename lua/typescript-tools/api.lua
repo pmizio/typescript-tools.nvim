@@ -1,4 +1,5 @@
 local c = require "typescript-tools.protocol.constants"
+local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
@@ -11,8 +12,18 @@ end
 
 ---@param callback fun(params: table, result: table)|nil
 function M.request_diagnostics(callback)
+  local text_document = vim.lsp.util.make_text_document_params()
+  local client = vim.lsp.get_active_clients {
+    name = plugin_config.plugin_name,
+    bufnr = vim.uri_to_bufnr(text_document.uri),
+  }
+
+  if #client == 0 then
+    return
+  end
+
   vim.lsp.buf_request(0, c.CustomMethods.Diagnostic, {
-    textDocument = vim.lsp.util.make_text_document_params(),
+    textDocument = text_document,
   }, callback)
 end
 
