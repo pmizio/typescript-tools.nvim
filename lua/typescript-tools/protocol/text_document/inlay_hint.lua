@@ -4,13 +4,18 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
-local INLAY_HINT_KIND_MAP = {
+---@enum inlay_hint_kind
+local inlay_hint_kind_map = {
   Type = 1,
   Parameter = 2,
 }
 
-local function are_inlay_hints_enabled()
+---@param filetype string
+---@return boolean
+local function are_inlay_hints_enabled(filetype)
   local preferences = plugin_config.tsserver_file_preferences
+  preferences = type(preferences) == "function" and preferences(filetype) or preferences
+
   if not preferences then
     return false
   end
@@ -23,13 +28,15 @@ local function are_inlay_hints_enabled()
     or preferences.includeInlayVariableTypeHints
 end
 
+---@type TsserverProtocolHandler
 function M.handler(request, response, params)
-  if not are_inlay_hints_enabled() then
-    return {}
-  end
-
   local text_document = params.textDocument
   local requested_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
+
+  if not are_inlay_hints_enabled(vim.bo[requested_bufnr].filetype) then
+    return
+  end
+
   local start_offset = utils.get_offset_at_position(
     { params.range.start.line, params.range.start.character },
     requested_bufnr
@@ -58,7 +65,7 @@ function M.handler(request, response, params)
     return {
       position = utils.convert_tsserver_position_to_lsp(hint_response.position),
       label = hint_response.text,
-      kind = INLAY_HINT_KIND_MAP[hint_response.kind],
+      kind = inlay_hint_kind_map[hint_response.kind],
       paddingLeft = hint_response.whitespaceBefore and true or false,
       paddingRight = hint_response.whitespaceAfter and true or false,
     }
