@@ -354,8 +354,8 @@ describe("Lsp request", function()
 
     local bracketRange = result[3]
 
-    assert.is.same(8, bracketRange.startLine)
-    assert.is.same(9, bracketRange.endLine)
+    assert.is.same(7, bracketRange.startLine)
+    assert.is.same(8, bracketRange.endLine)
     assert.is.same(nil, bracketRange.kind)
   end)
 
@@ -401,7 +401,7 @@ describe("Lsp request", function()
 
     assert.is.table(fileTextEdits)
     assert.is.same(1, #fileTextEdits)
-    assert.are.same("import { export1 } from './exports'\n", fileTextEdits[1].newText)
+    assert.are.same("import { export1 } from './exports';\n", fileTextEdits[1].newText)
   end)
 
   it("should return correct response for " .. methods.CodeAction, function()
