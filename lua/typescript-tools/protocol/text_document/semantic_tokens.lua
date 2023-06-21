@@ -97,31 +97,28 @@ local function transform_spans(spans, lines_lengths)
       previous_line
     )
 
-    if not pos then
-      goto continue
+    if pos then
+      local line, character = pos.line, pos.character
+
+      -- lsp spec requires 5 elements per token instead of 3:
+      -- 1. delta line number (relative to the previous line)
+      -- 2. delta token start offset (relative to the previous token)
+      -- 3. length of the token
+      -- 4. type of the token (e.g. function, comment, enum etc.)
+      -- 5. token modifier (static, async etc.)
+      local delta_line = line - previous_line
+      local delta_start = previous_line == line and character - previous_token_start or character
+
+      table.insert(lsp_spans, delta_line)
+      table.insert(lsp_spans, delta_start)
+      table.insert(lsp_spans, token_length)
+      table.insert(lsp_spans, token_type)
+      table.insert(lsp_spans, token_modifier)
+
+      previous_token_start = character
+      previous_line = line
+      previous_offset = last_line_offset or 0
     end
-
-    local line, character = pos.line, pos.character
-
-    -- lsp spec requires 5 elements per token instead of 3:
-    -- 1. delta line number (relative to the previous line)
-    -- 2. delta token start offset (relative to the previous token)
-    -- 3. length of the token
-    -- 4. type of the token (e.g. function, comment, enum etc.)
-    -- 5. token modifier (static, async etc.)
-    local delta_line = line - previous_line
-    local delta_start = previous_line == line and character - previous_token_start or character
-
-    table.insert(lsp_spans, delta_line)
-    table.insert(lsp_spans, delta_start)
-    table.insert(lsp_spans, token_length)
-    table.insert(lsp_spans, token_type)
-    table.insert(lsp_spans, token_modifier)
-
-    previous_token_start = character
-    previous_line = line
-    previous_offset = last_line_offset or 0
-    ::continue::
   end
 
   return lsp_spans

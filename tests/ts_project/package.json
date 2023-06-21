@@ -5,7 +5,11 @@
   "scripts": {},
   "author": "pmizio",
   "license": "MIT",
-  "dependencies": {
-    "typescript": "4.9"
+  "devDependencies": {
+    "prettier": "2.8.8",
+    "typescript": "5.x"
+  },
+  "prettier": {
+    "singleQuote": true
   }
 }

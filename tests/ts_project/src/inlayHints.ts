@@ -1,5 +1,5 @@
 function xxxx() {
-  return "";
+  return '';
 }
 
 enum Test {

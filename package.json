@@ -1,0 +1,23 @@
+{
+  "name": "typescript-tools.nvim",
+  "version": "0.0.1",
+  "description": "Just template for installing CI tools",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pmizio/typescript-tools.nvim.git"
+  },
+  "author": "Paweł Mizio (mizio.pawel@gmail.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pmizio/typescript-tools.nvim/issues"
+  },
+  "homepage": "https://github.com/pmizio/typescript-tools.nvim#readme",
+  "dependencies": {},
+  "devDependencies": {
+    "markdownlint-cli2": "0.7.1",
+    "@commitlint/cli": "17.6.3",
+    "@commitlint/config-angular": "17.6.3"
+  }
+}

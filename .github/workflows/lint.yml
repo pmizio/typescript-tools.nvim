@@ -1,0 +1,74 @@
+---
+name: Lint Code Base
+on:
+  pull_request: ~
+  push:
+    branches:
+      - master
+
+jobs:
+  luacheck:
+    name: Lint Lua code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install luacheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luarocks
+          sudo luarocks install luacheck
+
+      - name: Run luacheck
+        run: luacheck .
+
+  stylua:
+    name: Stylecheck Lua code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - uses: JohnnyMorganz/stylua-action@v3
+        with:
+          version: v0.17.1
+          token: ${{ secrets.GITHUB_TOKEN }}
+          args: --color always --check .
+
+  prettier:
+    name: Stylecheck Typescript code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: current
+
+      - name: Run prettier
+        run: |
+          cd tests/ts_project/
+          npm ci
+          npx prettier --check .
+
+  markdownlint:
+    name: Stylecheck Markdown
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: current
+
+      - name: Run markdownlint-cli2
+        run: |
+          npm ci
+          npx npx markdownlint-cli2 **/*.md
