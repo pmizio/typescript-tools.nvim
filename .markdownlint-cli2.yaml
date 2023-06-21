@@ -1,5 +1,9 @@
 config:
-  # MD052/reference-links-images - Reference links and images should use a label that is defined
+  MD013:
+    line_length: 100
+    tables: false
+  MD033: false
+  MD040: false
   MD052: false
 
 ignores: ["**/node_modules/**"]
