@@ -230,10 +230,7 @@ Useful links:
 
 ### 🐛 Run tests
 
-Running tests requires [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
-to be checked out in the parent directory of _this_ repository. Make sure you
-have [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) plugin. You
-can then run:
+The unit testing environment is automatically bootstrapped, just run:
 
 ```bash
 make test
