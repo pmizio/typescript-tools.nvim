@@ -26,7 +26,10 @@ function TsserverProvider.new()
 
   assert(util.bufname_valid(bufname), "Invalid buffer name!")
 
-  self.root_dir = Path:new(config.get_root_dir(util.path.sanitize(bufname), bufnr))
+  local sanitized_bufname = util.path.sanitize(bufname)
+
+  self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
+  self.npm_local_path = Path:new(util.find_node_modules_ancestor(sanitized_bufname), "node_modules")
   self.npm_global_path = Path:new(vim.trim(vim.fn.system "npm root -g"))
 
   return self
@@ -53,11 +56,6 @@ function TsserverProvider:get_executable_path()
 
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
-
-    if not self.npm_local_path then
-      self.npm_local_path = Path:new(vim.trim(vim.fn.system "npm root"))
-    end
-
     tsserver_path = Path:new(self.npm_local_path, "typescript", "lib", "tsserver.js")
   end
 
