@@ -6,6 +6,7 @@
 ---@field tsserver_plugins string[]
 ---@field tsserver_format_options table|fun(filetype: string): table
 ---@field tsserver_file_preferences table|fun(filetype: string): table
+---@field tsserver_max_memory number|"auto"
 local M = {}
 local __store = {}
 
@@ -47,6 +48,11 @@ function M.load_settings(settings)
       true,
     },
     ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
+    ["settings.tsserver_max_memory"] = {
+      settings.tsserver_max_memory,
+      { "number", "string" },
+      true,
+    },
   }
 
   __store = vim.tbl_deep_extend("force", __store, settings)
@@ -73,6 +79,11 @@ function M.load_settings(settings)
 
   if not M.tsserver_log_level[settings.tsserver_logs] then
     __store.tsserver_logs = M.tsserver_log_level.off
+  end
+
+  if not settings.tsserver_max_memory then
+    -- INFO: same as default in vscode
+    __store.tsserver_max_memory = 3072
   end
 end
 

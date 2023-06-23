@@ -69,11 +69,6 @@ function Process.new(type, on_response, on_exit)
     table.insert(self.args, log_dir:joinpath("tsserver_" .. type .. ".log"):absolute())
   end
 
-  if is_win then
-    table.insert(self.args, 2, "node")
-    table.insert(self.args, 2, "/C")
-  end
-
   self:start()
 
   return self
@@ -125,6 +120,16 @@ end
 
 function Process:start()
   local command = is_win and "cmd.exe" or "node"
+
+  if type(plugin_config.tsserver_max_memory) == "number" then
+    table.insert(self.args, 1, "--max-old-space-size=" .. plugin_config.tsserver_max_memory)
+  end
+
+  if is_win then
+    table.insert(self.args, 1, "/c")
+    table.insert(self.args, 2, "node")
+  end
+
   local args = {
     args = self.args,
     stdio = { self.stdin, self.stdout, self.stderr },
