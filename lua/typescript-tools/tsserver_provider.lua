@@ -1,3 +1,4 @@
+local log = require "vim.lsp.log"
 local api = vim.api
 local Path = require "plenary.path"
 local configs = require "lspconfig.configs"
@@ -8,6 +9,7 @@ local plugin_config = require "typescript-tools.config"
 ---@class TsserverProvider
 ---@field private instance TsserverProvider
 ---@field private root_dir Path
+---@field private npm_local_path Path
 ---@field private npm_global_path Path
 
 ---@class TsserverProvider
@@ -25,7 +27,7 @@ function TsserverProvider.new()
   assert(util.bufname_valid(bufname), "Invalid buffer name!")
 
   self.root_dir = Path:new(config.get_root_dir(util.path.sanitize(bufname), bufnr))
-  self.npm_global_path = Path:new(vim.fn.system "npm root -g"):parent()
+  self.npm_global_path = Path:new(vim.trim(vim.fn.system "npm root -g"))
 
   return self
 end
@@ -50,8 +52,22 @@ function TsserverProvider:get_executable_path()
   local tsserver_path = self.root_dir:joinpath("node_modules", "typescript", "lib", "tsserver.js")
 
   if not tsserver_exists(tsserver_path) then
-    tsserver_path =
-      self.npm_global_path:joinpath("node_modules", "typescript", "lib", "tsserver.js")
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+
+    if not self.npm_local_path then
+      self.npm_local_path = Path:new(vim.trim(vim.fn.system "npm root"))
+    end
+
+    tsserver_path = Path:new(self.npm_local_path, "typescript", "lib", "tsserver.js")
+  end
+
+  if not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+    tsserver_path = self.npm_global_path:joinpath("typescript", "lib", "tsserver.js")
+  end
+
+  if not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
   end
 
   -- INFO: if there is no local or global tsserver just error out
@@ -59,6 +75,8 @@ function TsserverProvider:get_executable_path()
     tsserver_exists(tsserver_path),
     "Cannot find tsserver executable in local project nor global npm installation."
   )
+
+  local _ = log.trace() and log.trace("tsserver", "Binary found at:", tsserver_path:absolute())
 
   return tsserver_path
 end
