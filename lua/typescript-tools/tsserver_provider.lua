@@ -25,10 +25,7 @@ function TsserverProvider.new()
   assert(util.bufname_valid(bufname), "Invalid buffer name!")
 
   self.root_dir = Path:new(config.get_root_dir(util.path.sanitize(bufname), bufnr))
-  self.npm_global_path = Path
-    :new(vim.fn.system([[node -p "process.execPath"]]):match "^%s*(.-)%s*$")
-    :parent()
-    :joinpath("..", "lib")
+  self.npm_global_path = Path:new(vim.fn.system "npm root -g"):parent()
 
   return self
 end
