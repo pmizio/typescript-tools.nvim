@@ -177,7 +177,7 @@ The default values for `preferences` and `format_options` are in [this file](htt
   </p>
 
 ```
-npm i -g typescript-styled-plugin
+npm i -g @styled/typescript-styled-plugin typescript-styled-plugin
 ```
 
 Now, you need to load the plugin by modifying the `settings` object as follows:
@@ -186,7 +186,12 @@ Now, you need to load the plugin by modifying the `settings` object as follows:
 require("typescript-tools").setup {
   settings = {
     ...
-    tsserver_plugins = { "typescript-styled-plugin" },
+    tsserver_plugins = {
+      -- for TypeScript v4.9+
+      "@styled/typescript-styled-plugin",
+      -- or for older TypeScript versions
+      -- "typescript-styled-plugin",
+    },
   },
 }
 ```

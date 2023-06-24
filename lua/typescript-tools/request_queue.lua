@@ -26,13 +26,13 @@ local RequestQueue = {
     Normal = 2,
     Const = 3,
   },
+  seq = 0,
 }
 
 ---@return RequestQueue
 function RequestQueue.new()
   local self = setmetatable({}, { __index = RequestQueue })
 
-  self.seq = 0
   self.queue = {}
 
   return self
@@ -40,7 +40,7 @@ end
 
 ---@param request RequestContainer
 function RequestQueue:enqueue(request)
-  local seq = self.seq
+  local seq = RequestQueue.seq
 
   if request.priority == self.Priority.Normal then
     local idx = #self.queue
@@ -58,7 +58,7 @@ function RequestQueue:enqueue(request)
     table.insert(self.queue, request)
   end
 
-  self.seq = seq + 1
+  RequestQueue.seq = seq + 1
 
   return seq
 end
