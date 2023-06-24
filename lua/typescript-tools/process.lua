@@ -90,6 +90,10 @@ local function parse_response(initial_chunk, on_response)
 
     if header_end then
       local header = buffer:sub(1, header_end - 1)
+      -- INFO: on Windows there is additional whitespace before header we need to remove them
+      if header:sub(1, 2) == "\r\n" then
+        header = header:sub(3)
+      end
       local content_length = parse_content_length(header)
       local body = buffer:sub(body_start + 1)
       local body_chunks = { body }
