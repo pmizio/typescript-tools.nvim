@@ -69,11 +69,6 @@ function Process.new(type, on_response, on_exit)
     table.insert(self.args, log_dir:joinpath("tsserver_" .. type .. ".log"):absolute())
   end
 
-  if is_win then
-    table.insert(self.args, 2, "node")
-    table.insert(self.args, 2, "/C")
-  end
-
   self:start()
 
   return self
@@ -95,6 +90,10 @@ local function parse_response(initial_chunk, on_response)
 
     if header_end then
       local header = buffer:sub(1, header_end - 1)
+      -- INFO: on Windows there is additional whitespace before header we need to remove them
+      if header:sub(1, 2) == "\r\n" then
+        header = header:sub(3)
+      end
       local content_length = parse_content_length(header)
       local body = buffer:sub(body_start + 1)
       local body_chunks = { body }
@@ -125,6 +124,16 @@ end
 
 function Process:start()
   local command = is_win and "cmd.exe" or "node"
+
+  if type(plugin_config.tsserver_max_memory) == "number" then
+    table.insert(self.args, 1, "--max-old-space-size=" .. plugin_config.tsserver_max_memory)
+  end
+
+  if is_win then
+    table.insert(self.args, 1, "/c")
+    table.insert(self.args, 2, "node")
+  end
+
   local args = {
     args = self.args,
     stdio = { self.stdin, self.stdout, self.stderr },
