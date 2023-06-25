@@ -82,8 +82,7 @@ function M.load_settings(settings)
   end
 
   if not settings.tsserver_max_memory then
-    -- INFO: same as default in vscode
-    __store.tsserver_max_memory = 3072
+    __store.tsserver_max_memory = "auto"
   end
 end
 
