@@ -79,6 +79,7 @@ function M.handler(request, response, params, ctx)
   for _, fix in ipairs(body) do
     table.insert(code_actions, {
       title = fix.description,
+      fixName = fix.fixName,
       kind = c.CodeActionKind.QuickFix,
       edit = {
         changes = utils.convert_tsserver_edits_to_lsp(fix.changes),
