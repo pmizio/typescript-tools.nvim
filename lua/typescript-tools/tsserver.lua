@@ -200,6 +200,12 @@ function Tsserver:send_queued_requests()
       return
     end
 
+    local static_response = item.request.response
+    if static_response then
+      item.context.response(static_response)
+      return
+    end
+
     local seq = item.context.seq
 
     if self.pending_diagnostic and item.interrupt_diagnostic then
