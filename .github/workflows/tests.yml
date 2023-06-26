@@ -59,6 +59,7 @@ jobs:
         run: |
           npm ci
           npm i typescript@${{ matrix.typescript_version }}
+          npx tsc -v
 
       - name: Run tests
         run: TEST_TYPESCRIPT_VERSION=${{ matrix.typescript_version }} make test
