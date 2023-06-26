@@ -6,3 +6,7 @@ install_typescript_version:
 
 test_typescript_version: export TEST_TYPESCRIPT_VERSION=$(version)
 test_typescript_version: install_typescript_version test
+
+clean:
+	rm -rf .tests/ tests/ts_project/node_modules
+	npm --prefix tests/ts_project ci
