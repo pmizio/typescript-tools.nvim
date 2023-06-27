@@ -50,15 +50,15 @@ local augroup = vim.api.nvim_create_augroup("TypescriptToolsTestsGroup", { clear
 vim.api.nvim_create_autocmd("User", {
   pattern = "TypescriptTools_textDocument/didOpen",
   callback = function(e)
-    _G.file_opened = e.data.command == "updateOpen"
+    _G.file_opened = e.data.command == "updateOpen" or e.data.command == "configure"
   end,
   group = augroup,
 })
 
 vim.api.nvim_create_autocmd("User", {
   pattern = "TypescriptTools_textDocument/didClose",
-  callback = function(e)
-    _G.file_closed = e.data.command == "updateOpen"
+  callback = function()
+    _G.file_closed = true
   end,
   group = augroup,
 })
