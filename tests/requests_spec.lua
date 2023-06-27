@@ -512,7 +512,7 @@ describe("Lsp request", function()
       range = utils.make_range(0, 0, 9, 21),
     })
 
-    if not utils.supports_capability "inlayHintsProvider" then
+    if not utils.supports_capability "inlayHintProvider" then
       utils.print_skip "inlayHintsProvider not supported in typescript version below 4.4"
       return
     end

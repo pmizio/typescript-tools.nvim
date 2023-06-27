@@ -14,6 +14,7 @@
 ---@class TsserverRequest
 ---@field command CommandTypes
 ---@field arguments table
+---@field response table|nil
 
 ---@alias TsserverRequestFn fun(request: TsserverRequest): number
 ---@alias LspResponseFn fun(response: table|nil): boolean
