@@ -128,10 +128,10 @@ end
 
 ---@type TsserverProtocolHandler
 function M.handler(request, _, params)
-  request(configure(params))
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L1305
   request(open_request(params))
+  request(configure(params))
 
   -- INFO: skip first response
   coroutine.yield()
