@@ -3,6 +3,9 @@ local utils = require "typescript-tools.protocol.utils"
 
 local M = {}
 
+---@param all_changes table - table to add new changes to
+---@param response table - code_action response from tsserver
+---@param file_uri string - uri of the file that code action will be run
 local function add_changes_from_response(all_changes, response, file_uri)
   if not response.changes then
     return
@@ -19,13 +22,19 @@ local function add_changes_from_response(all_changes, response, file_uri)
   end
 end
 
+---@param diagnostics table - table of all file diagnostics
+---@param diagnostics_error_codes table - all of the error codes that are allowed to be fixed
+---@returns table - list of diagnostics from tsserver with given error codes
 local function get_diagnostics_to_fix(diagnostics, diagnostics_error_codes)
   return vim.tbl_filter(function(diagnostic)
-    return diagnostic.source == "tsserver"
+    return diagnostic.source == c.DiagnosticSource
       and vim.tbl_contains(diagnostics_error_codes, diagnostic.code)
   end, diagnostics)
 end
 
+---@param diagnostic table - diagnostic to make a code action for
+---@param fname string - file name of the file that code action will be run
+---@returns table - parameters for 'GetCodeFixes' request
 local function make_code_action_params(diagnostic, fname)
   return {
     file = fname,
@@ -96,18 +105,14 @@ function M.handler(request, response, params, ctx)
 
   for _ in pairs(fixes_ids_to_combine) do
     -- tsserver protocol reference:
-    -- https://github.com/microsoft/TypeScript/blob/v5.1.3/src/server/protocol.ts#L780
+    -- https://github.com/microsoft/TypeScript/blob/v5.1.5/src/server/protocol.ts#L785
     local body = coroutine.yield()
 
     add_changes_from_response(final_changes, body, uri)
   end
 
   response {
-    edit = {
-      changes = {
-        [uri] = final_changes,
-      },
-    },
+    edit = { changes = { [uri] = final_changes } },
     kind = c.CodeActionKind.QuickFix,
     title = "Batch code fix",
   }

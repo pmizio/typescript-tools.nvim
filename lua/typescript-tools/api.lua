@@ -3,6 +3,9 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
+---@param error_codes table - table of all diagnostic codes
+---@param fix_names table
+---@param bufnr integer
 local function send_batch_code_action(error_codes, fix_names, bufnr)
   local clients = vim.lsp.get_active_clients {
     name = plugin_config.plugin_name,

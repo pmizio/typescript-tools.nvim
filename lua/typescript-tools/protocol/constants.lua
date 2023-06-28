@@ -356,4 +356,5 @@ return {
   LspErrorCodes = {
     ServerCancelled = -32802,
   },
+  DiagnosticSource = "tsserver",
 }
