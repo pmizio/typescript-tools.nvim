@@ -1,0 +1,116 @@
+local c = require "typescript-tools.protocol.constants"
+local utils = require "typescript-tools.protocol.utils"
+
+local M = {}
+
+local function add_changes_from_response(all_changes, response, file_uri)
+  if not response.changes then
+    return
+  end
+
+  local lsp_response = utils.convert_tsserver_edits_to_lsp(response.changes)[file_uri]
+
+  if not lsp_response then
+    return
+  end
+
+  for _, change in ipairs(lsp_response) do
+    table.insert(all_changes, change)
+  end
+end
+
+local function get_diagnostics_to_fix(diagnostics, diagnostics_error_codes)
+  return vim.tbl_filter(function(diagnostic)
+    return diagnostic.source == "tsserver"
+      and vim.tbl_contains(diagnostics_error_codes, diagnostic.code)
+  end, diagnostics)
+end
+
+local function make_code_action_params(diagnostic, fname)
+  return {
+    file = fname,
+    startLine = diagnostic.lnum + 1,
+    startOffset = diagnostic.col + 1,
+    endLine = diagnostic.end_lnum + 1,
+    endOffset = diagnostic.end_col,
+    errorCodes = { diagnostic.code },
+  }
+end
+
+---@type TsserverProtocolHandler
+function M.handler(request, response, params, ctx)
+  local bufnr = params.bufnr
+  local uri = vim.uri_from_bufnr(bufnr)
+  local fname = vim.uri_to_fname(uri)
+
+  local diagnostics = get_diagnostics_to_fix(params.diagnostics, params.error_codes)
+
+  local seqs = vim.tbl_map(function(diagnostic)
+    return request {
+      command = c.CommandTypes.GetCodeFixes,
+      arguments = make_code_action_params(diagnostic, fname),
+    }
+  end, diagnostics)
+
+  ctx.synthetic_seq = table.concat(seqs, "_")
+
+  local final_changes = {}
+
+  local fixes_ids_to_combine = {}
+
+  for _ in ipairs(diagnostics) do
+    -- tsserver protocol reference:
+    -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L585
+    local body = coroutine.yield()
+
+    for _, fix in ipairs(body) do
+      if fix and vim.tbl_contains(params.fix_names, fix.fixName) then
+        -- if `fixId` is present we only ask one time for `getCombinedCodeFix` that returns all of the fixes
+        -- for given id
+        if fix.fixId then
+          fixes_ids_to_combine[fix.fixId] = true
+        -- if `fixId` is not present we just apply the changes from this fix, because it cannot be applied in the group
+        else
+          add_changes_from_response(final_changes, fix, uri)
+        end
+      end
+    end
+  end
+
+  for fix_id in pairs(fixes_ids_to_combine) do
+    -- tsserver protocol reference:
+    -- https://github.com/microsoft/TypeScript/blob/v5.1.3/src/server/protocol.ts#L780
+    request {
+      command = c.CommandTypes.GetCombinedCodeFix,
+      arguments = {
+        scope = {
+          type = "file",
+          args = {
+            file = fname,
+          },
+        },
+        fixId = fix_id,
+      },
+    }
+  end
+
+  for _ in pairs(fixes_ids_to_combine) do
+    -- tsserver protocol reference:
+    -- https://github.com/microsoft/TypeScript/blob/v5.1.3/src/server/protocol.ts#L780
+    local body = coroutine.yield()
+
+    add_changes_from_response(final_changes, body, uri)
+  end
+
+  response {
+    edit = {
+      changes = {
+        [uri] = final_changes,
+      },
+    },
+    kind = c.CodeActionKind.QuickFix,
+    title = "Batch code fix",
+  }
+end
+
+return M

@@ -230,6 +230,7 @@ return {
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
     Diagnostic = "typescriptTools/diagnostic",
+    BatchDiagnostics = "typescriptTools/batchDiagnostics",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",

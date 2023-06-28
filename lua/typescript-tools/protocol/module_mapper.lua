@@ -9,6 +9,7 @@ local remapped_methods = {
   [c.LspMethods.SemanticTokensFull] = "text_document.semantic_tokens",
   [c.CustomMethods.OrganizeImports] = "text_document.organize_imports",
   [c.CustomMethods.Diagnostic] = "text_document.custom_diagnostic",
+  [c.CustomMethods.BatchDiagnostics] = "text_document.code_action.batch",
 }
 
 local noop_methods = { c.LspMethods.DidSave }
