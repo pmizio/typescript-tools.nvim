@@ -9,6 +9,11 @@ local function make_capabilities()
 
   return {
     textDocumentSync = lsp_protocol.TextDocumentSyncKind.Incremental,
+    executeCommandProvider = {
+      commands = {
+        c.InternalCommands.InvokeAdditionalRename,
+      },
+    },
     renameProvider = {
       -- tsserver doesn't have something like textDocument/prepareRename
       prepareProvider = false,
