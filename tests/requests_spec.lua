@@ -496,10 +496,7 @@ describe("Lsp request", function()
     assert.is.table(data)
     -- stylua: ignore
     assert.is.same(data,
-      utils.tsv {
-        ["4.0"] = {},
-        default = { 0, 6, 6, 7, 9, 1, 6, 1, 7, 9, 2, 9, 4, 10, 1, 0, 5, 5, 6, 1, 0, 15, 6, 6, 1, 1, 9, 5, 6, 0, 0, 8, 6, 6, 0, 0, 9, 1, 7, 8 }
-      }
+       { 0, 6, 6, 7, 9, 1, 6, 1, 7, 9, 2, 9, 4, 10, 1, 0, 5, 5, 6, 1, 0, 15, 6, 6, 1, 1, 9, 5, 6, 0, 0, 8, 6, 6, 0, 0, 9, 1, 7, 8 }
     )
   end)
 
@@ -551,4 +548,61 @@ describe("Lsp request", function()
       },
     })
   end)
+
+  it(
+    "should return correct response for " .. custom_methods.BatchCodeActions .. " - Remove unused",
+    function()
+      utils.open_file "src/batch_code_actions.ts"
+      utils.wait_for_lsp_initialization()
+
+      vim.wait(1000)
+
+      vim.cmd ":TSToolsRemoveUnused"
+
+      vim.wait(200)
+
+      local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+      assert.is.same(vim.tbl_contains(lines, "  const y = 0;"), false)
+      assert.is.same(vim.tbl_contains(lines, "  const y = export1;"), false)
+    end
+  )
+
+  it(
+    "should return correct response for " .. custom_methods.BatchCodeActions .. " - Fix all",
+    function()
+      utils.open_file "src/batch_code_actions.ts"
+      utils.wait_for_lsp_initialization()
+
+      vim.wait(1000)
+
+      vim.cmd ":TSToolsFixAll"
+
+      vim.wait(200)
+
+      local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+      assert.is.same(vim.tbl_contains(lines, "async function bar() {"), true)
+    end
+  )
+
+  it(
+    "should return correct response for "
+      .. custom_methods.BatchCodeActions
+      .. " - Add missing imports",
+    function()
+      utils.open_file "src/batch_code_actions.ts"
+      utils.wait_for_lsp_initialization()
+
+      vim.wait(1000)
+
+      vim.cmd ":TSToolsAddMissingImports"
+
+      vim.wait(200)
+
+      local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+
+      assert.is.same(vim.tbl_contains(lines, 'import { export1 } from "exports";'), true)
+    end
+  )
 end)
