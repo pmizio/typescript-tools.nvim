@@ -230,7 +230,6 @@ return {
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
     Diagnostic = "typescriptTools/diagnostic",
-    BatchDiagnostics = "typescriptTools/batchDiagnostics",
     BatchCodeActions = "typescriptTools/batchCodeActions",
   },
   TsserverEvents = {
