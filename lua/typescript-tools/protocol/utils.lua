@@ -63,9 +63,10 @@ end
 ---@param position TssPosition
 ---@return LspPosition
 function M.convert_tsserver_position_to_lsp(position)
+  -- line and offset can be 0 when position is at the start of newly created file
   return {
-    line = position.line - 1,
-    character = position.offset - 1,
+    line = position.line == 0 and 0 or position.line - 1,
+    character = position.offset == 0 and 0 or position.offset - 1,
   }
 end
 
