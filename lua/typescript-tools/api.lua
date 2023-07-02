@@ -39,6 +39,18 @@ function M.organize_imports(mode)
   vim.lsp.buf_request(0, c.CustomMethods.OrganizeImports, params)
 end
 
+function M.go_to_source_definition()
+  local params = vim.lsp.util.make_position_params()
+
+  params.context = { source_definition = true }
+
+  vim.lsp.buf_request(0, c.LspMethods.Definition, params, function(err, result, context)
+    if not err then
+      vim.lsp.handlers[c.LspMethods.Definition](err, result, context)
+    end
+  end)
+end
+
 function M.remove_unused()
   local UNUSED_VARIABLE_CODES = { 6196, 6133 }
   local FIX_NAMES = { "unusedIdentifier" }

@@ -16,6 +16,10 @@ function M.setup_user_commands()
     api.organize_imports(c.OrganizeImportsMode.RemoveUnused)
   end, {})
 
+  vim.api.nvim_create_user_command("TSToolsGoToSourceDefinition", function()
+    api.go_to_source_definition()
+  end, {})
+
   vim.api.nvim_create_user_command("TSToolsRemoveUnused", function()
     api.remove_unused()
   end, {})

@@ -56,6 +56,24 @@ describe("Lsp request", function()
     lsp_assert.range(result[1].targetSelectionRange, 2, 9, 2, 13)
   end)
 
+  it(
+    "should return correct response for " .. methods.Definition .. " - source definition",
+    function()
+      utils.open_file "src/index.ts"
+      utils.wait_for_lsp_initialization()
+
+      local ret = vim.lsp.buf_request_sync(0, methods.Definition, {
+        textDocument = utils.get_text_document(),
+        position = utils.make_position(10, 0),
+        context = { source_definition = true },
+      })
+
+      local result = lsp_assert.response(ret)
+      assert.are.same(#result, 1)
+      lsp_assert.range(result[1].targetSelectionRange, 2, 9, 2, 13)
+    end
+  )
+
   it("should return correct response for " .. methods.TypeDefinition, function()
     utils.open_file "src/index.ts"
     utils.wait_for_lsp_initialization()
