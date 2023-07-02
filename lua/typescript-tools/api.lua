@@ -27,4 +27,39 @@ function M.request_diagnostics(callback)
   }, callback)
 end
 
+--- Returns an |lsp-handler| that filters TypeScript diagnostics with the given codes.
+--- <pre>lua
+--- local api = require('typescript-tools.api')
+--- require('typescript-tools').setup {
+---   handlers = {
+---     -- Ignore 'This may be converted to an async function' diagnostics.
+---     ['textDocument/publishDiagnostics'] = api.filter_diagnostics { 80006 }
+---   }
+--- }
+--- </pre>
+---
+---@param codes integer[]
+function M.filter_diagnostics(codes)
+  return function(err, res, ctx, config)
+    local filtered = {}
+    for _, diag in ipairs(res.diagnostics) do
+      if diag.source == "tsserver" then
+        local code_filtered = false
+        for _, code in ipairs(codes) do
+          if diag.code == code then
+            code_filtered = true
+            break
+          end
+        end
+        if not code_filtered then
+          table.insert(filtered, diag)
+        end
+      end
+    end
+
+    res.diagnostics = filtered
+    vim.lsp.diagnostic.on_publish_diagnostics(err, res, ctx, config)
+  end
+end
+
 return M
