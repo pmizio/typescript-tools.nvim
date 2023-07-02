@@ -4,6 +4,7 @@ local mocks = require "tests.mocks"
 local c = require "typescript-tools.protocol.constants"
 local methods = c.LspMethods
 local custom_methods = c.CustomMethods
+local v = vim.version
 
 describe("Lsp request", function()
   after_each(function()
@@ -59,6 +60,10 @@ describe("Lsp request", function()
   it(
     "should return correct response for " .. methods.Definition .. " - source definition",
     function()
+      local version = v.parse(vim.env.TEST_TYPESCRIPT_VERSION)
+      if version and v.lt(version, { 4, 7 }) then
+        return
+      end
       utils.open_file "src/index.ts"
       utils.wait_for_lsp_initialization()
 
