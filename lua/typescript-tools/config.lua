@@ -3,6 +3,7 @@
 ---@field separate_diagnostic_server boolean
 ---@field tsserver_logs string
 ---@field publish_diagnostic_on publish_diagnostic_mode
+---@field tsserver_path string|nil
 ---@field tsserver_plugins string[]
 ---@field tsserver_format_options table|fun(filetype: string): table
 ---@field tsserver_file_preferences table|fun(filetype: string): table
@@ -36,6 +37,7 @@ function M.load_settings(settings)
       true,
     },
     ["settings.publish_diagnostic_on"] = { settings.publish_diagnostic_on, "string", true },
+    ["settings.tsserver_path"] = { settings.tsserver_path, "string", true },
     ["settings.tsserver_plugins"] = { settings.tsserver_plugins, "table", true },
     ["settings.tsserver_format_options"] = {
       settings.tsserver_format_options,
