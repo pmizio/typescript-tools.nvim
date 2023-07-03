@@ -116,6 +116,7 @@ But you can pass plugin-specific options through the `settings` parameter, which
 ```lua
 require("typescript-tools").setup {
   on_attach = function() ... end,
+  handlers = { ... },
   ...
   settings = {
     -- spawn additional tsserver instance to calculate diagnostics on it
@@ -134,8 +135,21 @@ require("typescript-tools").setup {
   },
 }
 ```
+Note that `handlers` can be used to override certain LSP methods. For example, you can use the `filter_diagnostics` helper to ignore specific errors:
 
-You can pass custom configuration options that will be passed to `tsserver`
+```lua
+local api = require("typescript-tools.api")
+require("typescript-tools").setup {
+  handlers = {
+    ["textDocument/publishDiagnostics"] = api.filter_diagnostics({
+      -- Ignore 'This may be converted to an async function' diagnostics.
+      { code = 80006 },
+    }),
+  },
+}
+```
+
+You can also pass custom configuration options that will be passed to `tsserver`
 instance. You can find available options in `typescript` repository (e.g.
 for version 5.0.4 of typescript):
 
