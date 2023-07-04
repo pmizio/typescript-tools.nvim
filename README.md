@@ -135,7 +135,9 @@ require("typescript-tools").setup {
   },
 }
 ```
-Note that `handlers` can be used to override certain LSP methods. For example, you can use the `filter_diagnostics` helper to ignore specific errors:
+
+Note that `handlers` can be used to override certain LSP methods.
+For example, you can use the `filter_diagnostics` helper to ignore specific errors:
 
 ```lua
 local api = require("typescript-tools.api")
