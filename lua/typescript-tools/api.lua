@@ -40,12 +40,11 @@ end
 ---
 ---@param codes integer[]
 function M.filter_diagnostics(codes)
+  vim.tbl_add_reverse_lookup(codes)
   return function(err, res, ctx, config)
     local filtered = {}
-    local with_lookups = vim.deepcopy(codes)
-    vim.tbl_add_reverse_lookup(with_lookups)
     for _, diag in ipairs(res.diagnostics) do
-      if diag.source == "tsserver" and with_lookups[diag.code] == nil then
+      if diag.source == "tsserver" and codes[diag.code] == nil then
         table.insert(filtered, diag)
       end
     end
