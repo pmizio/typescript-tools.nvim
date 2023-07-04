@@ -141,10 +141,10 @@ Note that `handlers` can be used to override certain LSP methods. For example, y
 local api = require("typescript-tools.api")
 require("typescript-tools").setup {
   handlers = {
-    ["textDocument/publishDiagnostics"] = api.filter_diagnostics({
+    ["textDocument/publishDiagnostics"] = api.filter_diagnostics(
       -- Ignore 'This may be converted to an async function' diagnostics.
-      { code = 80006 },
-    }),
+      { 80006 }
+    ),
   },
 }
 ```
