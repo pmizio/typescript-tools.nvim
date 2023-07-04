@@ -4,6 +4,7 @@ local mocks = require "tests.mocks"
 local c = require "typescript-tools.protocol.constants"
 local methods = c.LspMethods
 local custom_methods = c.CustomMethods
+local v = vim.version
 
 describe("Lsp request", function()
   after_each(function()
@@ -55,6 +56,28 @@ describe("Lsp request", function()
     assert.are.same(#result, 1)
     lsp_assert.range(result[1].targetSelectionRange, 2, 9, 2, 13)
   end)
+
+  it(
+    "should return correct response for " .. methods.Definition .. " - source definition",
+    function()
+      local version = v.parse(vim.env.TEST_TYPESCRIPT_VERSION)
+      if version and v.lt(version, { 4, 7 }) then
+        return
+      end
+      utils.open_file "src/index.ts"
+      utils.wait_for_lsp_initialization()
+
+      local ret = vim.lsp.buf_request_sync(0, methods.Definition, {
+        textDocument = utils.get_text_document(),
+        position = utils.make_position(10, 0),
+        context = { source_definition = true },
+      })
+
+      local result = lsp_assert.response(ret)
+      assert.are.same(#result, 1)
+      lsp_assert.range(result[1].targetSelectionRange, 2, 9, 2, 13)
+    end
+  )
 
   it("should return correct response for " .. methods.TypeDefinition, function()
     utils.open_file "src/index.ts"
@@ -496,10 +519,7 @@ describe("Lsp request", function()
     assert.is.table(data)
     -- stylua: ignore
     assert.is.same(data,
-      utils.tsv {
-        ["4.0"] = {},
-        default = { 0, 6, 6, 7, 9, 1, 6, 1, 7, 9, 2, 9, 4, 10, 1, 0, 5, 5, 6, 1, 0, 15, 6, 6, 1, 1, 9, 5, 6, 0, 0, 8, 6, 6, 0, 0, 9, 1, 7, 8 }
-      }
+       { 0, 6, 6, 7, 9, 1, 6, 1, 7, 9, 2, 9, 4, 10, 1, 0, 5, 5, 6, 1, 0, 15, 6, 6, 1, 1, 9, 5, 6, 0, 0, 8, 6, 6, 0, 0, 9, 1, 7, 8 }
     )
   end)
 

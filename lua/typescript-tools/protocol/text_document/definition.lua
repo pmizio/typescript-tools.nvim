@@ -30,9 +30,14 @@ end
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
+  local command = params.context
+      and params.context.source_definition
+      and c.CommandTypes.FindSourceDefinition
+    or c.CommandTypes.DefinitionAndBoundSpan
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L662
-  request(utils.tsserver_location_request(c.CommandTypes.DefinitionAndBoundSpan, params))
+  request(utils.tsserver_location_request(command, params))
 
   local body = coroutine.yield()
 
@@ -40,11 +45,13 @@ function M.handler(request, response, params)
       and utils.convert_tsserver_range_to_lsp(body.textSpan)
     or nil
 
+  local definitions = command == c.CommandTypes.FindSourceDefinition and body or body.definitions
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/7910c509c4545517489d6264571bb6c05248fb4a/lib/protocol.d.ts#L668
   response(vim.tbl_map(function(definition)
     return file_span_with_context_to_location_link(definition, origin_selection_range)
-  end, body.definitions))
+  end, definitions))
 end
 
 return M

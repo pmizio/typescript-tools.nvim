@@ -230,6 +230,7 @@ return {
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
     Diagnostic = "typescriptTools/diagnostic",
+    BatchCodeActions = "typescriptTools/batchCodeActions",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
@@ -355,4 +356,5 @@ return {
   LspErrorCodes = {
     ServerCancelled = -32802,
   },
+  DiagnosticSource = "tsserver",
 }

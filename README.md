@@ -200,6 +200,20 @@ require("typescript-tools").setup {
 
 </details>
 
+## Custom user commands
+
+This plugin provides several custom user commands (they are only applied to current buffer):
+
+- `TSToolsOrganizeImports` - sorts and removes unused imports
+- `TSToolsSortImports` - sorts imports
+- `TSToolsRemoveUnusedImports` - removes unused imports
+- `TSToolsRemoveUnused` - removes all unused statements
+- `TSToolsAddMissingImports` - adds imports for all statements that lack one and can be imported
+- `TSToolsFixAll` - fixes all fixable errors
+- `TSToolsGoToSourceDefinition` - goes to
+[source definition](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#go-to-source-definition)
+(available since TS v4.7)
+
 ## Supported LSP methods
 
 | Status | Request                                                                               |
