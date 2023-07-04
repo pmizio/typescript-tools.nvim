@@ -99,7 +99,7 @@ In summary, the architecture of this plugin can be visualized as shown in the di
 
 ```lua
 use {
-  "pmizio/typescript-tools.nvim"
+  "pmizio/typescript-tools.nvim",
   requires = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
   config = function()
     require("typescript-tools").setup {}
