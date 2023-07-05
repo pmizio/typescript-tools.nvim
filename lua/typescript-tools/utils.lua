@@ -1,5 +1,4 @@
 local uv = vim.loop
-local Path = require "plenary.path"
 
 local M = {}
 
