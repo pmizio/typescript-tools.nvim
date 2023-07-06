@@ -1,5 +1,4 @@
 local uv = vim.loop
-local Path = require "plenary.path"
 
 local M = {}
 
@@ -62,19 +61,6 @@ function M.version_compare(mode, version1, version2)
   end
 
   return vim.version[mode](version1, version2)
-end
-
---- INFO: stealed from:
---- https://github.com/nvim-lua/plenary.nvim/blob/36aaceb6e93addd20b1b18f94d86aecc552f30c4/lua/plenary/path.lua#L57C1-L62C4
----@param path Path
----@return boolean
-function M.is_root(path)
-  local pathname = path:absolute()
-
-  if Path.path.sep == "\\" then
-    return string.match(pathname, "^[A-Z]:\\?$")
-  end
-  return pathname == "/"
 end
 
 return M

@@ -3,7 +3,6 @@ local api = vim.api
 local Path = require "plenary.path"
 local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
-local utils = require "typescript-tools.utils"
 
 local plugin_config = require "typescript-tools.config"
 
@@ -22,22 +21,16 @@ local function tsserver_exists(path)
   return path:exists() and path:is_file()
 end
 
----@param path Path
+---@param startpath string
 ---@return Path
-local function find_deep_node_modules_ancestor(path)
-  if utils.is_root(path) then
-    return path
-  end
+local function find_deep_node_modules_ancestor(startpath)
+  return Path:new(util.search_ancestors(startpath, function(path)
+    local tsserver_path = Path:new(path, "node_modules", "typescript", "lib", "tsserver.js")
 
-  local nearest_node_modules = Path:new(util.find_node_modules_ancestor(path:absolute()) or "/")
-  local tsserver_path =
-    nearest_node_modules:joinpath("node_modules", "typescript", "lib", "tsserver.js")
-
-  if not tsserver_exists(tsserver_path) then
-    return find_deep_node_modules_ancestor(nearest_node_modules:parent())
-  end
-
-  return nearest_node_modules
+    if tsserver_exists(tsserver_path) then
+      return path
+    end
+  end))
 end
 
 ---@private
@@ -54,8 +47,7 @@ function TsserverProvider.new()
   local sanitized_bufname = util.path.sanitize(bufname)
 
   self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
-  self.npm_local_path =
-    find_deep_node_modules_ancestor(Path:new(sanitized_bufname)):joinpath "node_modules"
+  self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
   self.npm_global_path = Path:new(vim.trim(vim.fn.system "npm root -g"))
 
   return self
