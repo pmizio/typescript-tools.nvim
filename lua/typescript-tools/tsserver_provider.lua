@@ -68,15 +68,16 @@ end
 
 ---@param on_loaded function
 function TsserverProvider.init(on_loaded)
-  table.insert(TsserverProvider.callbacks, on_loaded)
-
-  if not TsserverProvider.instance then
+  if not TsserverProvider.npm_global_path then
+    table.insert(TsserverProvider.callbacks, on_loaded)
     TsserverProvider.instance = TsserverProvider.new(function()
       for _, callback in ipairs(TsserverProvider.callbacks) do
         callback()
       end
       TsserverProvider.callbacks = {}
     end)
+  else
+    on_loaded()
   end
 end
 
