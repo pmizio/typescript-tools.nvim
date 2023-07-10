@@ -9,12 +9,15 @@ local plugin_config = require "typescript-tools.config"
 
 ---@class TsserverProvider
 ---@field private instance TsserverProvider
+---@field private callbacks function[]
 ---@field private root_dir Path
 ---@field private npm_local_path Path
 ---@field private npm_global_path Path
 
 ---@class TsserverProvider
-local TsserverProvider = {}
+local TsserverProvider = {
+  callbacks = {},
+}
 
 ---@param path Path
 ---@return boolean|nil
@@ -55,7 +58,7 @@ function TsserverProvider.new(on_loaded)
     args = { "root", "-g" },
     on_stdout = function(_, data)
       ---@diagnostic disable-next-line
-      self.npm_global_path = Path:new(vim.trim(data))
+      TsserverProvider.npm_global_path = Path:new(vim.trim(data))
       on_loaded()
     end,
   }):start()
@@ -65,8 +68,15 @@ end
 
 ---@param on_loaded function
 function TsserverProvider.init(on_loaded)
+  table.insert(TsserverProvider.callbacks, on_loaded)
+
   if not TsserverProvider.instance then
-    TsserverProvider.instance = TsserverProvider.new(on_loaded)
+    TsserverProvider.instance = TsserverProvider.new(function()
+      for _, callback in ipairs(TsserverProvider.callbacks) do
+        callback()
+      end
+      TsserverProvider.callbacks = {}
+    end)
   end
 end
 
@@ -95,7 +105,7 @@ function TsserverProvider:get_executable_path()
 
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
-    tsserver_path = self.npm_global_path:joinpath("typescript", "lib", "tsserver.js")
+    tsserver_path = TsserverProvider.npm_global_path:joinpath("typescript", "lib", "tsserver.js")
   end
 
   if not tsserver_exists(tsserver_path) then
@@ -115,11 +125,11 @@ end
 
 ---@return Path|nil
 function TsserverProvider:get_plugins_path()
-  if not self.npm_global_path:exists() then
+  if not TsserverProvider.npm_global_path:exists() then
     return nil
   end
 
-  return self.npm_global_path
+  return TsserverProvider.npm_global_path
 end
 
 ---@return Path|nil
