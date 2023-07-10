@@ -124,7 +124,7 @@ function TsserverProvider:get_executable_path()
 end
 
 ---@return Path|nil
-function TsserverProvider:get_plugins_path()
+function TsserverProvider:get_plugins_path() -- luacheck: ignore
   if not TsserverProvider.npm_global_path:exists() then
     return nil
   end
