@@ -1,6 +1,7 @@
 local log = require "vim.lsp.log"
 local api = vim.api
 local Path = require "plenary.path"
+local Job = require "plenary.job"
 local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
 
@@ -35,7 +36,7 @@ end
 
 ---@private
 ---@return TsserverProvider
-function TsserverProvider.new()
+function TsserverProvider.new(on_loaded)
   local self = setmetatable({}, { __index = TsserverProvider })
 
   local config = configs[plugin_config.plugin_name]
@@ -48,17 +49,29 @@ function TsserverProvider.new()
 
   self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
-  self.npm_global_path = Path:new(vim.trim(vim.fn.system "npm root -g"))
+
+  Job:new({
+    command = "npm",
+    args = { "root", "-g" },
+    on_stdout = function(_, data)
+      ---@diagnostic disable-next-line
+      self.npm_global_path = Path:new(vim.trim(data))
+      on_loaded()
+    end,
+  }):start()
 
   return self
 end
 
+---@param on_loaded function
+function TsserverProvider.init(on_loaded)
+  if not TsserverProvider.instance then
+    TsserverProvider.instance = TsserverProvider.new(on_loaded)
+  end
+end
+
 ---@return TsserverProvider
 function TsserverProvider.get_instance()
-  if not TsserverProvider.instance then
-    TsserverProvider.instance = TsserverProvider.new()
-  end
-
   return TsserverProvider.instance
 end
 

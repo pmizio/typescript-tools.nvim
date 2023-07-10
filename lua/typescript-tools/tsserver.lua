@@ -1,4 +1,5 @@
 local log = require "vim.lsp.log"
+local TsserverProvider = require "typescript-tools.tsserver_provider"
 local Process = require "typescript-tools.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.protocol.progress"
@@ -32,9 +33,14 @@ function Tsserver.new(type, dispatchers)
   self.requests_to_cancel_on_change = {}
   self.dispatchers = dispatchers
 
-  self.process = Process.new(type, function(response)
-    self:handle_response(response)
-  end, dispatchers.on_exit)
+  TsserverProvider.init(function()
+    self.process = Process.new(type, function(response)
+      self:handle_response(response)
+    end, dispatchers.on_exit)
+
+    ---@diagnostic disable-next-line
+    self:send_queued_requests()
+  end)
 
   return self
 end
@@ -193,6 +199,10 @@ end
 
 ---@private
 function Tsserver:send_queued_requests()
+  if not self.process then
+    return
+  end
+
   while vim.tbl_isempty(self.pending_requests) and not self.request_queue:is_empty() do
     local item = self.request_queue:dequeue()
     if not item then
