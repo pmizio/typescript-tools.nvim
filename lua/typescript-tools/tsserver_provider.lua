@@ -7,6 +7,8 @@ local util = require "lspconfig.util"
 
 local plugin_config = require "typescript-tools.config"
 
+local is_win = vim.loop.os_uname().version:find "Windows"
+
 ---@class TsserverProvider
 ---@field private instance TsserverProvider
 ---@field private callbacks function[]
@@ -53,9 +55,11 @@ function TsserverProvider.new(on_loaded)
   self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
 
+  local command, args = self:make_npm_root_params()
+
   Job:new({
-    command = "npm",
-    args = { "root", "-g" },
+    command = command,
+    args = args,
     on_stdout = function(_, data)
       ---@diagnostic disable-next-line
       TsserverProvider.npm_global_path = Path:new(vim.trim(data))
@@ -64,6 +68,17 @@ function TsserverProvider.new(on_loaded)
   }):start()
 
   return self
+end
+
+---@return string, string[]
+function TsserverProvider:make_npm_root_params()
+  local args = { "root", "-g" }
+
+  if is_win then
+    return "cmd.exe", { "/c", "npm", unpack(args) }
+  end
+
+  return "npm", args
 end
 
 ---@param on_loaded function
