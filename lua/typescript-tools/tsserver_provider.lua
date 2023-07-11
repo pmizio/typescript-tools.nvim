@@ -70,8 +70,9 @@ function TsserverProvider.new(on_loaded)
   return self
 end
 
+---@private
 ---@return string, string[]
-function TsserverProvider:make_npm_root_params()
+function TsserverProvider:make_npm_root_params() -- luacheck: ignore
   local args = { "root", "-g" }
 
   if is_win then
