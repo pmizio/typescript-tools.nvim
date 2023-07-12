@@ -6,6 +6,7 @@ return {
   },
   InternalCommands = {
     InvokeAdditionalRename = "invoke_additional_rename",
+    CallApiFunction = "call_api_function",
   },
   ---@enum CommandTypes
   CommandTypes = {

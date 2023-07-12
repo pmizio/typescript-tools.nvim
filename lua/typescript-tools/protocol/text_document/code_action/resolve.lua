@@ -16,6 +16,13 @@ end
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
+  if params.command then
+    request {
+      response = params,
+    }
+    return
+  end
+
   -- tsserver protocol reference:
   -- OrganizeImports:
   -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L499

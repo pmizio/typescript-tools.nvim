@@ -12,6 +12,7 @@ local function make_capabilities()
     executeCommandProvider = {
       commands = {
         c.InternalCommands.InvokeAdditionalRename,
+        c.InternalCommands.CallApiFunction,
       },
     },
     renameProvider = {
