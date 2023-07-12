@@ -6,7 +6,7 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
-M.setup = function(config)
+function M.setup(config)
   local settings = config.settings or {}
 
   plugin_config.load_settings(settings)
