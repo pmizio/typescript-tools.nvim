@@ -9,6 +9,7 @@ local c = require "typescript-tools.protocol.constants"
 local proto_utils = require "typescript-tools.protocol.utils"
 
 ---@class Tsserver
+---@field server_type "semantic"|"syntax"
 ---@field process Process
 ---@field request_queue RequestQueue
 ---@field pending_requests table<number|string, boolean|nil>
@@ -26,6 +27,7 @@ local Tsserver = {}
 function Tsserver.new(type, dispatchers)
   local self = setmetatable({}, { __index = Tsserver })
 
+  self.server_type = type
   self.request_queue = RequestQueue.new()
   self.pending_requests = {}
   self.requests_metadata = {}
@@ -70,7 +72,7 @@ function Tsserver:handle_response(response)
     return
   end
 
-  handle_progress(response, self.dispatchers)
+  handle_progress(response, self.server_type, self.dispatchers)
 
   if not seq then
     return
