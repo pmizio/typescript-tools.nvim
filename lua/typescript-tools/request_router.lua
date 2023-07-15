@@ -16,6 +16,7 @@ local router_config = {
   [c.LspMethods.DidClose] = route_type.both,
   [c.LspMethods.Shutdown] = route_type.both,
   [c.LspMethods.SemanticTokensFull] = route_type.semantic,
+  [c.LspMethods.WorkspaceDiagnostic] = route_type.semantic,
   [c.CustomMethods.Diagnostic] = route_type.semantic,
 }
 

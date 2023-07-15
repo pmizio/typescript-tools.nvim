@@ -31,6 +31,10 @@ function M.setup_user_commands()
   vim.api.nvim_create_user_command("TSToolsFixAll", function()
     api.fix_all()
   end, {})
+
+  vim.api.nvim_create_user_command("TSToolsWorkspaceDiag", function()
+    api.workspace_diagnostic()
+  end, {})
 end
 
 return M

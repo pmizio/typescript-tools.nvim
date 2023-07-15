@@ -73,6 +73,21 @@ local function get_attached_buffers()
   return {}
 end
 
+---@param diagnostic table
+---@return table
+function M.tsserver_diagnostic_to_lsp(diagnostic)
+  return {
+    message = diagnostic.text,
+    source = c.DiagnosticSource,
+    code = diagnostic.code,
+    severity = category_to_severity(diagnostic.category),
+    range = proto_utils.convert_tsserver_range_to_lsp(diagnostic),
+    relatedInformation = diagnostic.relatedInformation
+      and convert_related_information(diagnostic.relatedInformation),
+    tags = get_diagnostic_tags(diagnostic),
+  }
+end
+
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
   local text_document = params.textDocument
@@ -94,6 +109,8 @@ function M.handler(request, response, params)
     },
   }
 
+  -- tsserver protocol reference:
+  -- https://github.com/microsoft/TypeScript/blob/2da62a784bbba237b8239e84c8629cfafb0f595e/lib/protocol.d.ts#L2171
   -- INFO:  it's ok, we wait for response command
   local body, command = coroutine.yield() -- luacheck: ignore
   local cache = {}
@@ -106,16 +123,7 @@ function M.handler(request, response, params)
     end
 
     for _, diagnostic in pairs(body.diagnostics or {}) do
-      table.insert(cache[file], {
-        message = diagnostic.text,
-        source = c.DiagnosticSource,
-        code = diagnostic.code,
-        severity = category_to_severity(diagnostic.category),
-        range = proto_utils.convert_tsserver_range_to_lsp(diagnostic),
-        relatedInformation = diagnostic.relatedInformation
-          and convert_related_information(diagnostic.relatedInformation),
-        tags = get_diagnostic_tags(diagnostic),
-      })
+      table.insert(cache[file], M.tsserver_diagnostic_to_lsp(diagnostic))
     end
 
     body, command = coroutine.yield()

@@ -136,6 +136,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
   local handler_context = {
     method = method,
+    dispatchers = self.dispatchers,
   }
 
   function handler_context.request(request)
@@ -227,7 +228,10 @@ function Tsserver:send_queued_requests()
         type = "request",
       }, item.request))
 
-      if item.method == c.CustomMethods.Diagnostic then
+      if
+        item.method == c.CustomMethods.Diagnostic
+        or item.method == c.LspMethods.WorkspaceDiagnostic
+      then
         self.pending_diagnostic = PendingDiagnostic.new(item)
       else
         self.pending_requests[seq] = true

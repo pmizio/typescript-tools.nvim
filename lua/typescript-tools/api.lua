@@ -90,6 +90,10 @@ function M.request_diagnostics(callback)
   }, callback)
 end
 
+function M.workspace_diagnostic()
+  vim.lsp.buf_request(0, c.LspMethods.WorkspaceDiagnostic, {})
+end
+
 --- Returns an |lsp-handler| that filters TypeScript diagnostics with the given codes.
 --- <pre>lua
 --- local api = require('typescript-tools.api')

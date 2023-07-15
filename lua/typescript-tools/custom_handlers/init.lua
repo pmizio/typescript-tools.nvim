@@ -1,5 +1,6 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
+local workspace_diagonstic = require "typescript-tools.custom_handlers.workspace_diagnostic"
 
 local M = {}
 
@@ -27,6 +28,8 @@ function M.setup_lsp_handlers(dispatchers)
       utils.publish_diagnostics(dispatchers, file, report.items)
     end
   end
+
+  workspace_diagonstic.setup()
 end
 
 return M

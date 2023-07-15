@@ -1,3 +1,4 @@
+---@enum Constants
 return {
   ServerCompositeType = {
     Single = "single",
@@ -226,6 +227,7 @@ return {
     ExecuteCommand = "workspace/executeCommand",
     WillRenameFiles = "workspace/willRenameFiles",
     CancelRequest = "$/cancelRequest",
+    WorkspaceDiagnostic = "workspace/diagnostic",
   },
   ---@enum CustomMethods
   CustomMethods = {
