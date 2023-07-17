@@ -1,5 +1,6 @@
 local c = require "typescript-tools.protocol.constants"
 local api = require "typescript-tools.api"
+local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
@@ -32,9 +33,11 @@ function M.setup_user_commands()
     api.fix_all()
   end, {})
 
-  vim.api.nvim_create_user_command("TSToolsWorkspaceDiag", function()
-    api.workspace_diagnostic()
-  end, {})
+  if plugin_config.experimentals.workspace_diagnostic then
+    vim.api.nvim_create_user_command("TSToolsWorkspaceDiag", function()
+      api.workspace_diagnostic()
+    end, {})
+  end
 end
 
 return M

@@ -1,3 +1,6 @@
+---@class Experimentals
+---@field workspace_diagnostic boolean|nil
+
 ---@class Settings
 ---@field plugin_name string
 ---@field separate_diagnostic_server boolean
@@ -9,7 +12,10 @@
 ---@field tsserver_file_preferences table|fun(filetype: string): table
 ---@field tsserver_max_memory number|"auto"
 ---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused")[]
+---@field experimentals Experimentals
 local M = {}
+
+---@type Settings
 local __store = {}
 
 ---@enum tsserver_log_level
@@ -56,14 +62,22 @@ function M.load_settings(settings)
       { "number", "string" },
       true,
     },
-    ["settings.expose_as_code_action"] = {
-      settings.expose_as_code_action,
-      "table",
-      true,
-    },
+    ["settings.expose_as_code_action"] = { settings.expose_as_code_action, "table", true },
+    ["settings.experimentals"] = { settings.experimentals, "table", true },
   }
 
   __store = vim.tbl_deep_extend("force", __store, settings)
+
+  if settings.experimentals then
+    local experimentals = settings.experimentals
+    local prefix = "settings.experimentals."
+
+    vim.validate {
+      [prefix .. "workspace_diagnostic"] = { experimentals.workspace_diagnostic, "boolean", true },
+    }
+  else
+    __store.experimentals = {}
+  end
 
   if type(settings.separate_diagnostic_server) == "nil" then
     __store.separate_diagnostic_server = true

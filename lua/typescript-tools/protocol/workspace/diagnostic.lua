@@ -5,17 +5,23 @@ local M = {}
 
 M.workspace_diagnostic_token_prefix = "workspace_diagnostic_"
 
----@param dispatchers Dispatchers
----@param token string
----@param items table
-local function send_progress_notification(dispatchers, token, items)
-  dispatchers.notification(c.LspMethods.Progress, {
-    token = token,
+---@class WorkspaceDiagnosticNotification
+---@field dispatchers Dispatchers
+---@field token string
+---@field items table
+
+---@param kind "begin"|"report"|"end"
+---@param opts WorkspaceDiagnosticNotification
+local send_progress_notification = vim.schedule_wrap(function(kind, opts)
+  opts.dispatchers.notification(c.LspMethods.Progress, {
+    token = opts.token,
     value = {
-      items = items,
+      kind = kind,
+      title = "Calculating workspace diagnostics...",
+      items = opts.items,
     },
   })
-end
+end)
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response, _, ctx)
@@ -36,7 +42,16 @@ function M.handler(request, response, _, ctx)
   local body, command = coroutine.yield()
   local init = false
 
+  local opts = {
+    token = M.workspace_diagnostic_token_prefix .. seq,
+    dispatchers = ctx.dispatchers,
+  }
+
+  send_progress_notification("begin", opts)
+
   repeat
+    send_progress_notification("report", opts)
+
     if body.file and not body.file:find("node_modules", 1, true) then
       local items = {}
       local file = vim.uri_from_fname(body.file)
@@ -56,13 +71,12 @@ function M.handler(request, response, _, ctx)
           init = true
           response(diagnostic_response)
         else
-          vim.schedule(function()
-            send_progress_notification(
-              ctx.dispatchers,
-              M.workspace_diagnostic_token_prefix .. seq,
-              { diagnostic_response }
-            )
-          end)
+          send_progress_notification(
+            "report",
+            vim.tbl_extend("force", {
+              items = { diagnostic_response },
+            }, opts)
+          )
         end
       end
     end
@@ -73,6 +87,8 @@ function M.handler(request, response, _, ctx)
   if not init then
     response {}
   end
+
+  send_progress_notification("end", opts)
 end
 
 return M

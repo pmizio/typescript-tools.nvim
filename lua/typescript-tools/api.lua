@@ -91,6 +91,14 @@ function M.request_diagnostics(callback)
 end
 
 function M.workspace_diagnostic()
+  if not plugin_config.experimentals.workspace_diagnostic then
+    vim.notify(
+      "Workspace diagnostic is disabled, set `experimentals.workspace_diagnostic` to  use it.",
+      vim.log.levels.WARN
+    )
+    return
+  end
+
   vim.lsp.buf_request(0, c.LspMethods.WorkspaceDiagnostic, {})
 end
 

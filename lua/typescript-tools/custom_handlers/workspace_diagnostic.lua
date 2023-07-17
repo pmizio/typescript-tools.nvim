@@ -37,7 +37,10 @@ function M.setup()
   local originalProgressHandler = vim.lsp.handlers[c.LspMethods.Progress]
   vim.lsp.handlers[c.LspMethods.Progress] = function(err, result, ctx)
     if
-      result and result.token:find(workspace_diagnostic.workspace_diagnostic_token_prefix, 1, true)
+      result
+      and type(result.token) == "string"
+      and result.token:find(workspace_diagnostic.workspace_diagnostic_token_prefix, 1, true)
+      and result.value.items
     then
       for _, item in ipairs(result.value.items) do
         M.cache[item.uri] = M.cache[item.uri] or {}
