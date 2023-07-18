@@ -42,7 +42,7 @@ function M.handler(request, response, params, ctx)
     }
   end, params.files)
 
-  ctx.synthetic_seq = table.concat(seqs, "_")
+  ctx.dependent_seq = seqs
 
   local changes = {}
 

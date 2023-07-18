@@ -37,7 +37,7 @@ function M.handler(request, response, params, ctx)
     endOffset = range["end"].offset,
   }
 
-  local seqs = {
+  ctx.dependent_seq = {
     -- tsserver protocol reference:
     -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L405
     request {
@@ -55,7 +55,6 @@ function M.handler(request, response, params, ctx)
       }),
     },
   }
-  ctx.synthetic_seq = table.concat(seqs, "_")
 
   local body = coroutine.yield()
   local code_actions = {}
