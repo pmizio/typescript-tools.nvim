@@ -7,7 +7,11 @@ local M = {}
 ---@param fix_names table
 ---@param bufnr integer
 local function send_batch_code_action(error_codes, fix_names, bufnr)
-  local clients = vim.lsp.get_clients {
+  local version = vim.version()
+  local get_clients = (version.major == 0 and version.minor < 10) and vim.lsp.get_active_clients
+    or vim.lsp.get_clients
+
+  local clients = get_clients {
     name = plugin_config.plugin_name,
     bufnr = bufnr,
   }
