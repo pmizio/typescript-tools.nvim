@@ -54,6 +54,13 @@ function M.handler(request, response, params, ctx)
 
   local diagnostics = get_diagnostics_to_fix(params.diagnostics, params.error_codes)
 
+  if #diagnostics == 0 then
+    request {
+      response = { edit = {} },
+    }
+    return
+  end
+
   ctx.dependent_seq = vim.tbl_map(function(diagnostic)
     return request {
       command = c.CommandTypes.GetCodeFixes,
