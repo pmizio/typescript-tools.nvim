@@ -56,7 +56,7 @@ function M.handler(request, response, params, ctx)
 
   if #diagnostics == 0 then
     request {
-      response = {},
+      response = { edit = {} },
     }
     return
   end
