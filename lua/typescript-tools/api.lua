@@ -1,12 +1,14 @@
 local c = require "typescript-tools.protocol.constants"
 local plugin_config = require "typescript-tools.config"
+local timeout = 1000 -- 1 secs
 
 local M = {}
 
 ---@param error_codes table - table of all diagnostic codes
 ---@param fix_names table
 ---@param bufnr integer
-local function send_batch_code_action(error_codes, fix_names, bufnr)
+---@param is_sync boolean
+local function send_batch_code_action(error_codes, fix_names, bufnr, is_sync)
   local clients = vim.lsp.get_active_clients {
     name = plugin_config.plugin_name,
     bufnr = bufnr,
@@ -25,52 +27,76 @@ local function send_batch_code_action(error_codes, fix_names, bufnr)
     fix_names = fix_names,
   }
 
-  typescript_client.request(c.CustomMethods.BatchCodeActions, params, function(err, res)
-    if not err then
-      vim.lsp.util.apply_workspace_edit(res.edit, "utf-8")
+  if is_sync then
+    local res = typescript_client.request_sync(c.CustomMethods.BatchCodeActions, params, timeout, 0)
+    if not res.err then
+      vim.lsp.util.apply_workspace_edit(res.result.edit, "utf-8")
     end
-  end, 0)
+  else
+    typescript_client.request(c.CustomMethods.BatchCodeActions, params, function(err, res)
+      if not err then
+        vim.lsp.util.apply_workspace_edit(res.edit, "utf-8")
+      end
+    end, 0)
+  end
 end
 
 ---@param mode OrganizeImportsMode
-function M.organize_imports(mode)
+---@param is_sync boolean
+function M.organize_imports(mode, is_sync)
   local params = { file = vim.api.nvim_buf_get_name(0), mode = mode }
 
-  vim.lsp.buf_request(0, c.CustomMethods.OrganizeImports, params)
+  if is_sync then
+    local res = vim.lsp.buf_request_sync(0, c.CustomMethods.OrganizeImports, params, timeout)
+    print(vim.inspect(res))
+  else
+    vim.lsp.buf_request(0, c.CustomMethods.OrganizeImports, params)
+  end
 end
 
-function M.go_to_source_definition()
+---@param is_sync boolean
+function M.go_to_source_definition(is_sync)
   local params = vim.lsp.util.make_position_params()
 
   params.context = { source_definition = true }
 
-  vim.lsp.buf_request(0, c.LspMethods.Definition, params, function(err, result, context)
-    if not err then
-      vim.lsp.handlers[c.LspMethods.Definition](err, result, context)
+  if is_sync then
+    local res = vim.lsp.buf_request_sync(0, c.LspMethods.Definition, params, timeout)
+    if not res.err then
+      vim.lsp.handlers[c.LspMethods.Definition](res.err, res.result, res.ctx)
     end
-  end)
+  else
+    vim.lsp.buf_request(0, c.LspMethods.Definition, params, function(err, result, context)
+      if not err then
+        vim.lsp.handlers[c.LspMethods.Definition](err, result, context)
+      end
+    end)
+  end
 end
 
-function M.remove_unused()
+---@param is_sync boolean
+function M.remove_unused(is_sync)
   local UNUSED_VARIABLE_CODES = { 6196, 6133 }
   local FIX_NAMES = { "unusedIdentifier" }
 
-  send_batch_code_action(UNUSED_VARIABLE_CODES, FIX_NAMES, 0)
+  send_batch_code_action(UNUSED_VARIABLE_CODES, FIX_NAMES, 0, is_sync)
 end
 
-function M.add_missing_imports()
+---@param is_sync boolean
+function M.add_missing_imports(is_sync)
   local MISSING_IMPORT_CODES = { 2552, 2304 }
   local FIX_NAMES = { "import" }
 
-  send_batch_code_action(MISSING_IMPORT_CODES, FIX_NAMES, 0)
+  send_batch_code_action(MISSING_IMPORT_CODES, FIX_NAMES, 0, is_sync)
 end
 
-function M.fix_all()
+---@param is_sync boolean
+function M.fix_all(is_sync)
   local FIXABLE_ERROR_CODES = { 2420, 1308, 7027 }
   local FIX_NAMES =
     { "fixClassIncorrectlyImplementsInterface", "fixAwaitInSyncFunction", "fixUnreachableCode" }
 
-  send_batch_code_action(FIXABLE_ERROR_CODES, FIX_NAMES, 0)
+  send_batch_code_action(FIXABLE_ERROR_CODES, FIX_NAMES, 0, is_sync)
 end
 
 ---@param callback fun(params: table, result: table)|nil
