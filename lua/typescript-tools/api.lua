@@ -27,7 +27,7 @@ local function send_batch_code_action(error_codes, fix_names, bufnr)
 
   typescript_client.request(c.CustomMethods.BatchCodeActions, params, function(err, res)
     if not err then
-      vim.lsp.util.apply_workspace_edit(res.edit, "utf-8")
+      vim.lsp.util.apply_workspace_edit(res.edit or {}, "utf-8")
     end
   end, 0)
 end
