@@ -16,9 +16,14 @@ local function create_message(event, message)
 end
 
 ---@param response table
+---@param server_type "semantic"|"syntax"
 ---@param dispatchers Dispatchers
-local function handle_progress(response, dispatchers)
+local function handle_progress(response, server_type, dispatchers)
   local notify = vim.schedule_wrap(dispatchers.notification)
+
+  if server_type == "semantic" then
+    return
+  end
 
   if response.event == c.TsserverEvents.ProjectLoadingStart then
     notify(c.LspMethods.Progress, create_message("begin", "Loading project"))

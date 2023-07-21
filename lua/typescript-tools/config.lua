@@ -8,6 +8,7 @@
 ---@field tsserver_format_options table|fun(filetype: string): table
 ---@field tsserver_file_preferences table|fun(filetype: string): table
 ---@field tsserver_max_memory number|"auto"
+---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused")[]
 local M = {}
 local __store = {}
 
@@ -55,6 +56,11 @@ function M.load_settings(settings)
       { "number", "string" },
       true,
     },
+    ["settings.expose_as_code_action"] = {
+      settings.expose_as_code_action,
+      "table",
+      true,
+    },
   }
 
   __store = vim.tbl_deep_extend("force", __store, settings)
@@ -85,6 +91,10 @@ function M.load_settings(settings)
 
   if not settings.tsserver_max_memory then
     __store.tsserver_max_memory = "auto"
+  end
+
+  if not settings.expose_as_code_action then
+    __store.expose_as_code_action = {}
   end
 end
 

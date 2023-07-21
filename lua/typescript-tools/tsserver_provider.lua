@@ -1,19 +1,25 @@
 local log = require "vim.lsp.log"
 local api = vim.api
 local Path = require "plenary.path"
+local Job = require "plenary.job"
 local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
 
 local plugin_config = require "typescript-tools.config"
 
+local is_win = vim.loop.os_uname().version:find "Windows"
+
 ---@class TsserverProvider
 ---@field private instance TsserverProvider
+---@field private callbacks function[]
 ---@field private root_dir Path
 ---@field private npm_local_path Path
 ---@field private npm_global_path Path
 
 ---@class TsserverProvider
-local TsserverProvider = {}
+local TsserverProvider = {
+  callbacks = {},
+}
 
 ---@param path Path
 ---@return boolean|nil
@@ -35,7 +41,7 @@ end
 
 ---@private
 ---@return TsserverProvider
-function TsserverProvider.new()
+function TsserverProvider.new(on_loaded)
   local self = setmetatable({}, { __index = TsserverProvider })
 
   local config = configs[plugin_config.plugin_name]
@@ -48,17 +54,51 @@ function TsserverProvider.new()
 
   self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
-  self.npm_global_path = Path:new(vim.trim(vim.fn.system "npm root -g"))
+
+  local command, args = self:make_npm_root_params()
+
+  Job:new({
+    command = command,
+    args = args,
+    on_stdout = function(_, data)
+      ---@diagnostic disable-next-line
+      TsserverProvider.npm_global_path = Path:new(vim.trim(data))
+      on_loaded()
+    end,
+  }):start()
 
   return self
 end
 
----@return TsserverProvider
-function TsserverProvider.get_instance()
-  if not TsserverProvider.instance then
-    TsserverProvider.instance = TsserverProvider.new()
+---@private
+---@return string, string[]
+function TsserverProvider:make_npm_root_params() -- luacheck: ignore
+  local args = { "root", "-g" }
+
+  if is_win then
+    return "cmd.exe", { "/c", "npm", unpack(args) }
   end
 
+  return "npm", args
+end
+
+---@param on_loaded function
+function TsserverProvider.init(on_loaded)
+  if not TsserverProvider.npm_global_path then
+    table.insert(TsserverProvider.callbacks, on_loaded)
+    TsserverProvider.instance = TsserverProvider.new(function()
+      for _, callback in ipairs(TsserverProvider.callbacks) do
+        callback()
+      end
+      TsserverProvider.callbacks = {}
+    end)
+  else
+    on_loaded()
+  end
+end
+
+---@return TsserverProvider
+function TsserverProvider.get_instance()
   return TsserverProvider.instance
 end
 
@@ -82,7 +122,7 @@ function TsserverProvider:get_executable_path()
 
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
-    tsserver_path = self.npm_global_path:joinpath("typescript", "lib", "tsserver.js")
+    tsserver_path = TsserverProvider.npm_global_path:joinpath("typescript", "lib", "tsserver.js")
   end
 
   if not tsserver_exists(tsserver_path) then
@@ -101,12 +141,12 @@ function TsserverProvider:get_executable_path()
 end
 
 ---@return Path|nil
-function TsserverProvider:get_plugins_path()
-  if not self.npm_global_path:exists() then
+function TsserverProvider:get_plugins_path() -- luacheck: ignore
+  if not TsserverProvider.npm_global_path:exists() then
     return nil
   end
 
-  return self.npm_global_path
+  return TsserverProvider.npm_global_path
 end
 
 ---@return Path|nil

@@ -4,9 +4,12 @@ local timeout = 1000 -- 1 secs
 
 local M = {}
 
----@param bufnr integer
-local function get_client(bufnr)
-  local clients = vim.lsp.get_active_clients {
+local function get_typescript_client(bufnr)
+  local version = vim.version()
+  local get_clients = (version.major == 0 and version.minor < 10) and vim.lsp.get_active_clients
+    or vim.lsp.get_clients
+
+  local clients = get_clients {
     name = plugin_config.plugin_name,
     bufnr = bufnr,
   }
@@ -23,7 +26,7 @@ end
 ---@param bufnr integer
 ---@param is_sync boolean
 local function send_batch_code_action(error_codes, fix_names, bufnr, is_sync)
-  local typescript_client = get_client(bufnr)
+  local typescript_client = get_typescript_client(bufnr)
 
   if typescript_client == nil then
     return
@@ -58,7 +61,7 @@ function M.organize_imports(mode, is_sync)
   if is_sync then
     local res = vim.lsp.buf_request_sync(0, c.CustomMethods.OrganizeImports, params, timeout)
 
-    local typescript_client = get_client(0)
+    local typescript_client = get_typescript_client(0)
     if typescript_client == nil then
       return
     end
@@ -80,7 +83,7 @@ function M.go_to_source_definition(is_sync)
 
   if is_sync then
     local res = vim.lsp.buf_request_sync(0, c.LspMethods.Definition, params, timeout)
-    local typescript_client = get_client(0)
+    local typescript_client = get_typescript_client(0)
     if typescript_client == nil then
       return
     end

@@ -1,6 +1,7 @@
 local api = vim.api
 
 local c = require "typescript-tools.protocol.constants"
+local plugin_api = require "typescript-tools.api"
 
 local M = {}
 
@@ -33,6 +34,19 @@ M[c.InternalCommands.InvokeAdditionalRename] = function(params)
   vim.defer_fn(function()
     vim.lsp.buf.rename()
   end, 100)
+end
+
+M[c.InternalCommands.CallApiFunction] = function(params)
+  local api_function = params.arguments[1]
+
+  if api_function then
+    plugin_api[api_function]()
+  else
+    vim.notify(
+      "Unknown 'typescript-tools.api." .. api_function .. "' function!",
+      vim.log.levels.WARN
+    )
+  end
 end
 
 return M
