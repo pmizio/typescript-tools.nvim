@@ -4,6 +4,7 @@ local timeout = 1000 -- 1 secs
 
 local M = {}
 
+---@param bufnr integer
 local function get_typescript_client(bufnr)
   local version = vim.version()
   local get_clients = (version.major == 0 and version.minor < 10) and vim.lsp.get_active_clients
