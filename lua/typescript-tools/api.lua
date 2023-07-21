@@ -4,11 +4,8 @@ local timeout = 1000 -- 1 secs
 
 local M = {}
 
----@param error_codes table - table of all diagnostic codes
----@param fix_names table
 ---@param bufnr integer
----@param is_sync boolean
-local function send_batch_code_action(error_codes, fix_names, bufnr, is_sync)
+local function get_client(bufnr)
   local clients = vim.lsp.get_active_clients {
     name = plugin_config.plugin_name,
     bufnr = bufnr,
@@ -18,7 +15,19 @@ local function send_batch_code_action(error_codes, fix_names, bufnr, is_sync)
     return
   end
 
-  local typescript_client = clients[1]
+  return clients[1]
+end
+
+---@param error_codes table - table of all diagnostic codes
+---@param fix_names table
+---@param bufnr integer
+---@param is_sync boolean
+local function send_batch_code_action(error_codes, fix_names, bufnr, is_sync)
+  local typescript_client = get_client(bufnr)
+
+  if typescript_client == nil then
+    return
+  end
 
   local params = {
     diagnostics = vim.diagnostic.get(bufnr),
@@ -48,7 +57,16 @@ function M.organize_imports(mode, is_sync)
 
   if is_sync then
     local res = vim.lsp.buf_request_sync(0, c.CustomMethods.OrganizeImports, params, timeout)
-    print(vim.inspect(res))
+
+    local typescript_client = get_client(0)
+    if typescript_client == nil then
+      return
+    end
+
+    local typescript_client_res = res[typescript_client.id]
+    if not typescript_client_res.err then
+      vim.lsp.util.apply_workspace_edit(typescript_client_res.result, "utf-8")
+    end
   else
     vim.lsp.buf_request(0, c.CustomMethods.OrganizeImports, params)
   end
@@ -62,8 +80,23 @@ function M.go_to_source_definition(is_sync)
 
   if is_sync then
     local res = vim.lsp.buf_request_sync(0, c.LspMethods.Definition, params, timeout)
-    if not res.err then
-      vim.lsp.handlers[c.LspMethods.Definition](res.err, res.result, res.ctx)
+    local typescript_client = get_client(0)
+    if typescript_client == nil then
+      return
+    end
+    local typescript_client_res = res[typescript_client.id]
+    local context = {
+      method = c.LspMethods.Definition,
+      client_id = typescript_client.id,
+      bufnr = 0,
+      params = params,
+    }
+    if not typescript_client_res.err then
+      vim.lsp.handlers[c.LspMethods.Definition](
+        typescript_client_res.err,
+        typescript_client_res.result,
+        context
+      )
     end
   else
     vim.lsp.buf_request(0, c.LspMethods.Definition, params, function(err, result, context)
