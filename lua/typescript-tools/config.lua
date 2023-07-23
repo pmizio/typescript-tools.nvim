@@ -12,6 +12,56 @@
 local M = {}
 local __store = {}
 
+-- INFO: this two defaults are same as in vscode
+local default_format_options = {
+  insertSpaceAfterCommaDelimiter = true,
+  insertSpaceAfterConstructor = false,
+  insertSpaceAfterSemicolonInForStatements = true,
+  insertSpaceBeforeAndAfterBinaryOperators = true,
+  insertSpaceAfterKeywordsInControlFlowStatements = true,
+  insertSpaceAfterFunctionKeywordForAnonymousFunctions = true,
+  insertSpaceBeforeFunctionParenthesis = false,
+  insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = false,
+  insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets = false,
+  insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = true,
+  insertSpaceAfterOpeningAndBeforeClosingEmptyBraces = true,
+  insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = false,
+  insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces = false,
+  insertSpaceAfterTypeAssertion = false,
+  placeOpenBraceOnNewLineForFunctions = false,
+  placeOpenBraceOnNewLineForControlBlocks = false,
+  semicolons = "ignore",
+  indentSwitchCase = true,
+}
+
+local default_preferences = {
+  quotePreference = "auto",
+  importModuleSpecifierEnding = "auto",
+  jsxAttributeCompletionStyle = "auto",
+  allowTextChangesInNewFiles = true,
+  providePrefixAndSuffixTextForRename = true,
+  allowRenameOfImportPath = true,
+  includeAutomaticOptionalChainCompletions = true,
+  provideRefactorNotApplicableReason = true,
+  generateReturnInDocTemplate = true,
+  includeCompletionsForImportStatements = true,
+  includeCompletionsWithSnippetText = true,
+  includeCompletionsWithClassMemberSnippets = true,
+  includeCompletionsWithObjectLiteralMethodSnippets = true,
+  useLabelDetailsInCompletionEntries = true,
+  allowIncompleteCompletions = true,
+  displayPartsForJSDoc = true,
+  disableLineTextInReferences = true,
+  includeInlayParameterNameHints = "none",
+  includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+  includeInlayFunctionParameterTypeHints = false,
+  includeInlayVariableTypeHints = false,
+  includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+  includeInlayPropertyDeclarationTypeHints = false,
+  includeInlayFunctionLikeReturnTypeHints = false,
+  includeInlayEnumMemberValueHints = false,
+}
+
 ---@enum tsserver_log_level
 M.tsserver_log_level = {
   normal = "normal",
@@ -103,5 +153,16 @@ setmetatable(M, {
     return __store[key]
   end,
 })
+
+function M.get_tsserver_file_preferences(filetype)
+  local preferences = __store.tsserver_file_preferences
+  return vim.tbl_extend(
+    "force",
+    default_preferences,
+    type(preferences) == "function" and preferences(filetype) or preferences
+  )
+end
+
+M.default_format_options = default_format_options
 
 return M

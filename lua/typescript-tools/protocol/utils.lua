@@ -1,4 +1,5 @@
 local c = require "typescript-tools.protocol.constants"
+local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
@@ -220,6 +221,13 @@ function M.cancelled_response(data)
     code = c.LspErrorCodes.RequestCancelled,
     data = data,
   }
+end
+
+-- @see https://github.com/typescript-language-server/typescript-language-server/blob/983a6923114c39d638e0c7d419ae16e8bca8985c/src/completion.ts#L355-L371
+function M.should_create_function_snippet(kind, filetype)
+  local preferences = plugin_config.get_tsserver_file_preferences(filetype)
+  return preferences.includeCompletionsWithSnippetText
+    and (kind == c.CompletionItemKind.Function or kind == c.CompletionItemKind.Method)
 end
 
 return M

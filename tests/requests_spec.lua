@@ -151,8 +151,8 @@ describe("Lsp request", function()
     end, items)
     table.sort(completions)
 
-    assert.are.same(completions[1], "assert")
-    assert.are.same(completions[#completions], "warn")
+    assert.are.same(completions[1], "assert~")
+    assert.are.same(completions[#completions], "warn~")
   end)
 
   it("should return correct response for " .. methods.CompletionResolve, function()
