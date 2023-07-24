@@ -5,7 +5,9 @@ local M = {}
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
-  local buf_name = vim.api.nvim_buf_get_name(0)
+  local bufnr = vim.fn.bufnr "$"
+  local buf_name = bufnr == -1 and "" or vim.api.nvim_buf_get_name(bufnr)
+
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/2da62a784bbba237b8239e84c8629cfafb0f595e/lib/protocol.d.ts#L2367
   request {

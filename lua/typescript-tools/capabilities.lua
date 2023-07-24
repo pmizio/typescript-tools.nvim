@@ -9,6 +9,12 @@ local function make_capabilities()
 
   return {
     textDocumentSync = lsp_protocol.TextDocumentSyncKind.Incremental,
+    executeCommandProvider = {
+      commands = {
+        c.InternalCommands.InvokeAdditionalRename,
+        c.InternalCommands.CallApiFunction,
+      },
+    },
     renameProvider = {
       -- tsserver doesn't have something like textDocument/prepareRename
       prepareProvider = false,
@@ -28,7 +34,7 @@ local function make_capabilities()
     hoverProvider = true,
     definitionProvider = true,
     typeDefinitionProvider = true,
-    inlayHintsProvider = not utils.version_compare("lt", version, { 4, 4 }),
+    inlayHintProvider = not utils.version_compare("lt", version, { 4, 4 }),
     foldingRangeProvider = true,
     semanticTokensProvider = not utils.version_compare("lt", version, { 4, 1 })
         and {

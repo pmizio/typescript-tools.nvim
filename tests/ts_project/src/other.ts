@@ -1,3 +1,3 @@
-export const exampleFn = () => {}
+export const exampleFn = () => {};
 
-exampleFn()
+exampleFn();

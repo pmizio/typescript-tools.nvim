@@ -6,6 +6,7 @@ return {
   },
   InternalCommands = {
     InvokeAdditionalRename = "invoke_additional_rename",
+    CallApiFunction = "call_api_function",
   },
   ---@enum CommandTypes
   CommandTypes = {
@@ -230,6 +231,7 @@ return {
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
     Diagnostic = "typescriptTools/diagnostic",
+    BatchCodeActions = "typescriptTools/batchCodeActions",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
@@ -355,4 +357,5 @@ return {
   LspErrorCodes = {
     ServerCancelled = -32802,
   },
+  DiagnosticSource = "tsserver",
 }

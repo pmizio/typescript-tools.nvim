@@ -1,4 +1,5 @@
 local log = require "vim.lsp.log"
+local TsserverProvider = require "typescript-tools.tsserver_provider"
 local Process = require "typescript-tools.process"
 local RequestQueue = require "typescript-tools.request_queue"
 local handle_progress = require "typescript-tools.protocol.progress"
@@ -10,6 +11,7 @@ local proto_utils = require "typescript-tools.protocol.utils"
 local html_support = require "typescript-tools.protocol.html_support"
 
 ---@class Tsserver
+---@field server_type "semantic"|"syntax"
 ---@field process Process
 ---@field request_queue RequestQueue
 ---@field pending_requests table<number|string, boolean|nil>
@@ -27,15 +29,21 @@ local Tsserver = {}
 function Tsserver.new(type, dispatchers)
   local self = setmetatable({}, { __index = Tsserver })
 
+  self.server_type = type
   self.request_queue = RequestQueue.new()
   self.pending_requests = {}
   self.requests_metadata = {}
   self.requests_to_cancel_on_change = {}
   self.dispatchers = dispatchers
 
-  self.process = Process.new(type, function(response)
-    self:handle_response(response)
-  end, dispatchers.on_exit)
+  TsserverProvider.init(function()
+    self.process = Process.new(type, function(response)
+      self:handle_response(response)
+    end, dispatchers.on_exit)
+
+    ---@diagnostic disable-next-line
+    self:send_queued_requests()
+  end)
 
   return self
 end
@@ -71,7 +79,7 @@ function Tsserver:handle_response(response)
     return
   end
 
-  handle_progress(response, self.dispatchers)
+  handle_progress(response, self.server_type, self.dispatchers)
 
   if not seq then
     return
@@ -129,11 +137,16 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
   local handler_context = {
     method = method,
+    dependent_seq = {},
   }
 
   local requested_buffer_uri = params and params.textDocument and params.textDocument.uri or nil
   local bufnr = requested_buffer_uri and vim.uri_to_bufnr(requested_buffer_uri) or nil
   local is_html = bufnr and vim.bo[bufnr].filetype == "html" or nil
+
+  local function get_seq()
+    return handler_context.dependent_seq[#handler_context.dependent_seq] or handler_context.seq
+  end
 
   function handler_context.request(request)
     local interrupt_diagnostic = handler_module.interrupt_diagnostic
@@ -157,8 +170,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   end
 
   function handler_context.response(response, error)
-    local seq = handler_context.synthetic_seq or handler_context.seq
-
+    local seq = get_seq()
     local notify_reply = notify_reply_callback and vim.schedule_wrap(notify_reply_callback)
     local response_callback = callback and vim.schedule_wrap(callback)
 
@@ -197,7 +209,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
     handler_context
   )
 
-  local seq = handler_context.synthetic_seq or handler_context.seq
+  local seq = get_seq()
 
   if err then
     local _ = log.error()
@@ -213,6 +225,10 @@ end
 
 ---@private
 function Tsserver:send_queued_requests()
+  if not self.process then
+    return
+  end
+
   while vim.tbl_isempty(self.pending_requests) and not self.request_queue:is_empty() do
     local item = self.request_queue:dequeue()
     if not item then
@@ -220,22 +236,27 @@ function Tsserver:send_queued_requests()
       return
     end
 
-    local seq = item.context.seq
-
-    if self.pending_diagnostic and item.interrupt_diagnostic then
-      self:interrupt_diagnostic()
-    end
-
-    self.process:write(vim.tbl_extend("force", {
-      seq = seq,
-      type = "request",
-    }, item.request))
-
-    if item.method == c.CustomMethods.Diagnostic then
-      self.pending_diagnostic = PendingDiagnostic.new(item)
+    local static_response = item.request.response
+    if static_response then
+      item.context.response(static_response)
     else
-      self.pending_requests[seq] = true
-      self.requests_metadata[seq] = item
+      local seq = item.context.seq
+
+      if self.pending_diagnostic and item.interrupt_diagnostic then
+        self:interrupt_diagnostic()
+      end
+
+      self.process:write(vim.tbl_extend("force", {
+        seq = seq,
+        type = "request",
+      }, item.request))
+
+      if item.method == c.CustomMethods.Diagnostic then
+        self.pending_diagnostic = PendingDiagnostic.new(item)
+      else
+        self.pending_requests[seq] = true
+        self.requests_metadata[seq] = item
+      end
     end
   end
 end
@@ -251,24 +272,29 @@ end
 
 ---@param seq number
 function Tsserver:cancel(seq)
-  if not seq then
+  local request_metadata = self.requests_metadata[seq] or self.request_queue:get_queued_request(seq)
+  if not request_metadata then
     return
   end
 
-  if self.pending_requests[seq] then
-    self.process:cancel(seq)
-    self.requests_metadata[seq].context.response(proto_utils.cancelled_response())
-    self.requests_metadata[seq] = nil
-    self.pending_requests[seq] = nil
-  else
-    local cancelled_req = self.request_queue:cancel(seq)
+  local seqs_to_cancel = request_metadata.context.dependent_seq or { request_metadata.context.seq }
 
-    if cancelled_req then
-      cancelled_req.context.response(proto_utils.cancelled_response())
+  for _, iseq in ipairs(seqs_to_cancel) do
+    if self.pending_requests[iseq] then
+      self.process:cancel(iseq)
+      self.requests_metadata[iseq].context.response(proto_utils.cancelled_response())
+      self.requests_metadata[iseq] = nil
+      self.pending_requests[iseq] = nil
+    else
+      local cancelled_req = self.request_queue:cancel(iseq)
+
+      if cancelled_req then
+        cancelled_req.context.response(proto_utils.cancelled_response())
+      end
     end
-  end
 
-  self.requests_to_cancel_on_change[seq] = nil
+    self.requests_to_cancel_on_change[iseq] = nil
+  end
 end
 
 ---@param method LspMethods

@@ -6,8 +6,6 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
-local SOURCE = "tsserver"
-
 local SEVERITY_MAP = {
   suggestion = c.DiagnosticSeverity.Hint,
   warning = c.DiagnosticSeverity.Warning,
@@ -110,7 +108,7 @@ function M.handler(request, response, params)
     for _, diagnostic in pairs(body.diagnostics or {}) do
       table.insert(cache[file], {
         message = diagnostic.text,
-        source = SOURCE,
+        source = c.DiagnosticSource,
         code = diagnostic.code,
         severity = category_to_severity(diagnostic.category),
         range = proto_utils.convert_tsserver_range_to_lsp(diagnostic),

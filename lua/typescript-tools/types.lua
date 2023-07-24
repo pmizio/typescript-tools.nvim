@@ -14,13 +14,14 @@
 ---@class TsserverRequest
 ---@field command CommandTypes
 ---@field arguments table
+---@field response table|nil
 
 ---@alias TsserverRequestFn fun(request: TsserverRequest): number
 ---@alias LspResponseFn fun(response: table|nil): boolean
 ---@class TsserverHandlerContext
 ---@field seq number
 ---@field method LspMethods | CustomMethods
----@field synthetic_seq string|nil
+---@field dependent_seq table<number>|nil
 ---@field request TsserverRequestFn
 ---@field response LspResponseFn
 

@@ -3,9 +3,12 @@
 ---@field separate_diagnostic_server boolean
 ---@field tsserver_logs string
 ---@field publish_diagnostic_on publish_diagnostic_mode
+---@field tsserver_path string|nil
 ---@field tsserver_plugins string[]
 ---@field tsserver_format_options table|fun(filetype: string): table
 ---@field tsserver_file_preferences table|fun(filetype: string): table
+---@field tsserver_max_memory number|"auto"
+---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused")[]
 local M = {}
 local __store = {}
 
@@ -35,6 +38,7 @@ function M.load_settings(settings)
       true,
     },
     ["settings.publish_diagnostic_on"] = { settings.publish_diagnostic_on, "string", true },
+    ["settings.tsserver_path"] = { settings.tsserver_path, "string", true },
     ["settings.tsserver_plugins"] = { settings.tsserver_plugins, "table", true },
     ["settings.tsserver_format_options"] = {
       settings.tsserver_format_options,
@@ -47,6 +51,16 @@ function M.load_settings(settings)
       true,
     },
     ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
+    ["settings.tsserver_max_memory"] = {
+      settings.tsserver_max_memory,
+      { "number", "string" },
+      true,
+    },
+    ["settings.expose_as_code_action"] = {
+      settings.expose_as_code_action,
+      "table",
+      true,
+    },
   }
 
   __store = vim.tbl_deep_extend("force", __store, settings)
@@ -73,6 +87,14 @@ function M.load_settings(settings)
 
   if not M.tsserver_log_level[settings.tsserver_logs] then
     __store.tsserver_logs = M.tsserver_log_level.off
+  end
+
+  if not settings.tsserver_max_memory then
+    __store.tsserver_max_memory = "auto"
+  end
+
+  if not settings.expose_as_code_action then
+    __store.expose_as_code_action = {}
   end
 end
 

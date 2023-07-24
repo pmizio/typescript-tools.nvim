@@ -1,6 +1,9 @@
+local api = vim.api
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
 local bit = require "bit"
+
+local content_length_limit = 100000
 
 local M = {}
 
@@ -20,7 +23,7 @@ local newline_length_map = {
 ---@param bufnr number
 ---@return table<number, number> - { [linenr]: [utf-16 line length] }
 local function get_buffer_lines_lengths(bufnr)
-  local all_lines = vim.api.nvim_buf_get_lines(bufnr, 0, vim.api.nvim_buf_line_count(bufnr), false)
+  local all_lines = api.nvim_buf_get_lines(bufnr, 0, vim.api.nvim_buf_line_count(bufnr), false)
   local newline_length = newline_length_map[vim.bo.fileformat]
 
   return vim.tbl_map(function(line)
@@ -29,7 +32,7 @@ local function get_buffer_lines_lengths(bufnr)
 end
 
 -- Given the buffer offset finds nvim line and character position in UTF-16 encoding
--- could not use `vim.api.nvim_buf_get_offset` because it returns byte offset and
+-- could not use `api.nvim_buf_get_offset` because it returns byte offset and
 -- tsserver uses character offset. Uses offset_from_last_iteration and line_from_last_iteration
 -- for performance. Tokens in tsserver response are positioned in ascending order so we don't need
 -- to search whole file every token.
@@ -97,31 +100,28 @@ local function transform_spans(spans, lines_lengths)
       previous_line
     )
 
-    if not pos then
-      goto continue
+    if pos then
+      local line, character = pos.line, pos.character
+
+      -- lsp spec requires 5 elements per token instead of 3:
+      -- 1. delta line number (relative to the previous line)
+      -- 2. delta token start offset (relative to the previous token)
+      -- 3. length of the token
+      -- 4. type of the token (e.g. function, comment, enum etc.)
+      -- 5. token modifier (static, async etc.)
+      local delta_line = line - previous_line
+      local delta_start = previous_line == line and character - previous_token_start or character
+
+      table.insert(lsp_spans, delta_line)
+      table.insert(lsp_spans, delta_start)
+      table.insert(lsp_spans, token_length)
+      table.insert(lsp_spans, token_type)
+      table.insert(lsp_spans, token_modifier)
+
+      previous_token_start = character
+      previous_line = line
+      previous_offset = last_line_offset or 0
     end
-
-    local line, character = pos.line, pos.character
-
-    -- lsp spec requires 5 elements per token instead of 3:
-    -- 1. delta line number (relative to the previous line)
-    -- 2. delta token start offset (relative to the previous token)
-    -- 3. length of the token
-    -- 4. type of the token (e.g. function, comment, enum etc.)
-    -- 5. token modifier (static, async etc.)
-    local delta_line = line - previous_line
-    local delta_start = previous_line == line and character - previous_token_start or character
-
-    table.insert(lsp_spans, delta_line)
-    table.insert(lsp_spans, delta_start)
-    table.insert(lsp_spans, token_length)
-    table.insert(lsp_spans, token_type)
-    table.insert(lsp_spans, token_modifier)
-
-    previous_token_start = character
-    previous_line = line
-    previous_offset = last_line_offset or 0
-    ::continue::
   end
 
   return lsp_spans
@@ -132,10 +132,16 @@ function M.handler(request, response, params)
   local text_document = params.textDocument
   local start_offset = 0
   local requested_bufnr = vim.uri_to_bufnr(text_document.uri)
-  local end_offset = utils.get_offset_at_position(
-    { vim.api.nvim_buf_line_count(requested_bufnr), 0 },
-    requested_bufnr
-  )
+  local line_count = api.nvim_buf_line_count(requested_bufnr)
+
+  if api.nvim_buf_get_offset(requested_bufnr, line_count) >= content_length_limit then
+    request {
+      response = { data = {} },
+    }
+    return
+  end
+
+  local end_offset = utils.get_offset_at_position({ line_count, 0 }, requested_bufnr)
   local lines_lengths = get_buffer_lines_lengths(requested_bufnr)
 
   -- tsserver protocol reference:

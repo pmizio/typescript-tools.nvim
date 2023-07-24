@@ -1,21 +1,47 @@
+local log = require "vim.lsp.log"
 local api = vim.api
 local Path = require "plenary.path"
+local Job = require "plenary.job"
 local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
 
 local plugin_config = require "typescript-tools.config"
 
+local is_win = vim.loop.os_uname().version:find "Windows"
+
 ---@class TsserverProvider
 ---@field private instance TsserverProvider
+---@field private callbacks function[]
 ---@field private root_dir Path
+---@field private npm_local_path Path
 ---@field private npm_global_path Path
 
 ---@class TsserverProvider
-local TsserverProvider = {}
+local TsserverProvider = {
+  callbacks = {},
+}
+
+---@param path Path
+---@return boolean|nil
+local function tsserver_exists(path)
+  return path:exists() and path:is_file()
+end
+
+---@param startpath string
+---@return Path
+local function find_deep_node_modules_ancestor(startpath)
+  return Path:new(util.search_ancestors(startpath, function(path)
+    local tsserver_path = Path:new(path, "node_modules", "typescript", "lib", "tsserver.js")
+
+    if tsserver_exists(tsserver_path) then
+      return path
+    end
+  end))
+end
 
 ---@private
 ---@return TsserverProvider
-function TsserverProvider.new()
+function TsserverProvider.new(on_loaded)
   local self = setmetatable({}, { __index = TsserverProvider })
 
   local config = configs[plugin_config.plugin_name]
@@ -24,37 +50,83 @@ function TsserverProvider.new()
 
   assert(util.bufname_valid(bufname), "Invalid buffer name!")
 
-  self.root_dir = Path:new(config.get_root_dir(util.path.sanitize(bufname), bufnr))
-  self.npm_global_path = Path
-    :new(vim.fn.system([[node -p "process.execPath"]]):match "^%s*(.-)%s*$")
-    :parent()
-    :joinpath("..", "lib")
+  local sanitized_bufname = util.path.sanitize(bufname)
+
+  self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
+  self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
+
+  local command, args = self:make_npm_root_params()
+
+  Job:new({
+    command = command,
+    args = args,
+    on_stdout = function(_, data)
+      ---@diagnostic disable-next-line
+      TsserverProvider.npm_global_path = Path:new(vim.trim(data))
+      on_loaded()
+    end,
+  }):start()
 
   return self
 end
 
----@return TsserverProvider
-function TsserverProvider.get_instance()
-  if not TsserverProvider.instance then
-    TsserverProvider.instance = TsserverProvider.new()
+---@private
+---@return string, string[]
+function TsserverProvider:make_npm_root_params() -- luacheck: ignore
+  local args = { "root", "-g" }
+
+  if is_win then
+    return "cmd.exe", { "/c", "npm", unpack(args) }
   end
 
-  return TsserverProvider.instance
+  return "npm", args
 end
 
----@param path Path
----@return boolean|nil
-local function tsserver_exists(path)
-  return path:exists() and path:is_file()
+---@param on_loaded function
+function TsserverProvider.init(on_loaded)
+  if not TsserverProvider.npm_global_path then
+    table.insert(TsserverProvider.callbacks, on_loaded)
+    TsserverProvider.instance = TsserverProvider.new(function()
+      for _, callback in ipairs(TsserverProvider.callbacks) do
+        callback()
+      end
+      TsserverProvider.callbacks = {}
+    end)
+  else
+    on_loaded()
+  end
+end
+
+---@return TsserverProvider
+function TsserverProvider.get_instance()
+  return TsserverProvider.instance
 end
 
 ---@return Path
 function TsserverProvider:get_executable_path()
+  if plugin_config.tsserver_path then
+    local tsserver_path = Path:new(plugin_config.tsserver_path)
+
+    if tsserver_exists(tsserver_path) then
+      local _ = log.trace() and log.trace("tsserver", "Binary found at:", tsserver_path:absolute())
+      return tsserver_path
+    end
+  end
+
   local tsserver_path = self.root_dir:joinpath("node_modules", "typescript", "lib", "tsserver.js")
 
   if not tsserver_exists(tsserver_path) then
-    tsserver_path =
-      self.npm_global_path:joinpath("node_modules", "typescript", "lib", "tsserver.js")
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+    tsserver_path = Path:new(self.npm_local_path, "typescript", "lib", "tsserver.js")
+  end
+
+  if not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+    tsserver_path = TsserverProvider.npm_global_path:joinpath("typescript", "lib", "tsserver.js")
+  end
+
+  if not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
   end
 
   -- INFO: if there is no local or global tsserver just error out
@@ -63,16 +135,18 @@ function TsserverProvider:get_executable_path()
     "Cannot find tsserver executable in local project nor global npm installation."
   )
 
+  local _ = log.trace() and log.trace("tsserver", "Binary found at:", tsserver_path:absolute())
+
   return tsserver_path
 end
 
 ---@return Path|nil
-function TsserverProvider:get_plugins_path()
-  if not self.npm_global_path:exists() then
+function TsserverProvider:get_plugins_path() -- luacheck: ignore
+  if not TsserverProvider.npm_global_path:exists() then
     return nil
   end
 
-  return self.npm_global_path
+  return TsserverProvider.npm_global_path
 end
 
 ---@return Path|nil
