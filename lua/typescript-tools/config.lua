@@ -154,6 +154,8 @@ setmetatable(M, {
   end,
 })
 
+---@param filetype vim.opt.filetype
+---@return table
 function M.get_tsserver_file_preferences(filetype)
   local preferences = __store.tsserver_file_preferences
   return vim.tbl_extend(

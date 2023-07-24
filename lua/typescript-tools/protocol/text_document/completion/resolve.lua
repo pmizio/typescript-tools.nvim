@@ -26,7 +26,11 @@ local function make_text_edits(code_actions)
   return text_edits
 end
 
--- @see https://github.com/typescript-language-server/typescript-language-server/blob/983a6923114c39d638e0c7d419ae16e8bca8985c/src/completion.ts#L355-L371
+---@alias DisplayPart { kind: string, text: string }
+
+---@param display_parts DisplayPart[]
+---@return { has_optional_parameters: boolean, parts: DisplayPart[] }
+---@see https://github.com/typescript-language-server/typescript-language-server/blob/983a6923114c39d638e0c7d419ae16e8bca8985c/src/completion.ts#L355-L371
 local function get_parameter_list_parts(display_parts)
   local parts = {}
   local is_in_method = false
@@ -75,7 +79,13 @@ local function get_parameter_list_parts(display_parts)
   return { has_optional_parameters = has_optional_parameters, parts = parts }
 end
 
--- @see https://github.com/typescript-language-server/typescript-language-server/blob/983a6923114c39d638e0c7d419ae16e8bca8985c/src/completion.ts#L355-L371
+---@alias PartialCompletionItem
+---| { insertText: string, insertTextFormat: InsertTextFormat, textEdit: { newText: string }, label: string }
+
+---@param item PartialCompletionItem
+---@param display_parts DisplayPart[]
+---@return nil
+---@see https://github.com/typescript-language-server/typescript-language-server/blob/983a6923114c39d638e0c7d419ae16e8bca8985c/src/completion.ts#L355-L371
 local function create_snippet(item, display_parts)
   local parameter_list_parts = get_parameter_list_parts(display_parts)
   local has_optional_parameters = parameter_list_parts.has_optional_parameters

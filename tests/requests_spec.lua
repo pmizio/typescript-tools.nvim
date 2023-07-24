@@ -147,12 +147,29 @@ describe("Lsp request", function()
     assert.is.True(#items >= 20)
 
     local completions = vim.tbl_map(function(it)
+      if it.label == "assert~" or it.label == "warn~" then
+        assert.are.same(it.insertTextFormat, c.InsertTextFormat.Snippet)
+      end
       return it.label
     end, items)
     table.sort(completions)
 
     assert.are.same(completions[1], "assert~")
     assert.are.same(completions[#completions], "warn~")
+
+    ret = vim.lsp.buf_request_sync(0, methods.Completion, {
+      textDocument = utils.get_text_document(),
+      position = utils.make_position(0, 6),
+    })
+    result = lsp_assert.response(ret)
+    local can_complete_as_console = false
+    for _, item in ipairs(result.items) do
+      if item.label == "console" then
+        assert.are.same(item.insertTextFormat, c.InsertTextFormat.PlainText)
+        can_complete_as_console = true
+      end
+    end
+    assert(can_complete_as_console)
   end)
 
   it("should return correct response for " .. methods.CompletionResolve, function()
@@ -169,15 +186,37 @@ describe("Lsp request", function()
       },
       filterText = "warn",
       insertText = "warn",
-      insertTextFormat = 1,
-      kind = 2,
+      insertTextFormat = c.InsertTextFormat.Snippet,
+      kind = c.CompletionItemKind.Function,
       label = "warn",
       sortText = "11",
     })
 
     local result = lsp_assert.response(ret)
     assert.is.table(result)
+    assert.are.same(result.insertText, "warn($1)$0")
     assert.are.same(result.detail, "(method) Console.warn(...data: any[]): void")
+
+    ret = vim.lsp.buf_request_sync(0, methods.CompletionResolve, {
+      commitCharacters = { ".", "?" },
+      data = {
+        character = 6,
+        entryNames = { "console" },
+        file = vim.fs.dirname(vim.api.nvim_buf_get_name(0)) .. "/completion.ts",
+        line = 0,
+      },
+      filterText = "console",
+      insertText = "console",
+      insertTextFormat = c.InsertTextFormat.PlainText,
+      kind = c.CompletionItemKind.Variable,
+      label = "console",
+      sortText = "15",
+    })
+
+    result = lsp_assert.response(ret)
+    assert.is.table(result)
+    assert.are.same(result.insertText, "console")
+    assert.are.same(result.detail, "var console: Console")
   end)
 
   it("should return correct response for " .. methods.SignatureHelp, function()

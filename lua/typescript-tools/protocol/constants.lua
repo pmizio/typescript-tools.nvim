@@ -270,6 +270,7 @@ return {
     Imports = "imports",
     Region = "region",
   },
+  ---@enum InsertTextFormat
   InsertTextFormat = {
     PlainText = 1,
     Snippet = 2,
