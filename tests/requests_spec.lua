@@ -160,9 +160,8 @@ describe("Lsp request", function()
     assert.are.same(completions[#completions], "warn")
 
     -- same test as above but with function snippets enabled
-    local prev_config =
-      plugin_config.vscode_configuration["typescript.suggest.completeFunctionCalls"]
-    plugin_config.vscode_configuration["typescript.suggest.completeFunctionCalls"] = true
+    local prev_config = plugin_config.complete_function_calls
+    plugin_config.complete_function_calls = true
 
     ret = vim.lsp.buf_request_sync(0, methods.Completion, req)
     result = lsp_assert.response(ret)
@@ -182,7 +181,7 @@ describe("Lsp request", function()
     assert.are.same(completions[1], "assert(...)")
     assert.are.same(completions[#completions], "warn(...)")
 
-    plugin_config.vscode_configuration["typescript.suggest.completeFunctionCalls"] = prev_config
+    plugin_config.complete_function_calls = prev_config
   end)
 
   it("should return correct response for " .. methods.CompletionResolve, function()
@@ -212,9 +211,8 @@ describe("Lsp request", function()
     assert.are.same(result.detail, "(method) Console.warn(...data: any[]): void")
 
     -- same test as above but with function snippets enabled
-    local prev_config =
-      plugin_config.vscode_configuration["typescript.suggest.completeFunctionCalls"]
-    plugin_config.vscode_configuration["typescript.suggest.completeFunctionCalls"] = true
+    local prev_config = plugin_config.complete_function_calls
+    plugin_config.complete_function_calls = true
 
     req.label = "warn(...)"
     req.insertTextFormat = c.InsertTextFormat.Snippet
@@ -225,7 +223,7 @@ describe("Lsp request", function()
     assert.are.same(result.insertText, "warn($1)$0")
     assert.are.same(result.detail, "(method) Console.warn(...data: any[]): void")
 
-    plugin_config.vscode_configuration["typescript.suggest.completeFunctionCalls"] = prev_config
+    plugin_config.complete_function_calls = prev_config
   end)
 
   it("should return correct response for " .. methods.SignatureHelp, function()
