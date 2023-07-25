@@ -94,6 +94,18 @@ function RequestQueue:cancel(seq)
   end
 end
 
+---@param seq number
+---@return RequestContainer|nil
+function RequestQueue:get_queued_request(seq)
+  for _, el in ipairs(self.queue) do
+    if seq and el.context.seq == seq then
+      return el
+    end
+  end
+
+  return nil
+end
+
 ---@return boolean
 function RequestQueue:is_empty()
   return #self.queue == 0

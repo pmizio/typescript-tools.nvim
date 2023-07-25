@@ -137,7 +137,12 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   local handler_context = {
     method = method,
     dispatchers = self.dispatchers,
+    dependent_seq = {},
   }
+
+  local function get_seq()
+    return handler_context.dependent_seq[#handler_context.dependent_seq] or handler_context.seq
+  end
 
   function handler_context.request(request)
     local interrupt_diagnostic = handler_module.interrupt_diagnostic
@@ -161,7 +166,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   end
 
   function handler_context.response(response, error)
-    local seq = handler_context.synthetic_seq or handler_context.seq
+    local seq = get_seq()
     local notify_reply = notify_reply_callback and vim.schedule_wrap(notify_reply_callback)
     local response_callback = callback and vim.schedule_wrap(callback)
 
@@ -186,7 +191,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
     handler_context
   )
 
-  local seq = handler_context.synthetic_seq or handler_context.seq
+  local seq = get_seq()
 
   if err then
     local _ = log.error()
@@ -252,24 +257,29 @@ end
 
 ---@param seq number
 function Tsserver:cancel(seq)
-  if not seq then
+  local request_metadata = self.requests_metadata[seq] or self.request_queue:get_queued_request(seq)
+  if not request_metadata then
     return
   end
 
-  if self.pending_requests[seq] then
-    self.process:cancel(seq)
-    self.requests_metadata[seq].context.response(proto_utils.cancelled_response())
-    self.requests_metadata[seq] = nil
-    self.pending_requests[seq] = nil
-  else
-    local cancelled_req = self.request_queue:cancel(seq)
+  local seqs_to_cancel = request_metadata.context.dependent_seq or { request_metadata.context.seq }
 
-    if cancelled_req then
-      cancelled_req.context.response(proto_utils.cancelled_response())
+  for _, iseq in ipairs(seqs_to_cancel) do
+    if self.pending_requests[iseq] then
+      self.process:cancel(iseq)
+      self.requests_metadata[iseq].context.response(proto_utils.cancelled_response())
+      self.requests_metadata[iseq] = nil
+      self.pending_requests[iseq] = nil
+    else
+      local cancelled_req = self.request_queue:cancel(iseq)
+
+      if cancelled_req then
+        cancelled_req.context.response(proto_utils.cancelled_response())
+      end
     end
-  end
 
-  self.requests_to_cancel_on_change[seq] = nil
+    self.requests_to_cancel_on_change[iseq] = nil
+  end
 end
 
 ---@param method LspMethods
