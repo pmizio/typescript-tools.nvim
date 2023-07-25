@@ -1,3 +1,6 @@
+---@see https://github.com/microsoft/vscode/blob/885dba39a5f546c5077196a8c31b03d03a293b31/extensions/typescript-language-features/package.json#L145-L1266
+---@alias VsCodeConfiguration { typescript.suggest.completeFunctionCalls: boolean }
+
 ---@class Settings
 ---@field plugin_name string
 ---@field separate_diagnostic_server boolean
@@ -8,6 +11,7 @@
 ---@field tsserver_format_options table|fun(filetype: string): table
 ---@field tsserver_file_preferences table|fun(filetype: string): table
 ---@field tsserver_max_memory number|"auto"
+---@field vscode_configuration VsCodeConfiguration
 ---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused")[]
 local M = {}
 local __store = {}
@@ -106,6 +110,7 @@ function M.load_settings(settings)
       { "number", "string" },
       true,
     },
+    ["settings.vscode_configuration"] = { settings.vscode_configuration, "table", true },
     ["settings.expose_as_code_action"] = {
       settings.expose_as_code_action,
       "table",
@@ -141,6 +146,10 @@ function M.load_settings(settings)
 
   if not settings.tsserver_max_memory then
     __store.tsserver_max_memory = "auto"
+  end
+
+  if not settings.vscode_configuration then
+    __store.vscode_configuration = {}
   end
 
   if not settings.expose_as_code_action then

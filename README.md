@@ -138,6 +138,9 @@ require("typescript-tools").setup {
     -- described below
     tsserver_format_options = {},
     tsserver_file_preferences = {},
+    -- mirror of https://github.com/microsoft/vscode/blob/885dba39a5f546c5077196a8c31b03d03a293b31/extensions/typescript-language-features/package.json#L145-L1266
+    -- `typescript-tools.nvim` currently only supports `typescript.suggest.completeFunctionCalls`
+    vscode_configuration = { ["typescript.suggest.completeFunctionCalls"] = true },
   },
 }
 ```

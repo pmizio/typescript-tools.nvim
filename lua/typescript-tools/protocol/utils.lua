@@ -231,6 +231,7 @@ function M.should_create_function_snippet(kind, filetype)
   local preferences = plugin_config.get_tsserver_file_preferences(filetype)
   return preferences.includeCompletionsWithSnippetText
     and (kind == c.CompletionItemKind.Function or kind == c.CompletionItemKind.Method)
+    and plugin_config.vscode_configuration["typescript.suggest.completeFunctionCalls"]
 end
 
 return M
