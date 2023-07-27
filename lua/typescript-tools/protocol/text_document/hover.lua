@@ -25,8 +25,8 @@ function M.handler(request, response, params)
 
   if body.displayString then
     table.insert(contents, 1, {
-      language = "typescript",
-      value = body.displayString,
+      kind = "markdown",
+      value = "```typescript\n" .. body.displayString .. "\n```",
     })
   end
 
