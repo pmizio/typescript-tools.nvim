@@ -18,7 +18,6 @@ function M.handler(request, response, params)
   local body = coroutine.yield()
 
   local contents = {
-    "\n",
     utils.tsserver_docs_to_plain_text(body.documentation),
     utils.tsserver_make_tags(body.tags),
   }
@@ -26,7 +25,7 @@ function M.handler(request, response, params)
   if body.displayString then
     table.insert(contents, 1, {
       kind = "markdown",
-      value = "```typescript\n" .. body.displayString .. "\n```",
+      value = "```typescript\n" .. body.displayString .. "\n```\n",
     })
   end
 
