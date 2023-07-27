@@ -8,9 +8,60 @@
 ---@field tsserver_format_options table|fun(filetype: string): table
 ---@field tsserver_file_preferences table|fun(filetype: string): table
 ---@field tsserver_max_memory number|"auto"
+---@field complete_function_calls boolean
 ---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused")[]
 local M = {}
 local __store = {}
+
+-- INFO: this two defaults are same as in vscode
+local default_format_options = {
+  insertSpaceAfterCommaDelimiter = true,
+  insertSpaceAfterConstructor = false,
+  insertSpaceAfterSemicolonInForStatements = true,
+  insertSpaceBeforeAndAfterBinaryOperators = true,
+  insertSpaceAfterKeywordsInControlFlowStatements = true,
+  insertSpaceAfterFunctionKeywordForAnonymousFunctions = true,
+  insertSpaceBeforeFunctionParenthesis = false,
+  insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = false,
+  insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets = false,
+  insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = true,
+  insertSpaceAfterOpeningAndBeforeClosingEmptyBraces = true,
+  insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = false,
+  insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces = false,
+  insertSpaceAfterTypeAssertion = false,
+  placeOpenBraceOnNewLineForFunctions = false,
+  placeOpenBraceOnNewLineForControlBlocks = false,
+  semicolons = "ignore",
+  indentSwitchCase = true,
+}
+
+local default_preferences = {
+  quotePreference = "auto",
+  importModuleSpecifierEnding = "auto",
+  jsxAttributeCompletionStyle = "auto",
+  allowTextChangesInNewFiles = true,
+  providePrefixAndSuffixTextForRename = true,
+  allowRenameOfImportPath = true,
+  includeAutomaticOptionalChainCompletions = true,
+  provideRefactorNotApplicableReason = true,
+  generateReturnInDocTemplate = true,
+  includeCompletionsForImportStatements = true,
+  includeCompletionsWithSnippetText = true,
+  includeCompletionsWithClassMemberSnippets = true,
+  includeCompletionsWithObjectLiteralMethodSnippets = true,
+  useLabelDetailsInCompletionEntries = true,
+  allowIncompleteCompletions = true,
+  displayPartsForJSDoc = true,
+  disableLineTextInReferences = true,
+  includeInlayParameterNameHints = "none",
+  includeInlayParameterNameHintsWhenArgumentMatchesName = false,
+  includeInlayFunctionParameterTypeHints = false,
+  includeInlayVariableTypeHints = false,
+  includeInlayVariableTypeHintsWhenTypeMatchesName = false,
+  includeInlayPropertyDeclarationTypeHints = false,
+  includeInlayFunctionLikeReturnTypeHints = false,
+  includeInlayEnumMemberValueHints = false,
+}
 
 ---@enum tsserver_log_level
 M.tsserver_log_level = {
@@ -56,6 +107,7 @@ function M.load_settings(settings)
       { "number", "string" },
       true,
     },
+    ["settings.complete_function_calls"] = { settings.complete_function_calls, "boolean", true },
     ["settings.expose_as_code_action"] = {
       settings.expose_as_code_action,
       "table",
@@ -93,6 +145,10 @@ function M.load_settings(settings)
     __store.tsserver_max_memory = "auto"
   end
 
+  if not settings.complete_function_calls then
+    __store.complete_function_calls = false
+  end
+
   if not settings.expose_as_code_action then
     __store.expose_as_code_action = {}
   end
@@ -103,5 +159,18 @@ setmetatable(M, {
     return __store[key]
   end,
 })
+
+---@param filetype vim.opt.filetype
+---@return table
+function M.get_tsserver_file_preferences(filetype)
+  local preferences = __store.tsserver_file_preferences
+  return vim.tbl_extend(
+    "force",
+    default_preferences,
+    type(preferences) == "function" and preferences(filetype) or preferences
+  )
+end
+
+M.default_format_options = default_format_options
 
 return M

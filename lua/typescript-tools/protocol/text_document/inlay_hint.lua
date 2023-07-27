@@ -13,8 +13,7 @@ local inlay_hint_kind_map = {
 ---@param filetype string
 ---@return boolean
 local function are_inlay_hints_enabled(filetype)
-  local preferences = plugin_config.tsserver_file_preferences
-  preferences = type(preferences) == "function" and preferences(filetype) or preferences
+  local preferences = plugin_config.get_tsserver_file_preferences(filetype)
 
   if not preferences then
     return false
