@@ -26,7 +26,7 @@ describe("Lsp request", function()
 
     local result = lsp_assert.response(ret)
     assert.is.True(#result.contents >= 1)
-    assert.are.same(result.contents[1].value, "const foo: 1")
+    assert.are.same(result.contents[1].value, "```typescript\nconst foo: 1\n```\n")
     lsp_assert.range(result.range, 3, 8, 3, 11)
   end)
 
