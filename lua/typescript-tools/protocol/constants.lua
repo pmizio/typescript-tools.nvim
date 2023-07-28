@@ -6,6 +6,7 @@ return {
   },
   InternalCommands = {
     InvokeAdditionalRename = "invoke_additional_rename",
+    CallApiFunction = "call_api_function",
   },
   ---@enum CommandTypes
   CommandTypes = {
@@ -269,6 +270,7 @@ return {
     Imports = "imports",
     Region = "region",
   },
+  ---@enum InsertTextFormat
   InsertTextFormat = {
     PlainText = 1,
     Snippet = 2,

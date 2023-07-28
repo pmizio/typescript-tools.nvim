@@ -1,6 +1,7 @@
 local utils = require "tests.utils"
 local lsp_assert = require "tests.lsp_asserts"
 local mocks = require "tests.mocks"
+local plugin_config = require "typescript-tools.config"
 local c = require "typescript-tools.protocol.constants"
 local methods = c.LspMethods
 local custom_methods = c.CustomMethods
@@ -25,7 +26,7 @@ describe("Lsp request", function()
 
     local result = lsp_assert.response(ret)
     assert.is.True(#result.contents >= 1)
-    assert.are.same(result.contents[1].value, "const foo: 1")
+    assert.are.same(result.contents[1].value, "```typescript\nconst foo: 1\n```\n")
     lsp_assert.range(result.range, 3, 8, 3, 11)
   end)
 
@@ -134,10 +135,11 @@ describe("Lsp request", function()
     utils.open_file "src/completion.ts"
     utils.wait_for_lsp_initialization()
 
-    local ret = vim.lsp.buf_request_sync(0, methods.Completion, {
+    local req = {
       textDocument = utils.get_text_document(),
       position = utils.make_position(0, 8),
-    })
+    }
+    local ret = vim.lsp.buf_request_sync(0, methods.Completion, req)
 
     local result = lsp_assert.response(ret)
 
@@ -147,19 +149,46 @@ describe("Lsp request", function()
     assert.is.True(#items >= 20)
 
     local completions = vim.tbl_map(function(it)
+      if it.kind == c.CompletionItemKind.Method or it.kind == c.CompletionItemKind.Function then
+        assert.are.same(it.insertTextFormat, c.InsertTextFormat.PlainText)
+      end
       return it.label
     end, items)
     table.sort(completions)
 
     assert.are.same(completions[1], "assert")
     assert.are.same(completions[#completions], "warn")
+
+    -- same test as above but with function snippets enabled
+    local prev_config = plugin_config.complete_function_calls
+    plugin_config.complete_function_calls = true
+
+    ret = vim.lsp.buf_request_sync(0, methods.Completion, req)
+    result = lsp_assert.response(ret)
+    assert.is.table(result.items)
+
+    items = result.items
+    assert.is.True(#items >= 20)
+
+    completions = vim.tbl_map(function(it)
+      if it.kind == c.CompletionItemKind.Method or it.kind == c.CompletionItemKind.Function then
+        assert.are.same(it.insertTextFormat, c.InsertTextFormat.Snippet)
+      end
+      return it.label
+    end, items)
+    table.sort(completions)
+
+    assert.are.same(completions[1], "assert(...)")
+    assert.are.same(completions[#completions], "warn(...)")
+
+    plugin_config.complete_function_calls = prev_config
   end)
 
   it("should return correct response for " .. methods.CompletionResolve, function()
     utils.open_file "src/completion.ts"
     utils.wait_for_lsp_initialization()
 
-    local ret = vim.lsp.buf_request_sync(0, methods.CompletionResolve, {
+    local req = {
       commitCharacters = { "(" },
       data = {
         character = 8,
@@ -169,15 +198,32 @@ describe("Lsp request", function()
       },
       filterText = "warn",
       insertText = "warn",
-      insertTextFormat = 1,
-      kind = 2,
+      insertTextFormat = c.InsertTextFormat.PlainText,
+      kind = c.CompletionItemKind.Function,
       label = "warn",
       sortText = "11",
-    })
+    }
+    local ret = vim.lsp.buf_request_sync(0, methods.CompletionResolve, req)
 
     local result = lsp_assert.response(ret)
     assert.is.table(result)
+    assert.are.same(result.insertText, "warn")
     assert.are.same(result.detail, "(method) Console.warn(...data: any[]): void")
+
+    -- same test as above but with function snippets enabled
+    local prev_config = plugin_config.complete_function_calls
+    plugin_config.complete_function_calls = true
+
+    req.label = "warn(...)"
+    req.insertTextFormat = c.InsertTextFormat.Snippet
+    ret = vim.lsp.buf_request_sync(0, methods.CompletionResolve, req)
+    result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+    assert.are.same(result.insertText, "warn($1)$0")
+    assert.are.same(result.detail, "(method) Console.warn(...data: any[]): void")
+
+    plugin_config.complete_function_calls = prev_config
   end)
 
   it("should return correct response for " .. methods.SignatureHelp, function()

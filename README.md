@@ -123,7 +123,10 @@ require("typescript-tools").setup {
     separate_diagnostic_server = true,
     -- "change"|"insert_leave" determine when the client asks the server about diagnostic
     publish_diagnostic_on = "insert_leave",
-    -- string|nil -specify a custom path to `tsserver.js` file, if this is nil or file under path
+    -- array of strings("fix_all"|"add_missing_imports"|"remove_unused")
+    -- specify commands exposed as code_actions
+    expose_as_code_action = {},
+    -- string|nil - specify a custom path to `tsserver.js` file, if this is nil or file under path
     -- not exists then standard path resolution strategy is applied
     tsserver_path = nil,
     -- specify a list of plugins to load by tsserver, e.g., for support `styled-components`
@@ -135,6 +138,8 @@ require("typescript-tools").setup {
     -- described below
     tsserver_format_options = {},
     tsserver_file_preferences = {},
+    -- mirror of VSCode's `typescript.suggest.completeFunctionCalls`
+    complete_function_calls = false,
   },
 }
 ```
@@ -227,8 +232,8 @@ This plugin provides several custom user commands (they are only applied to curr
 - `TSToolsAddMissingImports` - adds imports for all statements that lack one and can be imported
 - `TSToolsFixAll` - fixes all fixable errors
 - `TSToolsGoToSourceDefinition` - goes to
-[source definition](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#go-to-source-definition)
-(available since TS v4.7)
+  [source definition](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#go-to-source-definition)
+  (available since TS v4.7)
 
 ## Supported LSP methods
 

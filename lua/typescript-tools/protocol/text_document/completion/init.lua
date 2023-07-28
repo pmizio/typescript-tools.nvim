@@ -49,6 +49,8 @@ function M.handler(request, response, params)
   local text_document = params.textDocument
   local context = params.context or {}
   local trigger_character = context.triggerCharacter
+  local requested_bufnr = vim.uri_to_bufnr(text_document.uri)
+  local filetype = vim.bo[requested_bufnr].filetype
 
   -- tsserver protocol reference:
   -- https//github.com/microsoft/TypeScript/blob/8b482b513d87c6fcda8ece18b99f8a01cff5c605/lib/protocol.d.ts#L1631
@@ -102,17 +104,22 @@ function M.handler(request, response, params)
           end
         end
 
+        local should_create_function_snippet = utils.should_create_function_snippet(kind, filetype)
+        local should_create_snippet = item.isSnippet or should_create_function_snippet
+        local label = is_optional and (item.name .. "?") or item.name
+        label = should_create_function_snippet and (label .. "(...)") or label
+
         return {
-          label = is_optional and (item.name .. "?") or item.name,
+          label = label,
           labelDetails = item.labelDetails,
           insertText = insertText,
           filterText = insertText,
           commitCharacters = item_kind_utils.calculate_commit_characters(kind),
           kind = kind,
-          insertTextFormat = item.isSnippet and c.InsertTextFormat.Snippet
+          insertTextFormat = should_create_snippet and c.InsertTextFormat.Snippet
             or c.InsertTextFormat.PlainText,
           sortText = sortText,
-          textEdit = calculate_text_edit(range, insertText),
+          textEdit = calculate_text_edit(item.replacementSpan, insertText),
           -- for now lsp support only one tag - deprecated - 1
           tags = is_deprecated and { 1 } or nil,
           data = vim.tbl_extend("force", {

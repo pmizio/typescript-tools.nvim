@@ -1,7 +1,14 @@
 local c = require "typescript-tools.protocol.constants"
 local utils = require "typescript-tools.protocol.utils"
+local plugin_config = require "typescript-tools.config"
 
 local M = {}
+
+local internal_commands_map = {
+  fix_all = { name = "Fix all problems" },
+  add_missing_imports = { name = "Add all missing imports" },
+  remove_unused = { name = "Remove unused imports" },
+}
 
 --- @param kind string
 --- @return CodeActionKind|nil
@@ -21,6 +28,7 @@ function M.handler(request, response, params, ctx)
   local text_document = params.textDocument
 
   local range = utils.convert_lsp_range_to_tsserver(params.range)
+
   local request_range = {
     file = vim.uri_to_fname(text_document.uri),
     startLine = range.start.line,
@@ -29,7 +37,7 @@ function M.handler(request, response, params, ctx)
     endOffset = range["end"].offset,
   }
 
-  local seqs = {
+  ctx.dependent_seq = {
     -- tsserver protocol reference:
     -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L405
     request {
@@ -47,7 +55,6 @@ function M.handler(request, response, params, ctx)
       }),
     },
   }
-  ctx.synthetic_seq = table.concat(seqs, "_")
 
   local body = coroutine.yield()
   local code_actions = {}
@@ -82,6 +89,20 @@ function M.handler(request, response, params, ctx)
       kind = c.CodeActionKind.QuickFix,
       edit = {
         changes = utils.convert_tsserver_edits_to_lsp(fix.changes),
+      },
+    })
+  end
+
+  for _, cmd in ipairs(plugin_config.expose_as_code_action) do
+    local action_config = internal_commands_map[cmd]
+
+    table.insert(code_actions, {
+      title = action_config.name,
+      kind = c.CodeActionKind.QuickFix,
+      command = {
+        title = action_config.name,
+        command = c.InternalCommands.CallApiFunction,
+        arguments = { cmd },
       },
     })
   end

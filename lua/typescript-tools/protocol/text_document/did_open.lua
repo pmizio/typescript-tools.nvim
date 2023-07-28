@@ -4,56 +4,6 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
--- INFO: this two defaults are same as in vscode
-local default_format_options = {
-  insertSpaceAfterCommaDelimiter = true,
-  insertSpaceAfterConstructor = false,
-  insertSpaceAfterSemicolonInForStatements = true,
-  insertSpaceBeforeAndAfterBinaryOperators = true,
-  insertSpaceAfterKeywordsInControlFlowStatements = true,
-  insertSpaceAfterFunctionKeywordForAnonymousFunctions = true,
-  insertSpaceBeforeFunctionParenthesis = false,
-  insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis = false,
-  insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets = false,
-  insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces = true,
-  insertSpaceAfterOpeningAndBeforeClosingEmptyBraces = true,
-  insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces = false,
-  insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces = false,
-  insertSpaceAfterTypeAssertion = false,
-  placeOpenBraceOnNewLineForFunctions = false,
-  placeOpenBraceOnNewLineForControlBlocks = false,
-  semicolons = "ignore",
-  indentSwitchCase = true,
-}
-
-local default_preferences = {
-  quotePreference = "auto",
-  importModuleSpecifierEnding = "auto",
-  jsxAttributeCompletionStyle = "auto",
-  allowTextChangesInNewFiles = true,
-  providePrefixAndSuffixTextForRename = true,
-  allowRenameOfImportPath = true,
-  includeAutomaticOptionalChainCompletions = true,
-  provideRefactorNotApplicableReason = true,
-  generateReturnInDocTemplate = true,
-  includeCompletionsForImportStatements = true,
-  includeCompletionsWithSnippetText = true,
-  includeCompletionsWithClassMemberSnippets = true,
-  includeCompletionsWithObjectLiteralMethodSnippets = true,
-  useLabelDetailsInCompletionEntries = true,
-  allowIncompleteCompletions = true,
-  displayPartsForJSDoc = true,
-  disableLineTextInReferences = true,
-  includeInlayParameterNameHints = "none",
-  includeInlayParameterNameHintsWhenArgumentMatchesName = false,
-  includeInlayFunctionParameterTypeHints = false,
-  includeInlayVariableTypeHints = false,
-  includeInlayVariableTypeHintsWhenTypeMatchesName = false,
-  includeInlayPropertyDeclarationTypeHints = false,
-  includeInlayFunctionLikeReturnTypeHints = false,
-  includeInlayEnumMemberValueHints = false,
-}
-
 ---@type table<"mac" | "unix" | "dos", string>
 local eol_chars = {
   mac = "\r",
@@ -78,7 +28,6 @@ local function configure(params)
   local convert_tabs_to_spaces = bo.expandtab or true
   local new_line_character = get_eol_chars(bo)
 
-  local preferences = plugin_config.tsserver_file_preferences
   local format_options = plugin_config.tsserver_format_options
 
   return {
@@ -93,14 +42,10 @@ local function configure(params)
           convertTabsToSpaces = convert_tabs_to_spaces,
           newLineCharacter = new_line_character,
         },
-        default_format_options,
+        plugin_config.default_format_options,
         type(format_options) == "function" and format_options(bo.filetype) or format_options
       ),
-      preferences = vim.tbl_extend(
-        "force",
-        default_preferences,
-        type(preferences) == "function" and preferences(bo.filetype) or preferences
-      ),
+      preferences = plugin_config.get_tsserver_file_preferences(bo.filetype),
     },
   }
 end
