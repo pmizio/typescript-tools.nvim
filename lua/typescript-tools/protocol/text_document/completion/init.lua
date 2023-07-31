@@ -119,7 +119,7 @@ function M.handler(request, response, params)
           insertTextFormat = should_create_snippet and c.InsertTextFormat.Snippet
             or c.InsertTextFormat.PlainText,
           sortText = sortText,
-          textEdit = calculate_text_edit(item.replacementSpan, insertText),
+          textEdit = calculate_text_edit(range, insertText),
           -- for now lsp support only one tag - deprecated - 1
           tags = is_deprecated and { 1 } or nil,
           data = vim.tbl_extend("force", {

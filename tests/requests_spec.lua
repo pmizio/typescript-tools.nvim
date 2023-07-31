@@ -184,6 +184,52 @@ describe("Lsp request", function()
     plugin_config.complete_function_calls = prev_config
   end)
 
+  it(
+    "should return correct response for " .. methods.Completion .. " at dot member access",
+    function()
+      utils.open_file "src/completion.ts"
+      utils.wait_for_lsp_initialization()
+
+      local req = {
+        textDocument = utils.get_text_document(),
+        position = utils.make_position(1, 3),
+      }
+      local ret = vim.lsp.buf_request_sync(0, methods.Completion, req)
+
+      local result = lsp_assert.response(ret)
+
+      assert.is.table(result.items)
+
+      local completion = result.items[1]
+
+      assert.are.same(completion.filterText, ".concat")
+      assert.are.same(completion.insertText, ".concat")
+      assert.are.same(completion.textEdit, {
+        insert = {
+          ["end"] = {
+            character = 3,
+            line = 1,
+          },
+          start = {
+            character = 2,
+            line = 1,
+          },
+        },
+        newText = ".concat",
+        replace = {
+          ["end"] = {
+            character = 3,
+            line = 1,
+          },
+          start = {
+            character = 2,
+            line = 1,
+          },
+        },
+      })
+    end
+  )
+
   it("should return correct response for " .. methods.CompletionResolve, function()
     utils.open_file "src/completion.ts"
     utils.wait_for_lsp_initialization()
