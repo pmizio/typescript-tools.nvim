@@ -68,15 +68,17 @@ local function make_signatures(items)
         item.parameters,
         item.suffixDisplayParts
       ),
-      documentation = table.concat({
+      documentation = utils.make_markup_content(table.concat({
         utils.tsserver_docs_to_plain_text(item.documentation, ""),
         "\n",
         utils.tsserver_make_tags(item.tags or {}),
-      }, ""),
+      }, "")),
       parameters = vim.tbl_map(function(param)
         return {
           label = utils.tsserver_docs_to_plain_text(param.displayParts, ""),
-          documentation = utils.tsserver_docs_to_plain_text(param.documentation, ""),
+          documentation = utils.make_markup_content(
+            utils.tsserver_docs_to_plain_text(param.documentation, "")
+          ),
         }
       end, item.parameters),
     }
