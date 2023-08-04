@@ -234,4 +234,13 @@ function M.should_create_function_snippet(kind, filetype)
     and plugin_config.complete_function_calls
 end
 
+---@param content string
+---@param kind "plaintext"|"markdown"|nil
+function M.make_markup_content(content, kind)
+  return {
+    kind = kind or "markdown",
+    value = content,
+  }
+end
+
 return M

@@ -23,10 +23,11 @@ function M.handler(request, response, params)
   }
 
   if body.displayString then
-    table.insert(contents, 1, {
-      kind = "markdown",
-      value = "```typescript\n" .. body.displayString .. "\n```\n",
-    })
+    table.insert(
+      contents,
+      1,
+      utils.make_markup_content("```typescript\n" .. body.displayString .. "\n```\n")
+    )
   end
 
   -- tsserver protocol reference:
