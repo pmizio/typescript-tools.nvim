@@ -10,6 +10,7 @@ local remapped_methods = {
   [c.CustomMethods.OrganizeImports] = "text_document.organize_imports",
   [c.CustomMethods.Diagnostic] = "text_document.custom_diagnostic",
   [c.CustomMethods.BatchCodeActions] = "text_document.code_action.batch",
+  [c.CustomMethods.ConfigurePlugin] = "text_document.configure_plugin",
 }
 
 local noop_methods = { c.LspMethods.DidSave }

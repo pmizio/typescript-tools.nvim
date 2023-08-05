@@ -232,6 +232,7 @@ return {
     OrganizeImports = "typescriptTools/organizeImports",
     Diagnostic = "typescriptTools/diagnostic",
     BatchCodeActions = "typescriptTools/batchCodeActions",
+    ConfigurePlugin = "typescriptTools/configurePlugin",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",
