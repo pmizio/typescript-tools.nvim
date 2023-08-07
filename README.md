@@ -238,6 +238,7 @@ This plugin provides several custom user commands (they are only applied to curr
 - `TSToolsGoToSourceDefinition` - goes to
   [source definition](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#go-to-source-definition)
   (available since TS v4.7)
+- `TSToolsRenameFile` - rename file and all references to it
 
 ## Supported LSP methods
 

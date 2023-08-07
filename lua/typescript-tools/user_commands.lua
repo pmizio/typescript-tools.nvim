@@ -51,6 +51,10 @@ function M.setup_user_commands()
   create_command("TSToolsFixAll", function(is_sync)
     api.fix_all(is_sync)
   end)
+
+  create_command("TSToolsRenameFile", function(is_sync)
+    api.rename_file(is_sync)
+  end)
 end
 
 return M

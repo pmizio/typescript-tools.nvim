@@ -161,6 +161,47 @@ function M.request_diagnostics(callback)
   }, callback)
 end
 
+---@param is_sync boolean
+function M.rename_file(is_sync)
+  local typescript_client = get_typescript_client(0)
+  if typescript_client == nil then
+    return
+  end
+
+  local source = vim.api.nvim_buf_get_name(0)
+
+  local params = {
+    files = {
+      {
+        oldUri = "file://" .. source,
+      },
+    },
+  }
+
+  vim.ui.input({ prompt = "New path: ", default = source }, function(input)
+    if input == "" or input == source or input == nil then
+      return
+    end
+
+    params.files[1].newUri = "file://" .. input
+
+    if is_sync then
+      local res = typescript_client.request_sync(c.LspMethods.WillRenameFiles, params, timeout, 0)
+      if not res.err then
+        vim.lsp.util.apply_workspace_edit(res.result, "utf-8")
+      end
+    else
+      typescript_client.request(c.LspMethods.WillRenameFiles, params, function(err, res)
+        if not err then
+          vim.lsp.util.apply_workspace_edit(res, "utf-8")
+        end
+      end, 0)
+      vim.api.nvim_buf_set_name(0, input)
+      vim.loop.fs_rename(source, input)
+    end
+  end)
+end
+
 --- Returns an |lsp-handler| that filters TypeScript diagnostics with the given codes.
 --- <pre>lua
 --- local api = require('typescript-tools.api')
