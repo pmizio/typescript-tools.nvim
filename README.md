@@ -187,7 +187,7 @@ require("typescript-tools").setup {
 }
 ```
 
-The default values for `preferences` and `format_options` are in [this file](https://github.com/pmizio/typescript-tools.nvim/blob/master/lua/typescript-tools/protocol/text_document/did_open.lua#L8)
+The default values for `preferences` and `format_options` are in [this file](https://github.com/pmizio/typescript-tools.nvim/blob/master/lua/typescript-tools/config.lua#L17)
 
 #### 💅 `styled-components` support
 
