@@ -86,9 +86,11 @@ function M.handler(request, response, params, ctx)
         -- if `fixId` is not present we just apply the changes from this fix, because it cannot be applied in the group
         else
           add_changes_from_response(final_changes, fix, uri)
+          goto continue
         end
       end
     end
+    ::continue::
   end
 
   for fix_id in pairs(fixes_ids_to_combine) do
