@@ -9,7 +9,7 @@
 ---@field tsserver_file_preferences table|fun(filetype: string): table
 ---@field tsserver_max_memory number|"auto"
 ---@field complete_function_calls boolean
----@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused")[]
+---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused" | "remove_unused_imports")[]
 local M = {}
 local __store = {}
 
@@ -110,7 +110,7 @@ function M.load_settings(settings)
     ["settings.complete_function_calls"] = { settings.complete_function_calls, "boolean", true },
     ["settings.expose_as_code_action"] = {
       settings.expose_as_code_action,
-      "table",
+      { "table", "string" },
       true,
     },
   }

@@ -52,7 +52,7 @@ end
 
 ---@param mode OrganizeImportsMode
 ---@param is_sync boolean
-function M.organize_imports(mode, is_sync)
+local function organize_imports_mode(mode, is_sync)
   local params = { file = vim.api.nvim_buf_get_name(0), mode = mode }
 
   if is_sync then
@@ -70,6 +70,18 @@ function M.organize_imports(mode, is_sync)
   else
     vim.lsp.buf_request(0, c.CustomMethods.OrganizeImports, params)
   end
+end
+
+function M.organize_imports(is_sync)
+  organize_imports_mode(c.OrganizeImportsMode.All, is_sync)
+end
+
+function M.sort_imports(is_sync)
+  organize_imports_mode(c.OrganizeImportsMode.SortAndCombine, is_sync)
+end
+
+function M.remove_unused_imports(is_sync)
+  organize_imports_mode(c.OrganizeImportsMode.RemoveUnused, is_sync)
 end
 
 ---@param is_sync boolean

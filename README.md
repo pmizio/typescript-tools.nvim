@@ -123,7 +123,7 @@ require("typescript-tools").setup {
     separate_diagnostic_server = true,
     -- "change"|"insert_leave" determine when the client asks the server about diagnostic
     publish_diagnostic_on = "insert_leave",
-    -- array of strings("fix_all"|"add_missing_imports"|"remove_unused")
+    -- array of strings("fix_all"|"add_missing_imports"|"remove_unused") or string "all" to include all supported code actions
     -- specify commands exposed as code_actions
     expose_as_code_action = {},
     -- string|nil - specify a custom path to `tsserver.js` file, if this is nil or file under path
