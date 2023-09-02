@@ -1,4 +1,3 @@
-local c = require "typescript-tools.protocol.constants"
 local api = require "typescript-tools.api"
 
 local M = {}
