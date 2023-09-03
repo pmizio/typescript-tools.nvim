@@ -4,10 +4,14 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
+local ALL_CODE_ACTIONS_KEY = "all"
+
 local internal_commands_map = {
   fix_all = { name = "Fix all problems" },
+  remove_unused = { name = "Remove unused" },
   add_missing_imports = { name = "Add all missing imports" },
-  remove_unused = { name = "Remove unused imports" },
+  remove_unused_imports = { name = "Remove unused imports" },
+  organize_imports = { name = "Organize imports" },
 }
 
 --- @param kind string
@@ -93,7 +97,12 @@ function M.handler(request, response, params, ctx)
     })
   end
 
-  for _, cmd in ipairs(plugin_config.expose_as_code_action) do
+  local exposed_code_actions = type(plugin_config.expose_as_code_action) == "string"
+      and plugin_config.expose_as_code_action == ALL_CODE_ACTIONS_KEY
+      and vim.tbl_keys(internal_commands_map)
+    or plugin_config.expose_as_code_action
+
+  for _, cmd in ipairs(exposed_code_actions) do
     local action_config = internal_commands_map[cmd]
 
     table.insert(code_actions, {

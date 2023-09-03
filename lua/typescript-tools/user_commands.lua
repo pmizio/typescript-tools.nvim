@@ -1,4 +1,3 @@
-local c = require "typescript-tools.protocol.constants"
 local api = require "typescript-tools.api"
 
 local M = {}
@@ -26,15 +25,15 @@ end
 
 function M.setup_user_commands()
   create_command("TSToolsOrganizeImports", function(is_sync)
-    api.organize_imports(c.OrganizeImportsMode.All, is_sync)
+    api.organize_imports(is_sync)
   end)
 
   create_command("TSToolsSortImports", function(is_sync)
-    api.organize_imports(c.OrganizeImportsMode.SortAndCombine, is_sync)
+    api.sort_imports(is_sync)
   end)
 
   create_command("TSToolsRemoveUnusedImports", function(is_sync)
-    api.organize_imports(c.OrganizeImportsMode.RemoveUnused, is_sync)
+    api.remove_unused_imports(is_sync)
   end)
 
   create_command("TSToolsGoToSourceDefinition", function(is_sync)
