@@ -224,14 +224,16 @@ function M.cancelled_response(data)
 end
 
 ---@param kind CompletionItemKind
+---@param insertText string
 ---@param filetype vim.opt.filetype
 ---@return boolean
 ---@see https://github.com/typescript-language-server/typescript-language-server/blob/983a6923114c39d638e0c7d419ae16e8bca8985c/src/completion.ts#L355-L371
-function M.should_create_function_snippet(kind, filetype)
+function M.should_create_function_snippet(kind, insertText, filetype)
   local preferences = plugin_config.get_tsserver_file_preferences(filetype)
   return preferences.includeCompletionsWithSnippetText
-    and (kind == c.CompletionItemKind.Function or kind == c.CompletionItemKind.Method)
     and plugin_config.complete_function_calls
+    and (kind == c.CompletionItemKind.Function or kind == c.CompletionItemKind.Method)
+    and not string.find(insertText, "%$")
 end
 
 ---@param content string

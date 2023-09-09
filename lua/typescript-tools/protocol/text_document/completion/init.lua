@@ -67,7 +67,8 @@ function M.handler(request, response, params)
         sortText = "\u{ffff}" .. item.sortText
       end
 
-      local should_create_function_snippet = utils.should_create_function_snippet(kind, filetype)
+      local should_create_function_snippet =
+        utils.should_create_function_snippet(kind, insertText, filetype)
       local should_create_snippet = item.isSnippet or should_create_function_snippet
       local label = is_optional and (item.name .. "?") or item.name
       label = should_create_function_snippet and (label .. "(...)") or label
