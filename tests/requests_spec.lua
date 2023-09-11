@@ -220,7 +220,7 @@ describe("Lsp request", function()
     result = lsp_assert.response(ret)
 
     assert.is.table(result)
-    assert.are.same(result.insertText, "warn($1)$0")
+    assert.are.same(result.insertText, "warn($0)")
     assert.are.same(result.detail, "(method) Console.warn(...data: any[]): void")
 
     plugin_config.complete_function_calls = prev_config
