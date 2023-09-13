@@ -127,6 +127,11 @@ function TsserverProvider:get_executable_path()
 
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+      tsserver_path = Path:new(vim.fn.exepath("tsserver"))
+  end
+
+  if not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
   end
 
   -- INFO: if there is no local or global tsserver just error out
