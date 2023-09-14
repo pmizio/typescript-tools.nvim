@@ -17,7 +17,11 @@ local internal_commands_map = {
 --- @param kind string
 --- @return CodeActionKind|nil
 local function make_lsp_code_action_kind(kind)
-  if kind:find("extract", 1, true) or kind:find("move", 1, true) then
+  if
+    kind:find("extract", 1, true)
+    or kind:find("move", 1, true)
+    or kind:find("inline", 1, true)
+  then
     return c.CodeActionKind.RefactorExtract
   elseif kind:find("rewrite", 1, true) then
     return c.CodeActionKind.RefactorRewrite
