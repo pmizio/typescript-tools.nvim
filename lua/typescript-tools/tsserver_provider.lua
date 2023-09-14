@@ -55,8 +55,7 @@ function TsserverProvider.new(on_loaded)
 
   self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
-  self.global_install_path =
-    Path:new(vim.fn.exepath "tsserver"):parent():joinpath("..", "lib", "node_modules")
+  self.global_install_path = Path:new(vim.fn.resolve(vim.fn.exepath "tsserver")):parent():parent()
 
   local command, args = self:make_npm_root_params()
 
@@ -129,7 +128,7 @@ end
 
 ---@return Path
 function TsserverProvider:get_executable_path()
-  local tsserver_path = self.root_dir:joinpath("node_modules", "ttypescript", "lib", "tsserver.js")
+  local tsserver_path = self.root_dir:joinpath("node_modules", "typescript", "lib", "tsserver.js")
 
   if plugin_config.tsserver_path then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
@@ -148,7 +147,7 @@ function TsserverProvider:get_executable_path()
 
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
-    tsserver_path = self.global_install_path:joinpath("typescript", "lib", "tsserver.js")
+    tsserver_path = self.global_install_path:joinpath("lib", "tsserver.js")
   end
 
   local mason_tsserver = get_tsserver_from_mason()
