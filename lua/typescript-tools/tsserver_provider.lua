@@ -106,15 +106,14 @@ function TsserverProvider.get_instance()
 end
 
 ---@return Path|nil
-function get_tsserver_from_mason()
+local function get_tsserver_from_mason()
   local ok, mason_registry = pcall(require, "mason-registry")
 
   if ok and mason_registry then
-    local tsserver_path =
-      mason_registry.get_package("typescript-language-server"):get_install_path()
-
-    P(tsserver_path)
-    return Path:new(tsserver_path, "node_modules")
+    return Path:new(
+      mason_registry.get_package("typescript-language-server"):get_install_path(),
+      "node_modules"
+    )
   end
 
   return nil
@@ -162,7 +161,6 @@ function TsserverProvider:get_executable_path()
   )
 
   local _ = log.trace() and log.trace("tsserver", "Binary found at:", tsserver_path:absolute())
-  P(tsserver_path:absolute())
 
   return tsserver_path
 end
