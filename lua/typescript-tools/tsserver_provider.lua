@@ -128,12 +128,16 @@ end
 
 ---@return Path
 function TsserverProvider:get_executable_path()
-  local tsserver_path = self.root_dir:joinpath("node_modules", "typescript", "lib", "tsserver.js")
-
   if plugin_config.tsserver_path then
-    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
-    tsserver_path = Path:new(plugin_config.tsserver_path)
+    local tsserver_path = Path:new(plugin_config.tsserver_path)
+
+    if tsserver_exists(tsserver_path) then
+      local _ = log.trace() and log.trace("tsserver", "Binary found at:", tsserver_path:absolute())
+      return tsserver_path
+    end
   end
+
+  local tsserver_path = self.root_dir:joinpath("node_modules", "typescript", "lib", "tsserver.js")
 
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
