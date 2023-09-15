@@ -491,6 +491,10 @@ describe("Lsp request", function()
       assert.is.same(2, #result)
       assert.is.same(result[1].title, "Infer function return type")
       assert.is.same(result[2].title, "Remove variable statement")
+    elseif utils.is_typescript_version "5.2" then
+      assert.is.same(2, #result)
+      assert.is.same(result[1].title, "Move to a new file")
+      assert.is.same(result[2].title, "Remove variable statement")
     else
       assert.is.same(1, #result)
       assert.is.same(result[1].title, "Remove variable statement")
