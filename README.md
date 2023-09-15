@@ -21,6 +21,7 @@ bugs.
 - 🌍 Supports the nvim LSP plugin ecosystem
 - 🔀 Supports multiple instances of Tsserver
 - 💻 Supports both local and global installations of TypeScript
+- 🔨 Supports tsserver installed from [Mason](https://github.com/williamboman/mason.nvim)
 - 💅 Provides out-of-the-box support for styled-components, which is not enabled by default
   (see Installation and [Configuration](#-styled-components-support))
 - ✨ Improved code refactor capabilities e.g. extracting to variable or function
@@ -124,7 +125,7 @@ require("typescript-tools").setup {
     -- "change"|"insert_leave" determine when the client asks the server about diagnostic
     publish_diagnostic_on = "insert_leave",
     -- array of strings("fix_all"|"add_missing_imports"|"remove_unused"|
-    -- "remove_unused_imports"|"organize_imports") -- or string "all" 
+    -- "remove_unused_imports"|"organize_imports") -- or string "all"
     -- to include all supported code actions
     -- specify commands exposed as code_actions
     expose_as_code_action = {},
