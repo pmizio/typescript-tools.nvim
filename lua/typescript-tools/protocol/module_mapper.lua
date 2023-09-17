@@ -9,6 +9,7 @@ local remapped_methods = {
   [c.LspMethods.SemanticTokensFull] = "text_document.semantic_tokens",
   [c.CustomMethods.OrganizeImports] = "text_document.organize_imports",
   [c.CustomMethods.Diagnostic] = "text_document.custom_diagnostic",
+  [c.CustomMethods.CustomDiagnostic] = "text_document.custom_diagnostic",
   [c.CustomMethods.BatchCodeActions] = "text_document.code_action.batch",
   [c.LspMethods.CodeLensResolve] = "text_document.code_lens.resolve",
   [c.CustomMethods.ConfigurePlugin] = "text_document.configure_plugin",

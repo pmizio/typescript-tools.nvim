@@ -139,7 +139,8 @@ function M.fix_all(is_sync)
 end
 
 ---@param callback fun(params: table, result: table)|nil
-function M.request_diagnostics(callback)
+---@param type string|nil - lsp method to send the diagnostic: c.CustomMethods.Diagnostic or c.LspMethods.Diagnostic
+function M.request_diagnostics(callback, type)
   local text_document = vim.lsp.util.make_text_document_params()
   local client = vim.lsp.get_active_clients {
     name = plugin_config.plugin_name,
@@ -150,7 +151,7 @@ function M.request_diagnostics(callback)
     return
   end
 
-  vim.lsp.buf_request(0, c.CustomMethods.Diagnostic, {
+  vim.lsp.buf_request(0, type or c.CustomMethods.Diagnostic, {
     textDocument = text_document,
   }, callback)
 end

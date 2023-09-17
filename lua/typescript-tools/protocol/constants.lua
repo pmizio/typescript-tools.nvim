@@ -235,6 +235,7 @@ return {
   CustomMethods = {
     OrganizeImports = "typescriptTools/organizeImports",
     Diagnostic = "typescriptTools/diagnostic",
+    CustomDiagnostic = "typescriptTools/customDiagnostic",
     BatchCodeActions = "typescriptTools/batchCodeActions",
     ConfigurePlugin = "typescriptTools/configurePlugin",
   },

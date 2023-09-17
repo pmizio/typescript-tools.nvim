@@ -17,6 +17,7 @@ local proto_utils = require "typescript-tools.protocol.utils"
 ---@field requests_metadata RequestContainer[]
 ---@field requests_to_cancel_on_change table<number, table>
 ---@field pending_diagnostic PendingDiagnostic|nil
+---@field custom_diagnostic PendingDiagnostic|nil
 ---@field dispatchers Dispatchers
 
 ---@class Tsserver
@@ -75,6 +76,11 @@ function Tsserver:handle_response(response)
 
   if self.pending_diagnostic and self.pending_diagnostic:handle_response(response) then
     self.pending_diagnostic = nil
+    return
+  end
+
+  if self.custom_diagnostic and self.custom_diagnostic:handle_response(response) then
+    self.custom_diagnostic = nil
     return
   end
 
@@ -235,6 +241,8 @@ function Tsserver:send_queued_requests()
 
       if item.method == c.CustomMethods.Diagnostic then
         self.pending_diagnostic = PendingDiagnostic.new(item)
+      elseif item.method == c.CustomMethods.CustomDiagnostic then
+        self.custom_diagnostic = PendingDiagnostic.new(item)
       else
         self.pending_requests[seq] = true
         self.requests_metadata[seq] = item
