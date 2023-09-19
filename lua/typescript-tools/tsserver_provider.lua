@@ -129,7 +129,7 @@ end
 ---@return Path
 function TsserverProvider:get_executable_path()
   local mason_tsserver = get_tsserver_from_mason()
-  
+
   if plugin_config.tsserver_path then
     local tsserver_path = Path:new(plugin_config.tsserver_path)
 
