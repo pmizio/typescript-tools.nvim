@@ -29,7 +29,7 @@ function M.start(dispatchers)
       return request_router.route_request(tsserver_syntax, tsserver_semantic, method, ...)
     end,
     notify = function(...)
-      request_router.route_request(tsserver_syntax, tsserver_semantic, ...)
+      return request_router.route_request(tsserver_syntax, tsserver_semantic, ...)
     end,
     terminate = function()
       tsserver_syntax:terminate()
