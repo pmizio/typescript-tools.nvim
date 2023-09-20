@@ -15,6 +15,7 @@ local is_win = vim.loop.os_uname().version:find "Windows"
 ---@field private root_dir Path
 ---@field private npm_local_path Path
 ---@field private npm_global_path Path
+---@field private global_install_path Path
 
 ---@class TsserverProvider
 local TsserverProvider = {
@@ -54,6 +55,7 @@ function TsserverProvider.new(on_loaded)
 
   self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
+  self.global_install_path = Path:new(vim.fn.resolve(vim.fn.exepath "tsserver")):parent():parent()
 
   local command, args = self:make_npm_root_params()
 
@@ -102,8 +104,32 @@ function TsserverProvider.get_instance()
   return TsserverProvider.instance
 end
 
+---@return Path|nil
+local function get_tsserver_from_mason()
+  local ok, mason_registry = pcall(require, "mason-registry")
+
+  if ok and mason_registry then
+    local tsserver_path =
+      mason_registry.get_package("typescript-language-server"):get_install_path()
+
+    if (plugin_config.tsserver_path or ""):find(tsserver_path, 1, true) then
+      vim.schedule_wrap(vim.notify_once)(
+        "[typescript-tools] We detected usage of `tsserver_path` to integrate with Mason. "
+          .. "This integration is now built-in you can remove unnecessary code from your config.",
+        vim.log.levels.WARN
+      )
+    end
+
+    return Path:new(tsserver_path, "node_modules")
+  end
+
+  return nil
+end
+
 ---@return Path
 function TsserverProvider:get_executable_path()
+  local mason_tsserver = get_tsserver_from_mason()
+
   if plugin_config.tsserver_path then
     local tsserver_path = Path:new(plugin_config.tsserver_path)
 
@@ -123,6 +149,16 @@ function TsserverProvider:get_executable_path()
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
     tsserver_path = TsserverProvider.npm_global_path:joinpath("typescript", "lib", "tsserver.js")
+  end
+
+  if not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+    tsserver_path = self.global_install_path:joinpath("lib", "tsserver.js")
+  end
+
+  if mason_tsserver and not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+    tsserver_path = mason_tsserver:joinpath("typescript", "lib", "tsserver.js")
   end
 
   if not tsserver_exists(tsserver_path) then

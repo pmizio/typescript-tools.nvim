@@ -93,15 +93,15 @@ local function create_snippet(item, display_parts)
   local snippet =
     string.format("%s(", item.insertText or (item.textEdit and item.textEdit.newText) or item.label)
   for i, part in ipairs(parts) do
-    snippet = snippet .. string.format("${%d:%s}", i, part.text:gsub("([$}\\])", "\\%1"))
+    snippet = snippet .. string.format("${%d:%s}", i - 1, part.text:gsub("([$}\\])", "\\%1"))
     if i ~= #parts then
       snippet = snippet .. ", "
     end
   end
   if has_optional_parameters then
-    snippet = snippet .. string.format("$%d", #parts + 1)
+    snippet = snippet .. string.format("$%d", #parts)
   end
-  snippet = snippet .. ")$0"
+  snippet = snippet .. ")"
   item.insertText = snippet
   item.insertTextFormat = c.InsertTextFormat.Snippet
   if item.textEdit then
@@ -171,7 +171,7 @@ function M.handler(request, response, params)
       -- or neovim even handle that for now i skip this
     })
 
-    if utils.should_create_function_snippet(item.kind, filetype) then
+    if utils.should_create_function_snippet(item.kind, item.insertText, filetype) then
       create_snippet(item, details.displayParts)
     end
 

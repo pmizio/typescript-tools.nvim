@@ -266,7 +266,7 @@ describe("Lsp request", function()
     result = lsp_assert.response(ret)
 
     assert.is.table(result)
-    assert.are.same(result.insertText, "warn($1)$0")
+    assert.are.same(result.insertText, "warn($0)")
     assert.are.same(result.detail, "(method) Console.warn(...data: any[]): void")
 
     plugin_config.complete_function_calls = prev_config
@@ -536,6 +536,10 @@ describe("Lsp request", function()
     if utils.is_typescript_version "4.2" then
       assert.is.same(2, #result)
       assert.is.same(result[1].title, "Infer function return type")
+      assert.is.same(result[2].title, "Remove variable statement")
+    elseif utils.is_typescript_version "5.2" then
+      assert.is.same(2, #result)
+      assert.is.same(result[1].title, "Move to a new file")
       assert.is.same(result[2].title, "Remove variable statement")
     else
       assert.is.same(1, #result)
