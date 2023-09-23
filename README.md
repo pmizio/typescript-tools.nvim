@@ -21,7 +21,7 @@ bugs.
 - 🌍 Supports the nvim LSP plugin ecosystem
 - 🔀 Supports multiple instances of Tsserver
 - 💻 Supports both local and global installations of TypeScript
-- 🔨 Supports tsserver installed from [Mason](https://github.com/williamboman/mason.nvim)
+- 🔨 Supports `tsserver` installed from [Mason](https://github.com/williamboman/mason.nvim)
 - 💅 Provides out-of-the-box support for styled-components, which is not enabled by default
   (see Installation and [Configuration](#-styled-components-support))
 - ✨ Improved code refactor capabilities e.g. extracting to variable or function
