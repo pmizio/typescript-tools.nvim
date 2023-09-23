@@ -133,9 +133,9 @@ function TsserverProvider:get_executable_path()
   end
 
   -- this will pick up an executable installed by mason if available
-  if not tsserver_exists(tsserver_path) and vim.fn.executable("tsserver") then
+  if not tsserver_exists(tsserver_path) and vim.fn.executable "tsserver" then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
-    tsserver_path = vim.fn.exepath("tsserver")
+    tsserver_path = vim.fn.exepath "tsserver"
   end
 
   if not tsserver_exists(tsserver_path) then
