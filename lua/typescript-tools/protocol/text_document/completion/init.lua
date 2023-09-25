@@ -1,6 +1,7 @@
 local c = require "typescript-tools.protocol.constants"
 local item_kind_utils = require "typescript-tools.protocol.text_document.completion.item_kind_utils"
 local utils = require "typescript-tools.protocol.utils"
+local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
@@ -95,7 +96,12 @@ function M.handler(request, response, params)
           sortText = "\u{ffff}" .. item.sortText
         end
 
-        if body.isMemberCompletion and memberCompletionContext and not item.isSnippet then
+        if
+          plugin_config.include_completions_with_insert_text
+          and body.isMemberCompletion
+          and memberCompletionContext
+          and not item.isSnippet
+        then
           local newInsertText = memberCompletionContext.dotAccessText .. (insertText or item.label)
           item.filterText = newInsertText
           if not range then

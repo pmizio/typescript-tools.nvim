@@ -143,6 +143,7 @@ require("typescript-tools").setup {
     tsserver_file_preferences = {},
     -- mirror of VSCode's `typescript.suggest.completeFunctionCalls`
     complete_function_calls = false,
+    include_completions_with_insert_text = true,
   },
 }
 ```
