@@ -2,6 +2,7 @@ local lsp_protocol = require "vim.lsp.protocol"
 local TsserverProvider = require "typescript-tools.tsserver_provider"
 local utils = require "typescript-tools.utils"
 local c = require "typescript-tools.protocol.constants"
+local config = require "typescript-tools.config"
 
 local function make_capabilities()
   local tsserver_provider = TsserverProvider.get_instance()
@@ -13,6 +14,8 @@ local function make_capabilities()
       commands = {
         c.InternalCommands.InvokeAdditionalRename,
         c.InternalCommands.CallApiFunction,
+        c.InternalCommands.RequestReferences,
+        c.InternalCommands.RequestImplementations,
       },
     },
     renameProvider = {
@@ -110,6 +113,10 @@ local function make_capabilities()
     documentRangeFormattingProvider = true,
     callHierarchyProvider = true,
     workspaceSymbolProvider = true,
+    codeLensProvider = (config.code_lens == config.code_lens_mode.off and vim.treesitter) and false
+      or {
+        resolveProvider = true,
+      },
   }
 end
 

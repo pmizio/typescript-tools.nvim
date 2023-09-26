@@ -27,6 +27,7 @@ vim.opt.runtimepath:append(get_root())
 vim.opt.packpath = { get_root ".tests/site" }
 load "nvim-lua/plenary.nvim"
 load "neovim/nvim-lspconfig"
+load "nvim-treesitter/nvim-treesitter"
 vim.env.XDG_CONFIG_HOME = get_root ".tests/config"
 vim.env.XDG_DATA_HOME = get_root ".tests/data"
 vim.env.XDG_STATE_HOME = get_root ".tests/state"
@@ -63,6 +64,11 @@ vim.api.nvim_create_autocmd("User", {
   group = augroup,
 })
 
+require("nvim-treesitter.configs").setup {
+  ensure_installed = { "typescript" },
+  sync_install = true,
+}
+
 require("typescript-tools").setup {
   settings = {
     separate_diagnostic_server = false,
@@ -71,6 +77,7 @@ require("typescript-tools").setup {
       includeInlayFunctionLikeReturnTypeHints = true,
       includeInlayVariableTypeHints = true,
     },
+    code_lens = "all",
   },
 }
 

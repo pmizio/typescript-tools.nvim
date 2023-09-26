@@ -7,6 +7,8 @@ return {
   InternalCommands = {
     InvokeAdditionalRename = "invoke_additional_rename",
     CallApiFunction = "call_api_function",
+    RequestReferences = "request_references",
+    RequestImplementations = "request_implementations",
   },
   ---@enum CommandTypes
   CommandTypes = {
@@ -226,6 +228,8 @@ return {
     ExecuteCommand = "workspace/executeCommand",
     WillRenameFiles = "workspace/willRenameFiles",
     CancelRequest = "$/cancelRequest",
+    CodeLens = "textDocument/codeLens",
+    CodeLensResolve = "codeLens/resolve",
   },
   ---@enum CustomMethods
   CustomMethods = {

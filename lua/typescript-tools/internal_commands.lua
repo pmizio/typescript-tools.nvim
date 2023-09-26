@@ -49,4 +49,12 @@ M[c.InternalCommands.CallApiFunction] = function(params)
   end
 end
 
+M[c.InternalCommands.RequestReferences] = function(params)
+  vim.lsp.buf_request(0, c.LspMethods.Reference, params.arguments)
+end
+
+M[c.InternalCommands.RequestImplementations] = function(params)
+  vim.lsp.buf_request(0, c.LspMethods.Implementation, params.arguments)
+end
+
 return M
