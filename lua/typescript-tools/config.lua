@@ -10,6 +10,7 @@
 ---@field tsserver_max_memory number|"auto"
 ---@field complete_function_calls boolean
 ---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused" | "remove_unused_imports")[]
+---@field include_completions_with_insert_text boolean
 local M = {}
 local __store = {}
 
@@ -113,6 +114,11 @@ function M.load_settings(settings)
       { "table", "string" },
       true,
     },
+    ["settings.include_completions_with_insert_text"] = {
+      settings.include_completions_with_insert_text,
+      "boolean",
+      true,
+    },
   }
 
   __store = vim.tbl_deep_extend("force", __store, settings)
@@ -151,6 +157,10 @@ function M.load_settings(settings)
 
   if not settings.expose_as_code_action then
     __store.expose_as_code_action = {}
+  end
+
+  if not settings.include_completions_with_insert_text then
+    __store.include_completions_with_insert_text = true
   end
 end
 
