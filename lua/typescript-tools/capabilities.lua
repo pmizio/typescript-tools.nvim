@@ -113,7 +113,8 @@ local function make_capabilities()
     documentRangeFormattingProvider = true,
     callHierarchyProvider = true,
     workspaceSymbolProvider = true,
-    codeLensProvider = (config.code_lens == config.code_lens_mode.off and vim.treesitter) and false
+    codeLensProvider = (config.code_lens == config.code_lens_mode.off or not vim.treesitter)
+        and false
       or {
         resolveProvider = true,
       },
