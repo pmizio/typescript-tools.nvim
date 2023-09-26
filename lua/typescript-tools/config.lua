@@ -116,7 +116,7 @@ function M.load_settings(settings)
     },
     ["settings.include_completions_with_insert_text"] = {
       settings.include_completions_with_insert_text,
-      "string",
+      "boolean",
       true,
     },
   }
