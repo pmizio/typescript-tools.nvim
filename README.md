@@ -144,6 +144,13 @@ require("typescript-tools").setup {
     -- mirror of VSCode's `typescript.suggest.completeFunctionCalls`
     complete_function_calls = false,
     include_completions_with_insert_text = true,
+    -- CodeLens
+    -- WARNING: Experimental feature also in VSCode, because it might hit performance of server.
+    -- possible values: ("off"|"all"|"implementations_only"|"references_only")
+    code_lens = "off",
+    -- by default code lenses are displayed on all referencable values and for some of you it can
+    -- be too much this option reduce count of them by removing member references from lenses
+    disable_member_code_lens = true,
   },
 }
 ```
@@ -241,36 +248,36 @@ This plugin provides several custom user commands (they are only applied to curr
 
 ## Supported LSP methods
 
-| Status | Request                                                                               |
-| ------ | ------------------------------------------------------------------------------------- |
-| ✅     | textDocument/completion                                                               |
-| ✅     | textDocument/hover                                                                    |
-| ✅     | textDocument/rename                                                                   |
-| ✅     | textDocument/publishDiagnostics                                                       |
-| ✅     | textDocument/signatureHelp                                                            |
-| ✅     | textDocument/references                                                               |
-| ✅     | textDocument/definition                                                               |
-| ✅     | textDocument/typeDefinition                                                           |
-| ✅     | textDocument/implementation                                                           |
-| ✅     | textDocument/documentSymbol                                                           |
-| ✅     | textDocument/documentHighlight                                                        |
-| ✅     | textDocument/codeAction                                                               |
-| ✅     | textDocument/formatting                                                               |
-| ✅     | textDocument/rangeFormatting                                                          |
-| ✅     | textDocument/foldingRange                                                             |
-| ✅     | textDocument/semanticTokens/full (supported from TS v4.1)                             |
-| ✅     | textDocument/inlayHint (supported from TS v4.4)                                       |
-| ✅     | callHierarchy/incomingCalls                                                           |
-| ✅     | callHierarchy/outgoingCalls                                                           |
-| 🚧     | textDocument/codeLens([#39](https://github.com/pmizio/typescript-tools.nvim/pull/39)) |
-| 🚧     | textDocument/linkedEditingRange (planned)                                             |
-| ✅     | workspace/symbol                                                                      |
-| ✅     | workspace/willRenameFiles                                                             |
-| ❌     | workspace/applyEdit - N/A                                                             |
-| ❌     | textDocument/declaration - N/A                                                        |
-| ❌     | window/logMessage - N/A                                                               |
-| ❌     | window/showMessage - N/A                                                              |
-| ❌     | window/showMessageRequest - N/A                                                       |
+| Status | Request                                                   |
+| ------ | --------------------------------------------------------- |
+| ✅     | textDocument/completion                                   |
+| ✅     | textDocument/hover                                        |
+| ✅     | textDocument/rename                                       |
+| ✅     | textDocument/publishDiagnostics                           |
+| ✅     | textDocument/signatureHelp                                |
+| ✅     | textDocument/references                                   |
+| ✅     | textDocument/definition                                   |
+| ✅     | textDocument/typeDefinition                               |
+| ✅     | textDocument/implementation                               |
+| ✅     | textDocument/documentSymbol                               |
+| ✅     | textDocument/documentHighlight                            |
+| ✅     | textDocument/codeAction                                   |
+| ✅     | textDocument/formatting                                   |
+| ✅     | textDocument/rangeFormatting                              |
+| ✅     | textDocument/foldingRange                                 |
+| ✅     | textDocument/semanticTokens/full (supported from TS v4.1) |
+| ✅     | textDocument/inlayHint (supported from TS v4.4)           |
+| ✅     | callHierarchy/incomingCalls                               |
+| ✅     | callHierarchy/outgoingCalls                               |
+| ✅     | textDocument/codeLens                                     |
+| 🚧     | textDocument/linkedEditingRange (planned)                 |
+| ✅     | workspace/symbol                                          |
+| ✅     | workspace/willRenameFiles                                 |
+| ❌     | workspace/applyEdit - N/A                                 |
+| ❌     | textDocument/declaration - N/A                            |
+| ❌     | window/logMessage - N/A                                   |
+| ❌     | window/showMessage - N/A                                  |
+| ❌     | window/showMessageRequest - N/A                           |
 
 ## 🚦 Roadmap
 

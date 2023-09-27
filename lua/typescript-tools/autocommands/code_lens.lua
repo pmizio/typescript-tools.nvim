@@ -12,7 +12,14 @@ function M.setup_code_lens_autocmds()
 
     api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "CursorHold" }, {
       pattern = M.extensions_pattern,
-      callback = function()
+      callback = function(e)
+        ---@type string
+        local file = e.file
+
+        if file and file:find "%w+://.*" then
+          return
+        end
+
         vim.lsp.codelens.refresh()
       end,
       group = augroup,

@@ -65,7 +65,7 @@ function M.handler(request, _, params)
   local lenses = {}
   local lang = parser:lang()
 
-  if lang ~= "javascript" and config.code_lens ~= config.code_lens_mode.references_only then
+  if config.code_lens ~= config.code_lens_mode.references_only then
     local query = get_query(lang, "implementations")
 
     if query then

@@ -9,8 +9,6 @@ local common = require "typescript-tools.autocommands.common"
 
 local publish_diagnostic_mode = plugin_config.publish_diagnostic_mode
 
-local extensions_pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" }
-
 local M = {}
 
 local function request_diagnostics_api_wrapper()
@@ -40,7 +38,7 @@ function M.setup_diagnostic_autocmds(dispatchers)
       request_diagnostics_debounced()
 
       api.nvim_create_autocmd("InsertEnter", {
-        pattern = extensions_pattern,
+        pattern = M.extensions_pattern,
         callback = function(e)
           proto_utils.publish_diagnostics(dispatchers, vim.uri_from_bufnr(e.buf), {})
         end,
@@ -48,11 +46,11 @@ function M.setup_diagnostic_autocmds(dispatchers)
       })
 
       api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "TextChanged" }, {
-        pattern = extensions_pattern,
+        pattern = M.extensions_pattern,
         callback = request_diagnostics_debounced,
         group = augroup,
       })
-    end)
+    end, augroup)
   end
 end
 
