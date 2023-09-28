@@ -38,6 +38,15 @@ vim.cmd.packloadall { bang = true }
 _G.initialized = false
 _G.file_opened = false
 _G.file_closed = false
+_G.initial_diagnostics_emitted = false
+
+local c = require "typescript-tools.protocol.constants"
+local old_diagnostic_handler = vim.lsp.handlers[c.CustomMethods.Diagnostic]
+
+vim.lsp.handlers[c.CustomMethods.Diagnostic] = function(...)
+  _G.initial_diagnostics_emitted = true
+  old_diagnostic_handler(...)
+end
 
 local old_handler = vim.lsp.handlers["$/progress"]
 vim.lsp.handlers["$/progress"] = function(err, result, ...)

@@ -22,6 +22,14 @@ function M.wait_for_lsp_did_close()
   end
 end
 
+function M.wait_for_initial_diagnostics()
+  if not _G.initial_diagnostics_emitted then
+    vim.wait(10000, function()
+      return _G.initial_diagnostics_emitted
+    end, 10)
+  end
+end
+
 ---@param file string
 ---@param mode string|nil
 function M.open_file(file, mode)

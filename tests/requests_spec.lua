@@ -14,6 +14,7 @@ describe("Lsp request", function()
   after_each(function()
     -- INFO: close all buffers
     _G.file_closed = false
+    _G.initial_diagnostics_emitted = false
     vim.cmd "silent 1,$bd!"
     utils.wait_for_lsp_did_close()
   end)
@@ -574,6 +575,7 @@ describe("Lsp request", function()
     utils.open_file "src/diagnostic1.ts"
     utils.open_file("src/diagnostic2.ts", "vs")
     utils.wait_for_lsp_initialization()
+    utils.wait_for_initial_diagnostics()
 
     local f1 = vim.uri_from_fname(vim.fn.getcwd() .. "/src/diagnostic1.ts")
     local f2 = vim.uri_from_fname(vim.fn.getcwd() .. "/src/diagnostic2.ts")
