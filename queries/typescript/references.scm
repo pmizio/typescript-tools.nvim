@@ -1,31 +1,31 @@
 [
-  (interface_declaration name: (_) @name)
-  (type_alias_declaration name: (_) @name)
-  (abstract_class_declaration name: (_) @name)
-  (class_declaration name: (_) @name)
-  (enum_declaration name: (_) @name)
+  (interface_declaration name: (_) @declaration)
+  (type_alias_declaration name: (_) @declaration)
+  (abstract_class_declaration name: (_) @declaration)
+  (class_declaration name: (_) @declaration)
+  (enum_declaration name: (_) @declaration)
   (export_statement
-    (_ kind: ["const" "let"] (variable_declarator name: (_) @name)))
+    (_ kind: ["const" "let"] (variable_declarator name: (_) @declaration)))
   (_ body: [
     (enum_body [
-      (property_identifier) @name
-      (_ name: (property_identifier) @name)
+      (property_identifier) @member
+      (_ name: (property_identifier) @member)
     ])
     (class_body [
-      (method_definition name: (_) @name)
-      (public_field_definition name: (_) @name)
+      (method_definition name: (_) @member)
+      (public_field_definition name: (_) @member)
     ])
     (object_type [
-      (method_signature name: (_) @name)
+      (method_signature name: (_) @member)
       (property_signature
-        name: (_) @name
+        name: (_) @member
         type: (type_annotation (function_type)))
     ])
   ])
   (type_alias_declaration value: (object_type [
-    (method_signature name: (_) @name)
+    (method_signature name: (_) @member)
     (property_signature
-      name: (_) @name
+      name: (_) @member
       type: (type_annotation (function_type)))
   ]))
 ]

@@ -10,8 +10,13 @@ local M = {}
 ---@param implementations boolean|nil
 local function convert_nodes_to_response(tree, query, text_document, lenses, implementations)
   for _, match in query:iter_matches(tree:root(), vim.uri_to_bufnr(text_document.uri)) do
-    for _, node in pairs(match) do
+    for id, node in pairs(match) do
+      local name = query.captures[id]
       local start_row, start_col, end_row, end_col = node:range()
+
+      if config.disable_member_code_lens and name == "member" then
+        goto continue
+      end
 
       table.insert(lenses, {
         range = {
@@ -23,17 +28,9 @@ local function convert_nodes_to_response(tree, query, text_document, lenses, imp
           implementations = implementations,
         },
       })
+      ::continue::
     end
   end
-end
-
----@param lang string
----@param prefix string
----@return Query|nil
-local function get_query(lang, prefix)
-  local query_name = prefix .. (config.disable_member_code_lens and "_no_member" or "")
-
-  return ts.query.get(lang, query_name)
 end
 
 ---@type TsserverProtocolHandler
@@ -66,7 +63,7 @@ function M.handler(request, _, params)
   local lang = parser:lang()
 
   if config.code_lens ~= config.code_lens_mode.references_only then
-    local query = get_query(lang, "implementations")
+    local query = ts.query.get(lang, "implementations")
 
     if query then
       convert_nodes_to_response(tree, query, text_document, lenses, true)
@@ -74,7 +71,7 @@ function M.handler(request, _, params)
   end
 
   if config.code_lens ~= config.code_lens_mode.implementations_only then
-    local query = get_query(lang, "references")
+    local query = ts.query.get(lang, "references")
 
     if query then
       convert_nodes_to_response(tree, query, text_document, lenses)
