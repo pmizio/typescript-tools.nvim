@@ -159,6 +159,7 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
 
     if handler_module.cancel_on_change and params then
       self.requests_to_cancel_on_change[handler_context.seq] = params.textDocument
+        or (params.data or {}).textDocument
     end
 
     return handler_context.seq
