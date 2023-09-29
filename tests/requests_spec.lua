@@ -7,9 +7,6 @@ local methods = c.LspMethods
 local custom_methods = c.CustomMethods
 local v = vim.version
 
--- INFO: increase on demand, in tests we run only one server so long running tasks can cause timeouts
-local semantic_server_timeout = 2000
-
 describe("Lsp request", function()
   after_each(function()
     -- INFO: close all buffers
@@ -582,7 +579,7 @@ describe("Lsp request", function()
 
     local ret = vim.lsp.buf_request_sync(0, custom_methods.Diagnostic, {
       textDocument = { uri = f1 },
-    }, semantic_server_timeout)
+    })
 
     local result = lsp_assert.response(ret)
 
@@ -679,7 +676,7 @@ describe("Lsp request", function()
 
     local ret = vim.lsp.buf_request_sync(0, methods.CodeLens, {
       textDocument = utils.get_text_document(),
-    }, semantic_server_timeout)
+    })
 
     local result = lsp_assert.response(ret)
 
@@ -701,7 +698,7 @@ describe("Lsp request", function()
       range = {
         start = { character = 13, line = 0 },
       },
-    }, semantic_server_timeout)
+    })
 
     local result = lsp_assert.response(ret)
 
