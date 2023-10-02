@@ -106,9 +106,9 @@ end
 
 ---@return Path|nil
 local function get_tsserver_from_mason()
-  local MASON = os.getenv "MASON"
-  if MASON then
-    local tsserver_path = Path:new(MASON, "packages", "typescript-language-server")
+  local mason_path = os.getenv "MASON"
+  if mason_path then
+    local tsserver_path = Path:new(mason_path, "packages", "typescript-language-server")
 
     if (plugin_config.tsserver_path or ""):find(tsserver_path:absolute(), 1, true) then
       vim.schedule_wrap(vim.notify_once)(
