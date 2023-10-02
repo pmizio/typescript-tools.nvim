@@ -109,9 +109,7 @@ local function get_tsserver_from_mason()
   if vim.env.MASON then
     local tsserver_path = Path:new(vim.env.MASON, "packages", "typescript-language-server")
 
-    if
-      (plugin_config.tsserver_path or ""):find(tsserver_path, 1, true) and tsserver_path:exists()
-    then
+    if (plugin_config.tsserver_path or ""):find(tsserver_path, 1, true) then
       vim.schedule_wrap(vim.notify_once)(
         "[typescript-tools] We detected usage of `tsserver_path` to integrate with Mason. "
           .. "This integration is now built-in you can remove unnecessary code from your config.",
