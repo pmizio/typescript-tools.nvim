@@ -27,6 +27,7 @@ vim.opt.runtimepath:append(get_root())
 vim.opt.packpath = { get_root ".tests/site" }
 load "nvim-lua/plenary.nvim"
 load "neovim/nvim-lspconfig"
+load "nvim-treesitter/nvim-treesitter"
 vim.env.XDG_CONFIG_HOME = get_root ".tests/config"
 vim.env.XDG_DATA_HOME = get_root ".tests/data"
 vim.env.XDG_STATE_HOME = get_root ".tests/state"
@@ -37,6 +38,15 @@ vim.cmd.packloadall { bang = true }
 _G.initialized = false
 _G.file_opened = false
 _G.file_closed = false
+_G.initial_diagnostics_emitted = false
+
+local c = require "typescript-tools.protocol.constants"
+local old_diagnostic_handler = vim.lsp.handlers[c.CustomMethods.Diagnostic]
+
+vim.lsp.handlers[c.CustomMethods.Diagnostic] = function(...)
+  _G.initial_diagnostics_emitted = true
+  old_diagnostic_handler(...)
+end
 
 local old_handler = vim.lsp.handlers["$/progress"]
 vim.lsp.handlers["$/progress"] = function(err, result, ...)
@@ -63,6 +73,11 @@ vim.api.nvim_create_autocmd("User", {
   group = augroup,
 })
 
+require("nvim-treesitter.configs").setup {
+  ensure_installed = { "typescript" },
+  sync_install = true,
+}
+
 require("typescript-tools").setup {
   settings = {
     separate_diagnostic_server = false,
@@ -71,6 +86,7 @@ require("typescript-tools").setup {
       includeInlayFunctionLikeReturnTypeHints = true,
       includeInlayVariableTypeHints = true,
     },
+    code_lens = "all",
   },
 }
 

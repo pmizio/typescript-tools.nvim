@@ -11,6 +11,8 @@
 ---@field complete_function_calls boolean
 ---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused" | "remove_unused_imports")[]
 ---@field include_completions_with_insert_text boolean
+---@field code_lens code_lens_mode
+---@field disable_member_code_lens boolean
 local M = {}
 local __store = {}
 
@@ -78,6 +80,14 @@ M.publish_diagnostic_mode = {
   change = "change",
 }
 
+---@enum code_lens_mode
+M.code_lens_mode = {
+  all = "all",
+  implementations_only = "implementations_only",
+  references_only = "references_only",
+  off = "off",
+}
+
 M.plugin_name = "typescript-tools"
 
 ---@param settings table
@@ -119,6 +129,8 @@ function M.load_settings(settings)
       "boolean",
       true,
     },
+    ["settings.code_lens"] = { settings.code_lens, "string", true },
+    ["settings.disable_member_code_lens"] = { settings.disable_member_code_lens, "boolean", true },
   }
 
   __store = vim.tbl_deep_extend("force", __store, settings)
@@ -161,6 +173,10 @@ function M.load_settings(settings)
 
   if not settings.include_completions_with_insert_text then
     __store.include_completions_with_insert_text = true
+  end
+
+  if not M.code_lens_mode[settings.code_lens] then
+    __store.code_lens = M.code_lens_mode.off
   end
 end
 

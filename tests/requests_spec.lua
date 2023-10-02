@@ -11,6 +11,7 @@ describe("Lsp request", function()
   after_each(function()
     -- INFO: close all buffers
     _G.file_closed = false
+    _G.initial_diagnostics_emitted = false
     vim.cmd "silent 1,$bd!"
     utils.wait_for_lsp_did_close()
   end)
@@ -571,6 +572,7 @@ describe("Lsp request", function()
     utils.open_file "src/diagnostic1.ts"
     utils.open_file("src/diagnostic2.ts", "vs")
     utils.wait_for_lsp_initialization()
+    utils.wait_for_initial_diagnostics()
 
     local f1 = vim.uri_from_fname(vim.fn.getcwd() .. "/src/diagnostic1.ts")
     local f2 = vim.uri_from_fname(vim.fn.getcwd() .. "/src/diagnostic2.ts")
@@ -666,5 +668,49 @@ describe("Lsp request", function()
         line = 8,
       },
     })
+  end)
+
+  it("should return correct response for " .. methods.CodeLens, function()
+    utils.open_file "src/diagnostic1.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.CodeLens, {
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+
+    local file_uri = "file://" .. vim.fn.getcwd() .. "/src/diagnostic1.ts"
+    ---@diagnostic disable-next-line
+    assert.is.same(result[1].data.textDocument.uri, file_uri)
+  end)
+
+  it("should return correct response for " .. methods.CodeLensResolve, function()
+    utils.open_file "src/diagnostic1.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, methods.CodeLensResolve, {
+      data = {
+        textDocument = utils.get_text_document(),
+      },
+      range = {
+        start = { character = 13, line = 0 },
+      },
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+    assert.is.table(result.command)
+
+    local version = v.parse(vim.env.TEST_TYPESCRIPT_VERSION)
+
+    if version and v.lt(version, { 4, 5 }) then
+      assert.is.same(result.command.title, "references: 1")
+    else
+      assert.is.same(result.command.title, "references: 2")
+    end
   end)
 end)
