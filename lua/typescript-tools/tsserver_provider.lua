@@ -106,13 +106,11 @@ end
 
 ---@return Path|nil
 local function get_tsserver_from_mason()
-  local ok, mason_registry = pcall(require, "mason-registry")
+  local mason_path = os.getenv "MASON"
+  if mason_path then
+    local tsserver_path = Path:new(mason_path, "packages", "typescript-language-server")
 
-  if ok and mason_registry then
-    local tsserver_path =
-      mason_registry.get_package("typescript-language-server"):get_install_path()
-
-    if (plugin_config.tsserver_path or ""):find(tsserver_path, 1, true) then
+    if (plugin_config.tsserver_path or ""):find(tsserver_path:absolute(), 1, true) then
       vim.schedule_wrap(vim.notify_once)(
         "[typescript-tools] We detected usage of `tsserver_path` to integrate with Mason. "
           .. "This integration is now built-in you can remove unnecessary code from your config.",
@@ -120,7 +118,7 @@ local function get_tsserver_from_mason()
       )
     end
 
-    return Path:new(tsserver_path, "node_modules")
+    return tsserver_path:joinpath "node_modules"
   end
 
   return nil
@@ -129,7 +127,6 @@ end
 ---@return Path
 function TsserverProvider:get_executable_path()
   local mason_tsserver = get_tsserver_from_mason()
-
   if plugin_config.tsserver_path then
     local tsserver_path = Path:new(plugin_config.tsserver_path)
 
