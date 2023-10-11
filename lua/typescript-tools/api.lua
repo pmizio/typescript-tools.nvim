@@ -1,22 +1,16 @@
+local a = require "plenary.async"
+local uv = require "plenary.async.uv_async"
+local au = require "plenary.async.util"
 local c = require "typescript-tools.protocol.constants"
 local plugin_config = require "typescript-tools.config"
+local async = require "typescript-tools.async"
+local utils = require "typescript-tools.utils"
+
 local timeout = 1000 -- 1 secs
 
+local get_typescript_client = utils.get_typescript_client
+
 local M = {}
-
----@param bufnr integer
-local function get_typescript_client(bufnr)
-  local clients = vim.lsp.get_active_clients {
-    name = plugin_config.plugin_name,
-    bufnr = bufnr,
-  }
-
-  if #clients == 0 then
-    return
-  end
-
-  return clients[1]
-end
 
 ---@param error_codes table - table of all diagnostic codes
 ---@param fix_names table
@@ -159,6 +153,50 @@ function M.request_diagnostics(callback)
   vim.lsp.buf_request(0, c.CustomMethods.Diagnostic, {
     textDocument = text_document,
   }, callback)
+end
+
+---@param is_sync boolean
+function M.rename(is_sync)
+  local source = vim.api.nvim_buf_get_name(0)
+
+  a.void(function()
+    local newSource = async.ui_input { prompt = "New path: ", default = source }
+
+    if not newSource then
+      return
+    end
+
+    local err, result = async.buf_request_isomorphic(is_sync, 0, c.LspMethods.WillRenameFiles, {
+      files = {
+        {
+          oldUri = vim.uri_from_fname(source),
+          newUri = vim.uri_from_fname(newSource),
+        },
+      },
+    })
+
+    local changes = result and result.changes
+    if not err and changes then
+      local fs_err = uv.fs_stat(newSource)
+      if not fs_err then
+        au.scheduler()
+        vim.notify_once("[typescript-tools] Cannot rename to exitsting file!", vim.log.levels.ERROR)
+        return
+      end
+
+      fs_err = uv.fs_rename(source, newSource)
+      assert(not fs_err, fs_err)
+
+      au.scheduler()
+      for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+        if vim.api.nvim_buf_get_name(bufnr) == source then
+          vim.api.nvim_buf_set_name(bufnr, newSource)
+        end
+      end
+
+      vim.lsp.util.apply_workspace_edit(result or {}, "utf-8")
+    end
+  end)()
 end
 
 --- Returns an |lsp-handler| that filters TypeScript diagnostics with the given codes.

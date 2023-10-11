@@ -1,4 +1,5 @@
 local uv = vim.loop
+local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
@@ -61,6 +62,20 @@ function M.version_compare(mode, version1, version2)
   end
 
   return vim.version[mode](version1, version2)
+end
+
+---@param bufnr integer
+function M.get_typescript_client(bufnr)
+  local clients = vim.lsp.get_clients {
+    name = plugin_config.plugin_name,
+    bufnr = bufnr,
+  }
+
+  if #clients == 0 then
+    return
+  end
+
+  return clients[1]
 end
 
 return M
