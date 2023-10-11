@@ -64,9 +64,17 @@ function M.version_compare(mode, version1, version2)
   return vim.version[mode](version1, version2)
 end
 
+---@return boolean
+function M.is_nightly()
+  local v = vim.version().prerelease
+
+  return type(v) ~= "boolean" and v ~= nil or v
+end
+
 ---@param bufnr integer
 function M.get_typescript_client(bufnr)
-  local clients = vim.lsp.get_clients {
+  local get_clients = M.is_nightly() and vim.lsp.get_clients or vim.lsp.get_active_clients
+  local clients = get_clients {
     name = plugin_config.plugin_name,
     bufnr = bufnr,
   }
