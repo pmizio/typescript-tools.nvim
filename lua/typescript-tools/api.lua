@@ -156,7 +156,7 @@ function M.request_diagnostics(callback)
 end
 
 ---@param is_sync boolean
-function M.rename(is_sync)
+function M.rename_file(is_sync)
   local source = vim.api.nvim_buf_get_name(0)
 
   a.void(function()
@@ -189,7 +189,7 @@ function M.rename(is_sync)
 
       au.scheduler()
       for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
-        if vim.api.nvim_buf_get_name(bufnr) == source then
+        if vim.api.nvim_buf_is_valid(bufnr) and vim.api.nvim_buf_get_name(bufnr) == source then
           vim.api.nvim_buf_set_name(bufnr, newSource)
         end
       end

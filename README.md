@@ -1,4 +1,7 @@
-<h1 align="center">typescript-tools.nvim</h1
+<h1 align="center">typescript-tools.nvim</h1>
+<p align="center"><sup>⚡ TypeScript integration NeoVim deserves ⚡</sup></p>
+
+### 🚧 Warning 🚧
 
 Please note that the plugin is currently in the early beta version, which means you may encounter
 bugs.
@@ -242,7 +245,7 @@ This plugin provides several custom user commands (they are only applied to curr
 - `TSToolsGoToSourceDefinition` - goes to
   [source definition](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#go-to-source-definition)
   (available since TS v4.7)
-- `TSToolsRename` - allow to rename current file and apply changes to connected files
+- `TSToolsRenameFile` - allow to rename current file and apply changes to connected files
 
 ## Supported LSP methods
 
