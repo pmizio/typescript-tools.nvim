@@ -245,6 +245,7 @@ This plugin provides several custom user commands (they are only applied to curr
 - `TSToolsGoToSourceDefinition` - goes to
   [source definition](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#go-to-source-definition)
   (available since TS v4.7)
+- `TSToolsRenameFile` - allow to rename current file and apply changes to connected files
 
 ## Supported LSP methods
 
@@ -281,7 +282,6 @@ This plugin provides several custom user commands (they are only applied to curr
 
 ## 🚦 Roadmap
 
-- `textDocument/codeLens` - [#39](https://github.com/pmizio/typescript-tools.nvim/pull/39)
 - `textDocument/linkedEditingRange` - [#32](https://github.com/pmizio/typescript-tools.nvim/pull/32)
 - Embedded language support(JS inside of HTML) - [#43](https://github.com/pmizio/typescript-tools.nvim/pull/43)
 
