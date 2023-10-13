@@ -72,6 +72,7 @@ function M.is_nightly()
 end
 
 ---@param bufnr integer
+---@return lsp.Client|nil
 function M.get_typescript_client(bufnr)
   local get_clients = M.is_nightly() and vim.lsp.get_clients or vim.lsp.get_active_clients
   local clients = get_clients {

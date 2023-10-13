@@ -11,6 +11,7 @@ function M.create_lsp_attach_augcmd(callback, augroup)
   local initialized = false
 
   api.nvim_create_autocmd("LspAttach", {
+    pattern = M.extensions_pattern,
     callback = function(e)
       local client = vim.lsp.get_client_by_id(e.data.client_id)
 

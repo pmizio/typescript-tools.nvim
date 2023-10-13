@@ -11,7 +11,7 @@ function M.setup_code_lens_autocmds()
     pcall(vim.lsp.codelens.refresh)
 
     api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "CursorHold" }, {
-      pattern = M.extensions_pattern,
+      pattern = common.extensions_pattern,
       callback = function(e)
         ---@type string
         local file = e.file
