@@ -93,13 +93,15 @@ local function create_snippet(item, display_parts)
   local snippet =
     string.format("%s(", item.insertText or (item.textEdit and item.textEdit.newText) or item.label)
   for i, part in ipairs(parts) do
-    snippet = snippet .. string.format("${%d:%s}", i - 1, part.text:gsub("([$}\\])", "\\%1"))
+    local stop_index = (has_optional_parameters or i ~= #parts) and i or 0
+
+    snippet = snippet .. string.format("${%d:%s}", stop_index, part.text:gsub("([$}\\])", "\\%1"))
     if i ~= #parts then
       snippet = snippet .. ", "
     end
   end
   if has_optional_parameters then
-    snippet = snippet .. string.format("$%d", #parts)
+    snippet = snippet .. "$0"
   end
   snippet = snippet .. ")"
   item.insertText = snippet
