@@ -237,6 +237,7 @@ return {
     Diagnostic = "typescriptTools/diagnostic",
     BatchCodeActions = "typescriptTools/batchCodeActions",
     ConfigurePlugin = "typescriptTools/configurePlugin",
+    JsxClosingTag = "typescriptTools/jsxClosingTag",
   },
   TsserverEvents = {
     ProjectLoadingStart = "projectLoadingStart",

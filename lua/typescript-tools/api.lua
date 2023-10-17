@@ -226,4 +226,54 @@ function M.filter_diagnostics(codes)
   end
 end
 
+---JsxClosingTag feature impl
+---@param bufnr integer
+---@param params table
+---@param cb fun()
+---@param pre_request_id integer|nil
+function M.jsx_close_tag(bufnr, params, cb, pre_request_id)
+  local typescript_client = get_typescript_client(bufnr)
+  if typescript_client == nil then
+    return nil
+  end
+  if pre_request_id ~= nil then
+    typescript_client.cancel_request(pre_request_id)
+  end
+  local changdtick = vim.api.nvim_buf_get_var(bufnr, "changedtick")
+
+  local _, request_id = typescript_client.request(
+    c.CustomMethods.JsxClosingTag,
+    params,
+    ---@param data { newText: string, caretOffset: number }
+    function(err, data)
+      if
+        err ~= nil
+        or data == nil
+        or vim.tbl_isempty(data)
+        or bufnr ~= vim.api.nvim_get_current_buf()
+        or changdtick ~= vim.api.nvim_buf_get_var(bufnr, "changedtick")
+      then
+        return
+      end
+
+      vim.lsp.util.apply_text_edits({
+        {
+          range = {
+            start = params.position,
+            ["end"] = params.position,
+          },
+          newText = data.newText,
+        },
+      }, bufnr, "utf-8")
+
+      vim.api.nvim_win_set_cursor(0, { params.position.line + 1, params.position.character })
+
+      cb()
+    end,
+    bufnr
+  )
+
+  return request_id
+end
+
 return M
