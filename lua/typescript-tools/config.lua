@@ -8,6 +8,7 @@
 ---@field tsserver_format_options table|fun(filetype: string): table
 ---@field tsserver_file_preferences table|fun(filetype: string): table
 ---@field tsserver_max_memory number|"auto"
+---@field tsserver_locale string
 ---@field complete_function_calls boolean
 ---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused" | "remove_unused_imports")[]
 ---@field include_completions_with_insert_text boolean
@@ -118,6 +119,11 @@ function M.load_settings(settings)
       { "number", "string" },
       true,
     },
+    ["settings.tsserver_locale"] = {
+      settings.tsserver_locale,
+      "string",
+      true,
+    },
     ["settings.complete_function_calls"] = { settings.complete_function_calls, "boolean", true },
     ["settings.expose_as_code_action"] = {
       settings.expose_as_code_action,
@@ -161,6 +167,10 @@ function M.load_settings(settings)
 
   if not settings.tsserver_max_memory then
     __store.tsserver_max_memory = "auto"
+  end
+
+  if not settings.tsserver_locale then
+    __store.tsserver_locale = "en"
   end
 
   if not settings.complete_function_calls then
