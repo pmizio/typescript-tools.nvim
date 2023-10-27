@@ -30,6 +30,9 @@ function M.setup_jsx_close_tag_autocmds()
   common.create_lsp_attach_augcmd(function()
     local changing = false
     local request_id = nil
+    local prev_line = nil
+    local prev_line_text = ""
+
     api.nvim_create_autocmd({ "TextChangedI" }, {
       pattern = { "*" },
       callback = function()
@@ -43,8 +46,19 @@ function M.setup_jsx_close_tag_autocmds()
         local params = vim.lsp.util.make_position_params(0, "utf-8")
         local bufnr = vim.api.nvim_get_current_buf()
         local line, character = params.position.line, params.position.character
-        local line_words =
-          vim.split(vim.api.nvim_buf_get_text(0, line, 0, line, character, {})[1], " ")
+        local line_text = vim.api.nvim_buf_get_text(0, line, 0, line, character, {})[1]
+
+        local is_after_delete = prev_line == line
+          and string.len(prev_line_text) >= string.len(line_text)
+
+        prev_line_text = line_text
+        prev_line = line
+
+        if is_after_delete then
+          return
+        end
+
+        local line_words = vim.split(line_text, " ")
 
         if #line_words == 0 then
           return

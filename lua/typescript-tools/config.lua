@@ -183,7 +183,7 @@ function M.load_settings(settings)
 
   if not settings.jsx_close_tag then
     __store.jsx_close_tag = {
-      enable = true,
+      enable = false,
       filetypes = { "javascriptreact", "typescriptreact" },
     }
   end
