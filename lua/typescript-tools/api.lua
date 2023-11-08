@@ -239,7 +239,7 @@ function M.jsx_close_tag(bufnr, params, cb, pre_request_id)
   if pre_request_id ~= nil then
     typescript_client.cancel_request(pre_request_id)
   end
-  local changdtick = vim.api.nvim_buf_get_var(bufnr, "changedtick")
+  local changedtick = vim.api.nvim_buf_get_var(bufnr, "changedtick")
 
   local _, request_id = typescript_client.request(
     c.CustomMethods.JsxClosingTag,
@@ -251,7 +251,7 @@ function M.jsx_close_tag(bufnr, params, cb, pre_request_id)
         or data == nil
         or vim.tbl_isempty(data)
         or bufnr ~= vim.api.nvim_get_current_buf()
-        or changdtick ~= vim.api.nvim_buf_get_var(bufnr, "changedtick")
+        or changedtick ~= vim.api.nvim_buf_get_var(bufnr, "changedtick")
       then
         return
       end
