@@ -1,7 +1,6 @@
 local api = vim.api
 
 local common = require "typescript-tools.autocommands.common"
-local c = require "typescript-tools.protocol.constants"
 local plugin_config = require "typescript-tools.config"
 local plugin_api = require "typescript-tools.api"
 
