@@ -181,11 +181,18 @@ function M.load_settings(settings)
     __store.code_lens = M.code_lens_mode.off
   end
 
+  local default_jsx_filetypes = { "javascriptreact", "typescriptreact" }
+
   if not settings.jsx_close_tag then
     __store.jsx_close_tag = {
       enable = false,
-      filetypes = { "javascriptreact", "typescriptreact" },
+      filetypes = default_jsx_filetypes,
     }
+  end
+
+  -- This "if" may be also a few lines down
+  if settings.jsx_close_tag and not settings.jsx_close_tag.filetypes then
+    __store.jsx_close_tag.filetypes = default_jsx_filetypes
   end
 end
 
