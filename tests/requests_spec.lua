@@ -713,4 +713,23 @@ describe("Lsp request", function()
       assert.is.same(result.command.title, "references: 2")
     end
   end)
+
+  it("should return correct response for " .. custom_methods.JsxClosingTag, function()
+    utils.open_file "src/jsx_close_tag.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.JsxClosingTag, {
+      position = utils.make_position(0, 5),
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+
+    assert.is.table(result)
+
+    assert.is.same(result, {
+      newText = "</div>",
+      caretOffset = 0,
+    })
+  end)
 end)
