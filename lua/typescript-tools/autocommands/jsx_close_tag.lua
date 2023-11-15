@@ -3,25 +3,9 @@ local api = vim.api
 local common = require "typescript-tools.autocommands.common"
 local plugin_config = require "typescript-tools.config"
 local plugin_api = require "typescript-tools.api"
+local list_contains = require("typescript-tools.utils").list_contains
 
 local M = {}
-
---- @generic T
---- @param list T[]
---- @param value T
---- @return boolean
-local function list_contains(list, value)
-  if vim.list_contains ~= nil then
-    return vim.list_contains(list, value)
-  end
-  for _, v in ipairs(list) do
-    if value == v then
-      return true
-    end
-  end
-
-  return false
-end
 
 function M.setup_jsx_close_tag_autocmds()
   local augroup = vim.api.nvim_create_augroup("TypescriptToolsJSXCloseTagGroup", { clear = true })
@@ -33,7 +17,7 @@ function M.setup_jsx_close_tag_autocmds()
     local prev_line_text = ""
 
     api.nvim_create_autocmd({ "TextChangedI" }, {
-      pattern = { "*" },
+      pattern = common.extensions_pattern,
       callback = function()
         if not list_contains(plugin_config.jsx_close_tag.filetypes, vim.bo.filetype) then
           return
