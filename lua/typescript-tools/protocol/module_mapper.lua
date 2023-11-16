@@ -12,6 +12,7 @@ local remapped_methods = {
   [c.CustomMethods.BatchCodeActions] = "text_document.code_action.batch",
   [c.LspMethods.CodeLensResolve] = "text_document.code_lens.resolve",
   [c.CustomMethods.ConfigurePlugin] = "text_document.configure_plugin",
+  [c.CustomMethods.JsxClosingTag] = "text_document.jsx_close_tag",
 }
 
 local noop_methods = { c.LspMethods.DidSave }

@@ -87,4 +87,21 @@ function M.get_typescript_client(bufnr)
   return clients[1]
 end
 
+--- @generic T
+--- @param list T[]
+--- @param value T
+--- @return boolean
+function M.list_contains(list, value)
+  if vim.list_contains ~= nil then
+    return vim.list_contains(list, value)
+  end
+  for _, v in ipairs(list) do
+    if value == v then
+      return true
+    end
+  end
+
+  return false
+end
+
 return M
