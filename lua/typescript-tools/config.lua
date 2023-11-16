@@ -190,7 +190,6 @@ function M.load_settings(settings)
     }
   end
 
-  -- This "if" may be also a few lines down
   if settings.jsx_close_tag and not settings.jsx_close_tag.filetypes then
     __store.jsx_close_tag.filetypes = default_jsx_filetypes
   end

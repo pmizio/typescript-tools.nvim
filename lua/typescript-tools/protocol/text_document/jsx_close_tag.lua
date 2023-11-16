@@ -10,7 +10,7 @@ function M.handler(request, response, params)
   local body = coroutine.yield()
 
   -- if execute failed will back a response include success field.
-  if body.success == false then
+  if not body.success then
     response {}
     return
   end
