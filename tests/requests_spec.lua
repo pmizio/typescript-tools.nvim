@@ -715,7 +715,7 @@ describe("Lsp request", function()
   end)
 
   it("should return correct response for " .. custom_methods.JsxClosingTag, function()
-    utils.open_file "src/jsx_close_tag.ts"
+    utils.open_file "src/jsx_close_tag.tsx"
     utils.wait_for_lsp_initialization()
 
     local ret = vim.lsp.buf_request_sync(0, custom_methods.JsxClosingTag, {
