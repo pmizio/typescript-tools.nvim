@@ -162,6 +162,11 @@ function TsserverProvider:get_executable_path()
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
   end
 
+  if not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+    tsserver_path = self.global_install_path:joinpath("bin", "tsserver")
+  end
+
   -- INFO: if there is no local or global tsserver just error out
   assert(
     tsserver_exists(tsserver_path),
