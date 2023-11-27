@@ -14,6 +14,7 @@ local is_win = vim.loop.os_uname().version:find "Windows"
 ---@field private callbacks function[]
 ---@field private root_dir Path
 ---@field private npm_local_path Path
+---@field private yarn_sdk_path Path
 ---@field private npm_global_path Path
 ---@field private global_install_path Path
 
@@ -40,6 +41,18 @@ local function find_deep_node_modules_ancestor(startpath)
   end))
 end
 
+---@param startpath string
+---@return Path
+local function find_yarn_sdk(startpath)
+  return Path:new(util.search_ancestors(startpath, function(path)
+    local tsserver_path = Path:new(path, ".yarn", "sdks", "typescript", "lib", "tsserver.js")
+
+    if tsserver_exists(tsserver_path) then
+      return path
+    end
+  end))
+end
+
 ---@private
 ---@return TsserverProvider
 function TsserverProvider.new(on_loaded)
@@ -55,6 +68,7 @@ function TsserverProvider.new(on_loaded)
 
   self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
+  self.yarn_sdk_path = find_yarn_sdk(sanitized_bufname):joinpath ".yarn/sdks"
   self.global_install_path = Path:new(vim.fn.resolve(vim.fn.exepath "tsserver")):parent():parent()
 
   local command, args = self:make_npm_root_params()
@@ -141,6 +155,11 @@ function TsserverProvider:get_executable_path()
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
     tsserver_path = Path:new(self.npm_local_path, "typescript", "lib", "tsserver.js")
+  end
+
+  if not tsserver_exists(tsserver_path) then
+    local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
+    tsserver_path = Path:new(self.yarn_sdk_path, "typescript", "lib", "tsserver.js")
   end
 
   if not tsserver_exists(tsserver_path) then
