@@ -9,7 +9,12 @@ local M = {}
 ---@param origin_selection_range table
 ---@return table
 local function file_span_with_context_to_location_link(file_span, origin_selection_range)
-  local uri = vim.uri_from_fname(file_span.file)
+  local uri = file_span.file
+
+  if not vim.startswith(uri, "zipfile://") then
+    uri = vim.uri_from_fname(uri)
+  end
+
   local range = utils.convert_tsserver_range_to_lsp(file_span)
 
   local target_range = file_span.contextStart
