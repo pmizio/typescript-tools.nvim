@@ -162,9 +162,10 @@ function TsserverProvider:get_executable_path()
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
   end
 
+-- INFO: to resolve tsserver in Nix store
   if not tsserver_exists(tsserver_path) then
     local _ = log.trace() and log.trace("tsserver", tsserver_path:absolute(), "not exists.")
-    tsserver_path = self.global_install_path:joinpath("bin", "tsserver")
+    tsserver_path = self.global_install_path:joinpath("lib", "node_modules","typescript","lib","tsserver.js")
   end
 
   -- INFO: if there is no local or global tsserver just error out
