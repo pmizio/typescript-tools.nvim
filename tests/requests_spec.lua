@@ -734,4 +734,23 @@ describe("Lsp request", function()
       caretOffset = 0,
     })
   end)
+
+  it("should return correct response for " .. custom_methods.FileReferences, function()
+    local version = v.parse(vim.env.TEST_TYPESCRIPT_VERSION)
+    if version and v.lt(version, { 4, 2 }) then
+      utils.print_skip "`fileReferences` request isn't supported in typescript version below 4.2"
+      return
+    end
+
+    utils.open_file "src/exports.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.FileReferences, {
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+    assert.are.same(#result, 1)
+    assert.are.same(result[1].uri, "file://" .. vim.fn.getcwd() .. "/src/imports.ts")
+  end)
 end)
