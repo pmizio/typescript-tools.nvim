@@ -736,6 +736,12 @@ describe("Lsp request", function()
   end)
 
   it("should return correct response for " .. custom_methods.FileReferences, function()
+    local version = v.parse(vim.env.TEST_TYPESCRIPT_VERSION)
+    if version and v.lt(version, { 4, 2 }) then
+      utils.print_skip "`fileReferences` request isn't supported in typescript version below 4.2"
+      return
+    end
+
     utils.open_file "src/exports.ts"
     utils.wait_for_lsp_initialization()
 
