@@ -256,6 +256,7 @@ This plugin provides several custom user commands (they are only applied to curr
   [source definition](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#go-to-source-definition)
   (available since TS v4.7)
 - `TSToolsRenameFile` - allow to rename current file and apply changes to connected files
+- `TSToolsFileReferences` - find files that reference the current file (available since TS v4.2)
 
 ## Supported LSP methods
 
