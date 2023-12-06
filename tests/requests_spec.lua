@@ -745,9 +745,6 @@ describe("Lsp request", function()
 
     local result = lsp_assert.response(ret)
     assert.are.same(#result, 1)
-    assert.are.same(
-      result[1].uri,
-      "file:///Users/pawel.mizio/Documents/GitHub/typescript-tools.nvim/tests/ts_project/src/imports.ts"
-    )
+    assert.are.same(result[1].uri, "file://" .. vim.fn.getcwd() .. "/src/imports.ts")
   end)
 end)
