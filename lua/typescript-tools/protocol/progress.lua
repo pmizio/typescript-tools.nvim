@@ -11,6 +11,7 @@ local function create_message(event, message)
     value = {
       kind = event,
       title = message,
+      message = message,
     },
   }
 end
