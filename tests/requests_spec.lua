@@ -734,4 +734,20 @@ describe("Lsp request", function()
       caretOffset = 0,
     })
   end)
+
+  it("should return correct response for " .. custom_methods.FileReferences, function()
+    utils.open_file "src/exports.ts"
+    utils.wait_for_lsp_initialization()
+
+    local ret = vim.lsp.buf_request_sync(0, custom_methods.FileReferences, {
+      textDocument = utils.get_text_document(),
+    })
+
+    local result = lsp_assert.response(ret)
+    assert.are.same(#result, 1)
+    assert.are.same(
+      result[1].uri,
+      "file:///Users/pawel.mizio/Documents/GitHub/typescript-tools.nvim/tests/ts_project/src/imports.ts"
+    )
+  end)
 end)

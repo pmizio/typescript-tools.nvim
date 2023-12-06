@@ -55,6 +55,10 @@ function M.setup_user_commands()
   create_command("TSToolsRenameFile", function(is_sync)
     api.rename_file(is_sync)
   end)
+
+  create_command("TSToolsFileReferences", function(is_sync)
+    api.file_references(is_sync)
+  end)
 end
 
 return M
