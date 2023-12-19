@@ -208,6 +208,38 @@ require("typescript-tools").setup {
 }
 ```
 
+If you want to make `tsserver_format_options` or `tsserver_file_preferences` filetype dependant you
+need to may set them as functions returning tables eg.
+<details>
+  <summary>Example code here</summary>
+  <p>
+```lua
+require("typescript-tools").setup {
+  settings = {
+    ...
+    tsserver_file_preferences = function(ft)
+      -- Some "ifology" using `ft` of opened file
+      return {
+        includeInlayParameterNameHints = "all",
+        includeCompletionsForModuleExports = true,
+        quotePreference = "auto",
+        ...
+      }
+    end,
+    tsserver_format_options = function(ft)
+      -- Some "ifology" using `ft` of opened file
+      return {
+        allowIncompleteCompletions = false,
+        allowRenameOfImportPath = false,
+        ...
+      }
+    end
+  },
+}
+```
+  </p>
+</details>
+
 The default values for `preferences` and `format_options` are in [this file](https://github.com/pmizio/typescript-tools.nvim/blob/master/lua/typescript-tools/config.lua#L17)
 
 #### 💅 `styled-components` support
