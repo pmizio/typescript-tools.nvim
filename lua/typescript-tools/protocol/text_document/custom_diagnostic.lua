@@ -6,18 +6,45 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
-local SEVERITY_MAP = {
+local severity_map = {
   suggestion = c.DiagnosticSeverity.Hint,
   warning = c.DiagnosticSeverity.Warning,
   error = c.DiagnosticSeverity.Error,
 }
 
---- @param category number
+-- Stealed from vscode source:
+-- https://github.com/microsoft/vscode/blob/401d89f2cb622496857f13741f5535e4be4589be/extensions/typescript-language-features/src/typeScriptServiceClientHost.ts#L40
+local stylecheck_diagnostics = {
+  -- variable declared but never used
+  6196,
+  6133,
+  -- property declareted but never used
+  6138,
+  -- all imports are unused
+  6192,
+  -- unreachable code
+  7027,
+  -- unused label
+  7028,
+  -- fall through case in switch
+  7029,
+  -- not all code paths return a value
+  7030,
+}
+vim.tbl_add_reverse_lookup(stylecheck_diagnostics)
+
+--- @param diagnostic table
 --- @return DiagnosticSeverity
-local function category_to_severity(category)
-  local severity = SEVERITY_MAP[category]
+local function category_to_severity(diagnostic)
+  local severity = severity_map[diagnostic.category]
+
+  if severity == c.DiagnosticSeverity.Error and stylecheck_diagnostics[diagnostic.code] then
+    return c.DiagnosticSeverity.Warning
+  end
+
   if not severity then
-    local _ = log.warn() and log.warn("tsserver", "cannot find correct severity for: ", category)
+    local _ = log.warn()
+      and log.warn("tsserver", "cannot find correct severity for: ", diagnostic.category)
     return c.DiagnosticSeverity.Error
   end
 
@@ -110,7 +137,7 @@ function M.handler(request, response, params)
         message = diagnostic.text,
         source = c.DiagnosticSource,
         code = diagnostic.code,
-        severity = category_to_severity(diagnostic.category),
+        severity = category_to_severity(diagnostic),
         range = proto_utils.convert_tsserver_range_to_lsp(diagnostic),
         relatedInformation = diagnostic.relatedInformation
           and convert_related_information(diagnostic.relatedInformation),
