@@ -210,9 +210,11 @@ require("typescript-tools").setup {
 
 If you want to make `tsserver_format_options` or `tsserver_file_preferences` filetype dependant you
 need to may set them as functions returning tables eg.
+
 <details>
   <summary>Example code here</summary>
   <p>
+
 ```lua
 require("typescript-tools").setup {
   settings = {
@@ -237,6 +239,7 @@ require("typescript-tools").setup {
   },
 }
 ```
+
   </p>
 </details>
 
