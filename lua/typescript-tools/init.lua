@@ -44,6 +44,26 @@ function M.setup(config)
     }
   end
 
+  -- INFO: some nasty ifology but it need to be placed somewhere
+  -- I prefer it here than in huge file tsserver.lua
+  -- Rationale: `on_attach` is called based on response from `configure` request and because we
+  -- have two servers nvim get also two responses
+  local on_attach_called = false
+  local config_on_attach = config.on_attach
+
+  local function on_attach(...)
+    if on_attach_called then
+      return
+    end
+
+    on_attach_called = true
+    config_on_attach(...)
+  end
+
+  if config.on_attach then
+    config.on_attach = on_attach
+  end
+
   lspconfig[plugin_config.plugin_name].setup(config)
 end
 
