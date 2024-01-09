@@ -296,4 +296,14 @@ function M.file_references(is_sync)
   end)()
 end
 
+---@param tmpfile string
+function M.save_snapshot_to(tmpfile)
+  async.buf_request_isomorphic(
+    true,
+    0,
+    c.CustomMethods.SaveTo,
+    { textDocument = vim.lsp.util.make_text_document_params(), tmpfile = tmpfile }
+  )
+end
+
 return M
