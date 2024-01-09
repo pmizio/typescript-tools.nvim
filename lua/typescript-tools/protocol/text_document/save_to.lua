@@ -7,7 +7,7 @@ function M.handler(request, response, params)
   local text_document = params.textDocument
 
   -- tsserver protocol reference:
-  -- https://github.com/microsoft/TypeScript/blob/29cbfe9a2504cfae30bae938bdb2be6081ccc5c8/lib/protocol.d.ts#L930
+  -- https://github.com/microsoft/TypeScript/blob/f57e5104a3e21e82cafb818b531c8ec54ec0baa0/src/server/protocol.ts#L3123
   request {
     command = c.CommandTypes.Saveto,
     arguments = {
