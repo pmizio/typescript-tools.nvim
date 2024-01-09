@@ -34,8 +34,12 @@ end
 
 ---@param span table
 ---@param bufnr number
----@return table
+---@return table?
 local function as_folding_range(span, bufnr)
+  if not span.textSpan then
+    return nil
+  end
+
   local range = utils.convert_tsserver_range_to_lsp(span.textSpan)
   local kind = tsserver_fold_kind_to_lsp_map[span.kind]
 
@@ -72,9 +76,17 @@ function M.handler(request, response, params)
   vim.schedule(function()
     local requested_bufnr = vim.uri_to_bufnr(params.textDocument.uri)
 
-    response(vim.tbl_map(function(range)
-      return as_folding_range(range, requested_bufnr)
-    end, body))
+    local ranges = {}
+
+    for _, span in body do
+      local folding_range = as_folding_range(span, requested_bufnr)
+
+      if span.textSpan then
+        table.insert(ranges, folding_range)
+      end
+    end
+
+    response(ranges)
   end)
 end
 
