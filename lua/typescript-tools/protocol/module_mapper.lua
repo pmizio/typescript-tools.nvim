@@ -14,6 +14,7 @@ local remapped_methods = {
   [c.CustomMethods.ConfigurePlugin] = "text_document.configure_plugin",
   [c.CustomMethods.JsxClosingTag] = "text_document.jsx_close_tag",
   [c.CustomMethods.FileReferences] = "text_document.file_references",
+  [c.CustomMethods.SaveTo] = "text_document.save_to",
 }
 
 local noop_methods = { c.LspMethods.DidSave }
