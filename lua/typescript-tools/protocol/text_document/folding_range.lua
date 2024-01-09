@@ -78,7 +78,7 @@ function M.handler(request, response, params)
 
     local ranges = {}
 
-    for _, span in body do
+    for _, span in ipairs(body) do
       local folding_range = as_folding_range(span, requested_bufnr)
 
       if span.textSpan then
