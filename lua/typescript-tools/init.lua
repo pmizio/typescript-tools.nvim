@@ -48,16 +48,14 @@ function M.setup(config)
   -- I prefer it here than in huge file tsserver.lua
   -- Rationale: `on_attach` is called based on response from `configure` request and because we
   -- have two servers nvim get also two responses
-  local on_attach_called = false
+  local last_bufnr = -1
   local config_on_attach = config.on_attach
 
-  local function on_attach(...)
-    if on_attach_called then
-      return
+  local function on_attach(client, bufnr)
+    if bufnr ~= last_bufnr then
+      last_bufnr = bufnr
+      config_on_attach(client, bufnr)
     end
-
-    on_attach_called = true
-    config_on_attach(...)
   end
 
   if config.on_attach then
