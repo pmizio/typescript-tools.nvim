@@ -3,6 +3,7 @@ local configs = require "lspconfig.configs"
 local util = require "lspconfig.util"
 local rpc = require "typescript-tools.rpc"
 local plugin_config = require "typescript-tools.config"
+local on_attach_aucmd = require "typescript-tools.autocommands.on_attach"
 
 local M = {}
 
@@ -48,10 +49,10 @@ function M.setup(config)
   -- I prefer it here than in huge file tsserver.lua
   -- Rationale: `on_attach` is called based on response from `configure` request and because we
   -- have two servers nvim get also two responses
-  local buf_map = {}
+  local buf_map = on_attach_aucmd.buf_map
   local config_on_attach = config.on_attach
 
-  local function on_attach(client, bufnr)
+  local function wrapped_on_attach(client, bufnr)
     local buf_key = tostring(bufnr)
     if buf_map[buf_key] then
       return
@@ -60,17 +61,8 @@ function M.setup(config)
     config_on_attach(client, bufnr)
   end
 
-  local augroup = vim.api.nvim_create_augroup("TypescriptToolsOnAttachGroup", { clear = true })
-  vim.api.nvim_create_autocmd("BufDelete", {
-    callback = function(args)
-      local buf_key = tostring(args.buf)
-      buf_map[buf_key] = false
-    end,
-    group = augroup,
-  })
-
   if config.on_attach then
-    config.on_attach = on_attach
+    config.on_attach = wrapped_on_attach
   end
 
   lspconfig[plugin_config.plugin_name].setup(config)
