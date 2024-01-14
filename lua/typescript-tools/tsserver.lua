@@ -168,7 +168,15 @@ function Tsserver:handle_request(method, params, callback, notify_reply_callback
   function handler_context.response(response, error)
     local seq = get_seq()
     local notify_reply = notify_reply_callback and vim.schedule_wrap(notify_reply_callback)
+    ---@type function|nil
     local response_callback = callback and vim.schedule_wrap(callback)
+
+    -- INFO: to prevent multiple `on_attach` calls ignore `initialize` response from semantic
+    -- server and respond only from syntax one
+    if method == c.LspMethods.Initialize and self.server_type == "semantic" then
+      notify_reply = nil
+      response_callback = nil
+    end
 
     if notify_reply then
       notify_reply(seq)
