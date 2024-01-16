@@ -39,8 +39,8 @@ function M.setup_diagnostic_autocmds(dispatchers)
 
       api.nvim_create_autocmd("InsertEnter", {
         pattern = M.extensions_pattern,
-        callback = function(e)
-          proto_utils.publish_diagnostics(dispatchers, vim.uri_from_bufnr(e.buf), {})
+        callback = function()
+          vim.diagnostic.reset()
         end,
         group = augroup,
       })
