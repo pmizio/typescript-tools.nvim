@@ -4,7 +4,6 @@ local c = require "typescript-tools.protocol.constants"
 local plugin_config = require "typescript-tools.config"
 local utils = require "typescript-tools.utils"
 local plugin_api = require "typescript-tools.api"
-local proto_utils = require "typescript-tools.protocol.utils"
 local common = require "typescript-tools.autocommands.common"
 
 local publish_diagnostic_mode = plugin_config.publish_diagnostic_mode
@@ -19,7 +18,7 @@ local request_diagnostics_throttled = utils.throttle(200, request_diagnostics_ap
 local request_diagnostics_debounced = utils.debounce(200, request_diagnostics_api_wrapper)
 
 ---@param dispatchers Dispatchers
-function M.setup_diagnostic_autocmds(dispatchers)
+function M.setup_diagnostic_autocmds()
   local augroup = vim.api.nvim_create_augroup("TypescriptToolsDiagnosticGroup", { clear = true })
 
   if plugin_config.publish_diagnostic_on == publish_diagnostic_mode.change then
