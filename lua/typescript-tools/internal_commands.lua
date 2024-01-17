@@ -66,7 +66,7 @@ M[c.InternalCommands.InteractiveCodeAction] = function(params)
     ---@type string|boolean|nil
     local target_file
 
-    local file, telescope_err = a.wrap(integrations.telescope_picker, 2)()
+    local telescope_err, file = a.wrap(integrations.telescope_picker, 2)()
 
     if telescope_err then
       target_file = async.ui_input { prompt = "Move to file: " }

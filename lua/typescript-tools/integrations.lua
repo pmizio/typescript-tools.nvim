@@ -1,13 +1,13 @@
 local M = {}
 
 ---@param picker function
----@param callback fun(file: string|nil, err: boolean?)
+---@param callback fun(err: boolean|nil, file: string?)
 function M.telescope_picker(picker, callback)
   local ok, actions = pcall(require, "telescope.actions")
 
   if not ok then
     vim.notify("Telescope need to be installed to call this integration", vim.log.levels.WARN)
-    callback(nil, true)
+    callback(true, nil)
     return
   end
 
@@ -30,7 +30,7 @@ function M.telescope_picker(picker, callback)
       end)
       actions.close:enhance {
         post = function()
-          callback(selected)
+          callback(nil, selected)
         end,
       }
       return true
