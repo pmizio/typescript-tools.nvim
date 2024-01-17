@@ -9,6 +9,7 @@ return {
     CallApiFunction = "call_api_function",
     RequestReferences = "request_references",
     RequestImplementations = "request_implementations",
+    InteractiveCodeAction = "interactive_codeaction",
   },
   ---@enum CommandTypes
   CommandTypes = {
