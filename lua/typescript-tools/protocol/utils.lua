@@ -242,13 +242,18 @@ end
 local function is_completing_jsx(bufnr, position)
   local requested_line = vim.api.nvim_buf_get_lines(bufnr, position.line, position.line + 1, false)[1]
   local requested_line_until_position = requested_line:sub(1, position.character)
-  local last_word_before_position = nil
 
-  for word in requested_line_until_position:gmatch("%S+") do
-    last_word_before_position = word
+  local valid_characters_after_start_bracket = "[%w%._$]"
+
+  for character in requested_line_until_position:reverse():gmatch(".") do
+    if character == "<" then
+      return true
+    end
+    if not character:match(valid_characters_after_start_bracket) then
+      return false
+    end
   end
-
-  return last_word_before_position ~= nil and last_word_before_position:sub(1, 1) == "<"
+  return false
 end
 
 ---@param position LspPosition
@@ -264,8 +269,6 @@ local function should_omit_function_snippet_in_context(position, file, request)
   }
 
   local body = coroutine.yield()
-
-  print(vim.inspect(body))
 
   return vim.tbl_contains({ "var", "let", "const", "alias" }, body.kind)
 end
