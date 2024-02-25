@@ -240,21 +240,9 @@ end
 ---@param position LspPosition
 ---@return boolean
 local function is_completing_jsx(bufnr, position)
-  local requested_line =
-    vim.api.nvim_buf_get_lines(bufnr, position.line, position.line + 1, false)[1]
-  local requested_line_until_position = requested_line:sub(1, position.character)
-
-  local valid_characters_after_start_bracket = "[%w%._$]"
-
-  for character in requested_line_until_position:reverse():gmatch "." do
-    if character == "<" then
-      return true
-    end
-    if not character:match(valid_characters_after_start_bracket) then
-      return false
-    end
-  end
-  return false
+  local line = vim.api.nvim_buf_get_lines(bufnr, position.line, position.line + 1, false)[1]
+  local line_before_position = line:sub(1, position.character)
+  return line_before_position:match "^.*<[%w%._$]*$"
 end
 
 ---@param position LspPosition
