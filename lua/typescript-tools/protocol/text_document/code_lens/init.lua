@@ -36,7 +36,8 @@ end
 ---@type TsserverProtocolHandler
 function M.handler(request, _, params)
   local text_document = params.textDocument
-  local ok, parser = pcall(ts.get_parser)
+  local bufnr = vim.uri_to_bufnr(text_document.uri)
+  local ok, parser = pcall(ts.get_parser, bufnr)
 
   if not ok then
     vim.notify_once(
