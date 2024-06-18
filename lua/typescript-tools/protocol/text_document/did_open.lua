@@ -24,7 +24,10 @@ local function configure(params)
 
   local bo = vim.bo[vim.uri_to_bufnr(text_document.uri)]
   local tab_size = bo.tabstop or 2
-  local indent_size = bo.shiftwidth or tab_size
+  local indent_size = bo.shiftwidth
+  if indent_size == 0 or not indent_size then
+    indent_size = tab_size
+  end
   local convert_tabs_to_spaces = bo.expandtab or true
   local new_line_character = get_eol_chars(bo)
 
