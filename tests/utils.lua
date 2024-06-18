@@ -84,7 +84,7 @@ end
 ---@param capability string
 ---@return boolean
 function M.supports_capability(capability)
-  return not not vim.lsp.get_active_clients({
+  return not not vim.lsp.get_clients({
     name = require("typescript-tools.config").plugin_name,
   })[1].server_capabilities[capability]
 end

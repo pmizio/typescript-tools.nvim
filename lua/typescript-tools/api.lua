@@ -141,7 +141,7 @@ end
 ---@param callback fun(params: table, result: table)|nil
 function M.request_diagnostics(callback)
   local text_document = vim.lsp.util.make_text_document_params()
-  local client = vim.lsp.get_active_clients {
+  local client = utils.get_clients {
     name = plugin_config.plugin_name,
     bufnr = vim.uri_to_bufnr(text_document.uri),
   }
@@ -212,7 +212,7 @@ end
 ---
 ---@param codes integer[]
 function M.filter_diagnostics(codes)
-  vim.tbl_add_reverse_lookup(codes)
+  utils.add_reverse_lookup(codes)
   return function(err, res, ctx, config)
     local filtered = {}
     for _, diag in ipairs(res.diagnostics) do

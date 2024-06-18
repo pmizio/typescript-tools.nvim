@@ -1,4 +1,5 @@
 local c = require "typescript-tools.protocol.constants"
+local utils = require "typescript-tools.utils"
 
 local remapped_methods = {
   [c.LspMethods.CompletionResolve] = "text_document.completion.resolve",
@@ -18,7 +19,7 @@ local remapped_methods = {
 }
 
 local noop_methods = { c.LspMethods.DidSave }
-vim.tbl_add_reverse_lookup(noop_methods)
+utils.add_reverse_lookup(noop_methods)
 
 local M = {}
 

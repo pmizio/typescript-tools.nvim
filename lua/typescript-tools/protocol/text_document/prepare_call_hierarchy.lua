@@ -3,6 +3,8 @@ local utils = require "typescript-tools.protocol.utils"
 
 local M = {}
 
+local islist = vim.islist or vim.tbl_islist
+
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params)
   local text_document = params.textDocument
@@ -18,7 +20,7 @@ function M.handler(request, response, params)
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/503604c884bd0557c851b11b699ef98cdb65b93b/lib/protocol.d.ts#L2584
   local body = coroutine.yield()
-  body = vim.tbl_islist(body) and body or { body }
+  body = islist(body) and body or { body }
 
   response(vim.tbl_map(function(it)
     return utils.convert_tsserver_call_hierarchy_item_to_lsp(it)

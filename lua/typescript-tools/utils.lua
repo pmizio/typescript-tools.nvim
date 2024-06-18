@@ -71,11 +71,15 @@ function M.is_nightly()
   return type(v) ~= "boolean" and v ~= nil or v
 end
 
+function M.get_clients(filter)
+  local get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
+  return get_clients(filter)
+end
+
 ---@param bufnr integer
 ---@return lsp.Client|nil
 function M.get_typescript_client(bufnr)
-  local get_clients = M.is_nightly() and vim.lsp.get_clients or vim.lsp.get_active_clients
-  local clients = get_clients {
+  local clients = M.get_clients {
     name = plugin_config.plugin_name,
     bufnr = bufnr,
   }
@@ -102,6 +106,15 @@ function M.list_contains(list, value)
   end
 
   return false
+end
+
+--- @param tbl table
+function M.add_reverse_lookup(tbl)
+  local keys = vim.tbl_keys(tbl)
+  for _, k in ipairs(keys) do
+    local v = tbl[k]
+    tbl[v] = k
+  end
 end
 
 return M
