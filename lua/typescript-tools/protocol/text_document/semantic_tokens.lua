@@ -80,14 +80,26 @@ local function transform_spans(spans, lines_lengths)
   ---@type number
   local previous_offset = 0
 
+  -- @vue/typescript-plugin inserts some its own spans at the end of the spans array so we need to sort them
+  -- because we calculate offset from last span and they need to be in order
+  local sorted_spans = {}
+
   for i = 1, #spans, 3 do
+    table.insert(sorted_spans, { spans[i], spans[i + 1], spans[i + 2] })
+  end
+
+  table.sort(sorted_spans, function(a, b)
+    return a[1] < b[1]
+  end)
+
+  for _, span in ipairs(sorted_spans) do
     -- ts-server sends us a packed array that contains 3 elements per 1 token:
     -- 1. the start offset of the token
     -- 2. length of the token
     -- 3. token type & modifier packed into a bitset
-    local token_start_offset = spans[i]
-    local token_length = spans[i + 1]
-    local token_type_bit_set = spans[i + 2]
+    local token_start_offset = span[1]
+    local token_length = span[2]
+    local token_type_bit_set = span[3]
 
     -- unpack the modifier and type: https://github.com/microsoft/TypeScript/blob/main/src/services/classifier2020.ts#L45
     local token_modifier = bit.band(token_type_bit_set, token_encoding_modifier_mask)
