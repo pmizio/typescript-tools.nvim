@@ -5,16 +5,20 @@ local autocommands = require "typescript-tools.autocommands"
 local custom_handlers = require "typescript-tools.custom_handlers"
 local request_router = require "typescript-tools.request_router"
 local internal_commands = require "typescript-tools.internal_commands"
+local utils = require "typescript-tools.utils"
 
 local M = {}
 
 ---@param dispatchers Dispatchers
 ---@return LspInterface
 function M.start(dispatchers)
-  local tsserver_syntax = Tsserver.new("syntax", dispatchers)
+  local modified_dispatchers = vim.deepcopy(dispatchers)
+  modified_dispatchers.on_exit = utils.run_once(dispatchers.on_exit) -- INFO: multiple calls to on_exit causes errors in nvim lsp
+
+  local tsserver_syntax = Tsserver.new("syntax", modified_dispatchers)
   local tsserver_semantic = nil
   if plugin_config.separate_diagnostic_server then
-    tsserver_semantic = Tsserver.new("semantic", dispatchers)
+    tsserver_semantic = Tsserver.new("semantic", modified_dispatchers)
   end
 
   autocommands.setup_autocommands(dispatchers)
