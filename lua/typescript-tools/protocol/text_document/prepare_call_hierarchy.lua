@@ -20,6 +20,12 @@ function M.handler(request, response, params)
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/503604c884bd0557c851b11b699ef98cdb65b93b/lib/protocol.d.ts#L2584
   local body = coroutine.yield()
+
+  if body == nil or body.success == false then
+    response(nil)
+    return
+  end
+
   body = islist(body) and body or { body }
 
   response(vim.tbl_map(function(it)
