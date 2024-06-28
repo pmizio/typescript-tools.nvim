@@ -117,4 +117,16 @@ function M.add_reverse_lookup(tbl)
   end
 end
 
+-- Returns a function that only runs the given function once.
+--- @param func function
+function M.run_once(func)
+  local ran = false
+  return function(...)
+    if not ran then
+      ran = true
+      return func(...)
+    end
+  end
+end
+
 return M
