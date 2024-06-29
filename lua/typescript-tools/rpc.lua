@@ -21,7 +21,7 @@ function M.start(dispatchers)
     tsserver_semantic = Tsserver.new("semantic", modified_dispatchers)
   end
 
-  autocommands.setup_autocommands(dispatchers)
+  autocommands.setup_autocommands()
   custom_handlers.setup_lsp_handlers(dispatchers)
 
   return {
