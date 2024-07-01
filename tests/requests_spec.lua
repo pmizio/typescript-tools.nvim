@@ -541,9 +541,11 @@ describe("Lsp request", function()
       assert.is.same(result[1].title, "Infer function return type")
       assert.is.same(result[2].title, "Remove variable statement")
     elseif version and v.gt(version, { 5, 1 }) then
-      assert.is.same(2, #result)
+      print(vim.inspect(result))
+      assert.is.same(3, #result)
       assert.is.same(result[1].title, "Move to a new file")
-      assert.is.same(result[2].title, "Remove variable statement")
+      assert.is.same(result[2].title, "Move to file")
+      assert.is.same(result[3].title, "Remove variable statement")
     else
       assert.is.same(1, #result)
       assert.is.same(result[1].title, "Remove variable statement")
