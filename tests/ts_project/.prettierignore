@@ -1,2 +1,3 @@
 src/completion.ts
 src/formatting.ts
+src/jsx_close_tag.tsx

@@ -38,7 +38,7 @@ function M.setup_diagnostic_autocmds(dispatchers)
       request_diagnostics_debounced()
 
       api.nvim_create_autocmd("InsertEnter", {
-        pattern = M.extensions_pattern,
+        pattern = common.extensions_pattern,
         callback = function(e)
           proto_utils.publish_diagnostics(dispatchers, vim.uri_from_bufnr(e.buf), {})
         end,
@@ -46,7 +46,7 @@ function M.setup_diagnostic_autocmds(dispatchers)
       })
 
       api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "TextChanged" }, {
-        pattern = M.extensions_pattern,
+        pattern = common.extensions_pattern,
         callback = request_diagnostics_debounced,
         group = augroup,
       })

@@ -154,6 +154,13 @@ require("typescript-tools").setup {
     -- by default code lenses are displayed on all referencable values and for some of you it can
     -- be too much this option reduce count of them by removing member references from lenses
     disable_member_code_lens = true,
+    -- JSXCloseTag
+    -- WARNING: it is disabled by default (maybe you configuration or distro already uses nvim-ts-autotag,
+    -- that maybe have a conflict if enable this feature. )
+    jsx_close_tag = {
+        enable = false,
+        filetypes = { "javascriptreact", "typescriptreact" },
+    }
   },
 }
 ```
@@ -200,6 +207,41 @@ require("typescript-tools").setup {
   },
 }
 ```
+
+If you want to make `tsserver_format_options` or `tsserver_file_preferences` filetype dependant you
+need to may set them as functions returning tables eg.
+
+<details>
+  <summary>Example code here</summary>
+  <p>
+
+```lua
+require("typescript-tools").setup {
+  settings = {
+    ...
+    tsserver_file_preferences = function(ft)
+      -- Some "ifology" using `ft` of opened file
+      return {
+        includeInlayParameterNameHints = "all",
+        includeCompletionsForModuleExports = true,
+        quotePreference = "auto",
+        ...
+      }
+    end,
+    tsserver_format_options = function(ft)
+      -- Some "ifology" using `ft` of opened file
+      return {
+        allowIncompleteCompletions = false,
+        allowRenameOfImportPath = false,
+        ...
+      }
+    end
+  },
+}
+```
+
+  </p>
+</details>
 
 The default values for `preferences` and `format_options` are in [this file](https://github.com/pmizio/typescript-tools.nvim/blob/master/lua/typescript-tools/config.lua#L17)
 
@@ -249,6 +291,7 @@ This plugin provides several custom user commands (they are only applied to curr
   [source definition](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-7.html#go-to-source-definition)
   (available since TS v4.7)
 - `TSToolsRenameFile` - allow to rename current file and apply changes to connected files
+- `TSToolsFileReferences` - find files that reference the current file (available since TS v4.2)
 
 ## Supported LSP methods
 

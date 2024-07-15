@@ -142,7 +142,7 @@ end
 ---@param type string|nil - lsp method to send the diagnostic: c.CustomMethods.Diagnostic or c.LspMethods.Diagnostic
 function M.request_diagnostics(callback, type)
   local text_document = vim.lsp.util.make_text_document_params()
-  local client = vim.lsp.get_active_clients {
+  local client = utils.get_clients {
     name = plugin_config.plugin_name,
     bufnr = vim.uri_to_bufnr(text_document.uri),
   }
@@ -213,7 +213,7 @@ end
 ---
 ---@param codes integer[]
 function M.filter_diagnostics(codes)
-  vim.tbl_add_reverse_lookup(codes)
+  utils.add_reverse_lookup(codes)
   return function(err, res, ctx, config)
     local filtered = {}
     for _, diag in ipairs(res.diagnostics) do
@@ -225,6 +225,86 @@ function M.filter_diagnostics(codes)
     res.diagnostics = filtered
     vim.lsp.diagnostic.on_publish_diagnostics(err, res, ctx, config)
   end
+end
+
+---JsxClosingTag feature impl
+---@param bufnr integer
+---@param params table
+---@param cb fun()
+---@param pre_request_id integer|nil
+function M.jsx_close_tag(bufnr, params, cb, pre_request_id)
+  local typescript_client = get_typescript_client(bufnr)
+  if typescript_client == nil then
+    return nil
+  end
+  if pre_request_id ~= nil then
+    typescript_client.cancel_request(pre_request_id)
+  end
+  local changedtick = vim.api.nvim_buf_get_var(bufnr, "changedtick")
+
+  local _, request_id = typescript_client.request(
+    c.CustomMethods.JsxClosingTag,
+    params,
+    ---@param data { newText: string, caretOffset: number }
+    function(err, data)
+      if
+        err ~= nil
+        or data == nil
+        or vim.tbl_isempty(data)
+        or bufnr ~= vim.api.nvim_get_current_buf()
+        or changedtick ~= vim.api.nvim_buf_get_var(bufnr, "changedtick")
+      then
+        return
+      end
+
+      vim.lsp.util.apply_text_edits({
+        {
+          range = {
+            start = params.position,
+            ["end"] = params.position,
+          },
+          newText = data.newText,
+        },
+      }, bufnr, "utf-8")
+
+      vim.api.nvim_win_set_cursor(0, { params.position.line + 1, params.position.character })
+
+      cb()
+    end,
+    bufnr
+  )
+
+  return request_id
+end
+
+---@param is_sync boolean
+function M.file_references(is_sync)
+  a.void(function()
+    local client = utils.get_typescript_client(0)
+
+    if not client then
+      return
+    end
+
+    local err, result = async.buf_request_isomorphic(
+      is_sync,
+      0,
+      c.CustomMethods.FileReferences,
+      { textDocument = vim.lsp.util.make_text_document_params() }
+    )
+
+    vim.lsp.handlers[c.LspMethods.Reference](err, result, { client_id = client.id })
+  end)()
+end
+
+---@param tmpfile string
+function M.save_snapshot_to(tmpfile)
+  async.buf_request_isomorphic(
+    true,
+    0,
+    c.CustomMethods.SaveTo,
+    { textDocument = vim.lsp.util.make_text_document_params(), tmpfile = tmpfile }
+  )
 end
 
 return M

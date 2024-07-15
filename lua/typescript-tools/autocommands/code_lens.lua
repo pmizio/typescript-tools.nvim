@@ -25,7 +25,7 @@ function M.setup_code_lens_autocmds()
           return
         end
 
-        pcall(vim.lsp.codelens.refresh)
+        pcall(vim.lsp.codelens.refresh, { bufnr = e.buf })
       end,
       group = augroup,
     })
