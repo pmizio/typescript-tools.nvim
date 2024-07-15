@@ -142,18 +142,17 @@ end
 ---@param type string|nil - lsp method to send the diagnostic: c.CustomMethods.Diagnostic or c.LspMethods.Diagnostic
 function M.request_diagnostics(callback, type)
   local text_document = vim.lsp.util.make_text_document_params()
-  local client = utils.get_clients {
-    name = plugin_config.plugin_name,
-    bufnr = vim.uri_to_bufnr(text_document.uri),
-  }
+  local bufnr = vim.uri_to_bufnr(text_document.uri)
 
-  if #client == 0 then
+  local typescript_client = get_typescript_client(bufnr)
+
+  if typescript_client == nil then
     return
   end
 
-  vim.lsp.buf_request(0, type or c.CustomMethods.Diagnostic, {
+  typescript_client.request(type or c.CustomMethods.Diagnostic, {
     textDocument = text_document,
-  }, callback)
+  }, callback, bufnr)
 end
 
 ---@param is_sync boolean
