@@ -89,7 +89,7 @@ In summary, the architecture of this plugin can be visualized as shown in the di
 #### [lazy.nvim](https://github.com/folke/lazy.nvim)
 
 ```lua
-{
+return {
   "pmizio/typescript-tools.nvim",
   dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
   opts = {},
