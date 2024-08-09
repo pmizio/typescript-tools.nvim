@@ -2,7 +2,6 @@ local a = require "plenary.async"
 local uv = require "plenary.async.uv_async"
 local au = require "plenary.async.util"
 local c = require "typescript-tools.protocol.constants"
-local plugin_config = require "typescript-tools.config"
 local async = require "typescript-tools.async"
 local utils = require "typescript-tools.utils"
 
@@ -141,18 +140,16 @@ end
 ---@param callback fun(params: table, result: table)|nil
 function M.request_diagnostics(callback)
   local text_document = vim.lsp.util.make_text_document_params()
-  local client = vim.lsp.get_active_clients {
-    name = plugin_config.plugin_name,
-    bufnr = vim.uri_to_bufnr(text_document.uri),
-  }
+  local bufnr = vim.uri_to_bufnr(text_document.uri)
+  local typescript_client = get_typescript_client(bufnr)
 
-  if #client == 0 then
+  if typescript_client == nil then
     return
   end
 
-  vim.lsp.buf_request(0, c.CustomMethods.Diagnostic, {
+  typescript_client.request(c.CustomMethods.Diagnostic, {
     textDocument = text_document,
-  }, callback)
+  }, callback, bufnr)
 end
 
 ---@param is_sync boolean
@@ -212,7 +209,7 @@ end
 ---
 ---@param codes integer[]
 function M.filter_diagnostics(codes)
-  vim.tbl_add_reverse_lookup(codes)
+  utils.add_reverse_lookup(codes)
   return function(err, res, ctx, config)
     local filtered = {}
     for _, diag in ipairs(res.diagnostics) do

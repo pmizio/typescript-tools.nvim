@@ -2,6 +2,7 @@
 ---@field notification fun(method: string, params: table)
 ---@field server_request fun(method: string, params: table): nil, table
 ---@field on_exit fun(code: number, signal: number)
+---@field on_error fun(code: number, ...: unknown)
 
 ---@alias LspCallback fun(err: any, result: any)
 

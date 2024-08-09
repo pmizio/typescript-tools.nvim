@@ -3,7 +3,7 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
-M.extensions_pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts" }
+M.extensions_pattern = { "*.js", "*.mjs", "*.jsx", "*.ts", "*.tsx", "*.mts", "*.vue" }
 
 ---@param callback function
 ---@param augroup number

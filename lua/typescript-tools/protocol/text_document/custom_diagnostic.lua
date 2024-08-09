@@ -31,7 +31,7 @@ local stylecheck_diagnostics = {
   -- not all code paths return a value
   7030,
 }
-vim.tbl_add_reverse_lookup(stylecheck_diagnostics)
+utils.add_reverse_lookup(stylecheck_diagnostics)
 
 --- @param diagnostic table
 --- @return DiagnosticSeverity
@@ -83,7 +83,7 @@ end
 
 --- @return string[]
 local function get_attached_buffers()
-  local client = vim.lsp.get_active_clients({ name = plugin_config.plugin_name })[1]
+  local client = utils.get_clients({ name = plugin_config.plugin_name })[1]
 
   if client then
     local attached_bufs = {}
