@@ -95,7 +95,7 @@ M[c.InternalCommands.InteractiveCodeAction] = function(params)
       return
     end
 
-    vim.lsp.util.apply_workspace_edit(result.edit, "utf-8")
+    vim.lsp.util.apply_workspace_edit(result.edit, "utf-16")
   end)()
 end
 

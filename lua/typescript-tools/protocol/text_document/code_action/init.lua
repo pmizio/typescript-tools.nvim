@@ -11,7 +11,7 @@ local ALL_CODE_ACTIONS_KEY = "all"
 local interactive_codeactions = {
   "Move to file",
 }
-vim.tbl_add_reverse_lookup(interactive_codeactions)
+utils.add_reverse_lookup(interactive_codeactions)
 
 local internal_commands_map = {
   fix_all = { name = "Fix all problems" },
