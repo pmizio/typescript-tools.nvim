@@ -131,7 +131,7 @@ function Process:start()
 
   if is_win then
     table.insert(self.args, 1, "/c")
-    table.insert(self.args, 2, "node")
+    table.insert(self.args, 2, plugin_config.tsserver_node_executable)
   end
 
   local args = {
