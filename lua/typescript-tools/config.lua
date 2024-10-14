@@ -9,6 +9,7 @@
 ---@field tsserver_file_preferences table|fun(filetype: string): table
 ---@field tsserver_max_memory number|"auto"
 ---@field tsserver_locale string
+---@field tsserver_node_executable string
 ---@field complete_function_calls boolean
 ---@field expose_as_code_action ("fix_all"| "add_missing_imports"| "remove_unused" | "remove_unused_imports")[]
 ---@field include_completions_with_insert_text boolean
@@ -125,6 +126,11 @@ function M.load_settings(settings)
       "string",
       true,
     },
+    ["settings.tsserver_node_executable"] = {
+      settings.tsserver_node_executable,
+      "string",
+      true,
+    },
     ["settings.complete_function_calls"] = { settings.complete_function_calls, "boolean", true },
     ["settings.expose_as_code_action"] = {
       settings.expose_as_code_action,
@@ -161,6 +167,10 @@ function M.load_settings(settings)
 
   if not settings.tsserver_file_preferences then
     __store.tsserver_file_preferences = {}
+  end
+
+  if not settings.tsserver_node_executable then
+    __store.tsserver_node_executable = "node"
   end
 
   if not M.tsserver_log_level[settings.tsserver_logs] then
