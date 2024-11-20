@@ -25,7 +25,7 @@ local function calculate_member_completion_context(body, params)
   if body.isMemberCompletion then
     local line =
       vim.api.nvim_buf_get_lines(0, params.position.line, params.position.line + 1, false)[1]
-    local dotAccessText = string.match(line:sub(1, params.position.character), "%??%.s*$") or nil
+    local dotAccessText = string.match(line:sub(1, params.position.character), "%??%.$") or nil
     if dotAccessText then
       local startPosition = {
         line = params.position.line,
