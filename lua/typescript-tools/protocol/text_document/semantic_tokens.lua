@@ -27,7 +27,12 @@ local function get_buffer_lines_lengths(bufnr)
   local newline_length = newline_length_map[vim.bo.fileformat]
 
   return vim.tbl_map(function(line)
-    return vim.lsp.util._str_utfindex_enc(line, nil, "utf-16") + newline_length
+    -- in nvim 0.11 _str_utfindex_enc was removed and str_utfindex was changed to match parameters
+    if vim.lsp.util._str_utfindex_enc then
+      return vim.lsp.util._str_utfindex_enc(line, nil, "utf-16") + newline_length
+    else
+      return vim.str_utfindex(line, "utf-16", nil, false) + newline_length
+    end
   end, all_lines)
 end
 
