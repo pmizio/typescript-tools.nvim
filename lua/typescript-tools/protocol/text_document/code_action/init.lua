@@ -1,10 +1,17 @@
+local TsserverProvider = require "typescript-tools.tsserver_provider"
+local proto_utils = require "typescript-tools.protocol.utils"
 local c = require "typescript-tools.protocol.constants"
-local utils = require "typescript-tools.protocol.utils"
 local plugin_config = require "typescript-tools.config"
+local utils = require "typescript-tools.utils"
 
 local M = {}
 
 local ALL_CODE_ACTIONS_KEY = "all"
+
+local interactive_codeactions = {
+  "Move to file",
+}
+utils.add_reverse_lookup(interactive_codeactions)
 
 local internal_commands_map = {
   fix_all = { name = "Fix all problems" },
@@ -33,9 +40,11 @@ end
 
 ---@type TsserverProtocolHandler
 function M.handler(request, response, params, ctx)
+  local tsserver_provider = TsserverProvider.get_instance()
+  local version = tsserver_provider:get_version()
   local text_document = params.textDocument
 
-  local range = utils.convert_lsp_range_to_tsserver(params.range)
+  local range = proto_utils.convert_lsp_range_to_tsserver(params.range)
 
   local request_range = {
     file = vim.uri_to_fname(text_document.uri),
@@ -43,6 +52,7 @@ function M.handler(request, response, params, ctx)
     startOffset = range.start.offset,
     endLine = range["end"].line,
     endOffset = range["end"].offset,
+    includeInteractiveActions = utils.version_compare("gt", version, { 5, 1 }),
   }
 
   ctx.dependent_seq = {
@@ -74,7 +84,7 @@ function M.handler(request, response, params, ctx)
       local kind = make_lsp_code_action_kind(action.kind or "")
 
       if kind and not action.notApplicableReason then
-        table.insert(code_actions, {
+        local code_action = {
           title = action.description,
           kind = kind,
           data = vim.tbl_extend("force", request_range, {
@@ -82,7 +92,17 @@ function M.handler(request, response, params, ctx)
             kind = kind,
             refactor = refactor.name,
           }),
-        })
+        }
+
+        code_action.command = interactive_codeactions[action.description]
+            and {
+              title = action.description,
+              command = c.InternalCommands.InteractiveCodeAction,
+              arguments = { vim.tbl_deep_extend("force", {}, code_action) },
+            }
+          or nil
+
+        table.insert(code_actions, code_action)
       end
     end
   end
@@ -96,7 +116,7 @@ function M.handler(request, response, params, ctx)
       title = fix.description,
       kind = c.CodeActionKind.QuickFix,
       edit = {
-        changes = utils.convert_tsserver_edits_to_lsp(fix.changes),
+        changes = proto_utils.convert_tsserver_edits_to_lsp(fix.changes),
       },
     })
   end

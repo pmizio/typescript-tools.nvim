@@ -16,6 +16,7 @@ local function make_capabilities()
         c.InternalCommands.CallApiFunction,
         c.InternalCommands.RequestReferences,
         c.InternalCommands.RequestImplementations,
+        c.InternalCommands.InteractiveCodeAction,
       },
     },
     renameProvider = {
