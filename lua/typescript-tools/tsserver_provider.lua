@@ -64,7 +64,7 @@ function TsserverProvider.new(on_loaded)
 
   assert(util.bufname_valid(bufname), "Invalid buffer name!")
 
-  local sanitized_bufname = util.path.sanitize(bufname)
+  local sanitized_bufname = vim.fs.normalize(bufname)
 
   self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
