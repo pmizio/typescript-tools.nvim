@@ -137,6 +137,12 @@ end
 function M.handler(request, response, params)
   local requested_bufnr = vim.uri_to_bufnr(vim.uri_from_fname(params.data.file))
   local filetype = vim.bo[requested_bufnr].filetype
+  local is_valid_context_for_function_snippet = utils.is_valid_context_for_function_snippet(
+    requested_bufnr,
+    params.data,
+    params.data.file,
+    request
+  )
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/549e61d0af1ba885be29d69f341e7d3a00686071/lib/protocol.d.ts#L1661
@@ -173,7 +179,10 @@ function M.handler(request, response, params)
       -- or neovim even handle that for now i skip this
     })
 
-    if utils.should_create_function_snippet(item.kind, item.insertText, filetype) then
+    if
+      utils.should_create_function_snippet(item.kind, item.insertText, filetype)
+      and is_valid_context_for_function_snippet
+    then
       create_snippet(item, details.displayParts)
     end
 
