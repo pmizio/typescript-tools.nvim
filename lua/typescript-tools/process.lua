@@ -22,11 +22,11 @@ local is_win = uv.os_uname().version:find "Windows"
 ---@class Process
 local Process = {}
 
----@param type ServerType
+---@param ttype ServerType
 ---@param on_response fun(response: table)
 ---@param on_exit fun(code: number, signal: number)
 ---@return Process
-function Process.new(type, on_response, on_exit)
+function Process.new(ttype, on_response, on_exit)
   local self = setmetatable({}, { __index = Process })
 
   local tsserver_provider = TsserverProvider.get_instance()
@@ -54,11 +54,30 @@ function Process.new(type, on_response, on_exit)
 
   local plugins_path = tsserver_provider:get_plugins_path()
 
-  if plugins_path and #plugin_config.tsserver_plugins > 0 then
+  if plugin_config.tsserver_plugins and #plugin_config.tsserver_plugins > 0 then
+    local plugin_names = {}
+    local probe_locations = {}
+    local has_object_plugins = false
+
+    for _, plugin in ipairs(plugin_config.tsserver_plugins) do
+      if type(plugin) == "table" then
+        has_object_plugins = true
+        local full_path = Path:new(plugin.path, plugin.name):absolute()
+        table.insert(plugin_names, plugin.name)
+        table.insert(probe_locations, full_path)
+      else
+        table.insert(plugin_names, plugin)
+      end
+    end
+
     table.insert(self.args, "--pluginProbeLocations")
-    table.insert(self.args, plugins_path:absolute())
+    if has_object_plugins then
+      table.insert(self.args, table.concat(probe_locations, ","))
+    else
+      table.insert(self.args, plugins_path:absolute())
+    end
     table.insert(self.args, "--globalPlugins")
-    table.insert(self.args, table.concat(plugin_config.tsserver_plugins, ","))
+    table.insert(self.args, table.concat(plugin_names, ","))
   end
 
   if plugin_config.tsserver_logs ~= "off" then
@@ -66,7 +85,7 @@ function Process.new(type, on_response, on_exit)
     table.insert(self.args, "--logVerbosity")
     table.insert(self.args, plugin_config.tsserver_logs)
     table.insert(self.args, "--logFile")
-    table.insert(self.args, log_dir:joinpath("tsserver_" .. type .. ".log"):absolute())
+    table.insert(self.args, log_dir:joinpath("tsserver_" .. ttype .. ".log"):absolute())
   end
 
   self:start()
