@@ -1,1 +1,1 @@
-require("typescript-tools.user_commands").setup_user_commands()
+dofile(vim.fn.expand "<sfile>:h:h" .. "/utils/ftplugin-common.lua")
