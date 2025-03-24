@@ -71,4 +71,37 @@ describe("Lsp request", function()
       assert.is.same(vim.tbl_contains(lines, 'import { export1 } from "exports";'), true)
     end
   )
+
+  describe("ftplugin", function()
+    local commands = {
+      ":TSToolsOrganizeImports",
+      ":TSToolsOrganizeImports",
+      ":TSToolsSortImports",
+      ":TSToolsRemoveUnusedImports",
+      ":TSToolsGoToSourceDefinition",
+      ":TSToolsRemoveUnused",
+      ":TSToolsAddMissingImports",
+      ":TSToolsFixAll",
+      ":TSToolsRenameFile",
+      ":TSToolsFileReferences",
+    }
+
+    it("should not create usercommands in unhandled buffers", function()
+      utils.open_file "src/batch_code_actions.ts"
+      utils.wait_for_lsp_initialization()
+      for _, command in pairs(commands) do
+        assert.is.same(vim.fn.exists(command), 2)
+      end
+
+      utils.open_file "src/package.json"
+      for _, command in pairs(commands) do
+        assert.is.same(vim.fn.exists(command), 0)
+      end
+
+      vim.cmd ":set ft=typescriptreact"
+      for _, command in pairs(commands) do
+        assert.is.same(vim.fn.exists(command), 2)
+      end
+    end)
+  end)
 end)
