@@ -12,6 +12,11 @@ local function convert_nodes_to_response(tree, query, text_document, lenses, imp
   for _, match in query:iter_matches(tree:root(), vim.uri_to_bufnr(text_document.uri)) do
     for id, nodes in pairs(match) do
       local name = query.captures[id]
+
+      if type(nodes.range) == "function" then
+        nodes = { nodes }
+      end
+
       for _, node in ipairs(nodes) do
         local start_row, start_col, end_row, end_col = node:range()
 
