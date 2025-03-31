@@ -10,25 +10,32 @@ local M = {}
 ---@param implementations boolean|nil
 local function convert_nodes_to_response(tree, query, text_document, lenses, implementations)
   for _, match in query:iter_matches(tree:root(), vim.uri_to_bufnr(text_document.uri)) do
-    for id, node in pairs(match) do
+    for id, nodes in pairs(match) do
       local name = query.captures[id]
-      local start_row, start_col, end_row, end_col = node:range()
 
-      if config.disable_member_code_lens and name == "member" then
-        goto continue
+      if type(nodes.range) == "function" then
+        nodes = { nodes }
       end
 
-      table.insert(lenses, {
-        range = {
-          start = { line = start_row, character = start_col },
-          ["end"] = { line = end_row, character = end_col },
-        },
-        data = {
-          textDocument = text_document,
-          implementations = implementations,
-        },
-      })
-      ::continue::
+      for _, node in ipairs(nodes) do
+        local start_row, start_col, end_row, end_col = node:range()
+
+        if config.disable_member_code_lens and name == "member" then
+          goto continue
+        end
+
+        table.insert(lenses, {
+          range = {
+            start = { line = start_row, character = start_col },
+            ["end"] = { line = end_row, character = end_col },
+          },
+          data = {
+            textDocument = text_document,
+            implementations = implementations,
+          },
+        })
+        ::continue::
+      end
     end
   end
 end
