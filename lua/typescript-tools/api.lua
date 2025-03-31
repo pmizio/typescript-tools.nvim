@@ -283,7 +283,7 @@ function M.file_references(is_sync, opts)
       return
     end
 
-    local err, result = async.buf_request_isomorphic(
+    local _, result = async.buf_request_isomorphic(
       is_sync,
       0,
       c.CustomMethods.FileReferences,

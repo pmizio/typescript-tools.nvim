@@ -22,7 +22,7 @@ function M.handler(request, response, params)
     }
     return
   end
-  
+
   if params.edit then
     vim.lsp.util.apply_workspace_edit(params.edit, "utf-8")
     return
