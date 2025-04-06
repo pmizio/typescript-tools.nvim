@@ -94,62 +94,60 @@ M.plugin_name = "typescript-tools"
 
 ---@param settings table
 function M.load_settings(settings)
-  vim.validate("settings", settings, "table", true)
-  vim.validate(
-    "settings.separate_diagnostic_server",
-    settings.separate_diagnostic_server,
-    "boolean",
-    true
-  )
-  vim.validate("settings.publish_diagnostic_on", settings.publish_diagnostic_on, "string", true)
-  vim.validate("settings.tsserver_path", settings.tsserver_path, "string", true)
-  vim.validate("settings.tsserver_plugins", settings.tsserver_plugins, "table", true)
-  vim.validate(
-    "settings.tsserver_format_options",
-    settings.tsserver_format_options,
-    { "table", "function" },
-    true
-  )
-  vim.validate(
-    "settings.tsserver_file_preferences",
-    settings.tsserver_file_preferences,
-    { "table", "function" },
-    true
-  )
-  vim.validate("settings.tsserver_logs", settings.tsserver_logs, "string", true)
-  vim.validate(
-    "settings.tsserver_max_memory",
-    settings.tsserver_max_memory,
-    { "number", "string" },
-    true
-  )
-  vim.validate("settings.tsserver_locale", settings.tsserver_locale, "string", true)
-  vim.validate(
-    "settings.complete_function_calls",
-    settings.complete_function_calls,
-    "boolean",
-    true
-  )
-  vim.validate(
-    "settings.expose_as_code_action",
-    settings.expose_as_code_action,
-    { "table", "string" },
-    true
-  )
-  vim.validate(
-    "settings.include_completions_with_insert_text",
-    settings.include_completions_with_insert_text,
-    "boolean",
-    true
-  )
-  vim.validate("settings.code_lens", settings.code_lens, "string", true)
-  vim.validate(
-    "settings.disable_member_code_lens",
-    settings.disable_member_code_lens,
-    "boolean",
-    true
-  )
-  vim.validate("settings.jsx_close_tag", settings.jsx_close_tag, "table", true)
+  local validation_config = {
+    settings = { settings, "table", true },
+    ["settings.separate_diagnostic_server"] = {
+      settings.separate_diagnostic_server,
+      "boolean",
+      true,
+    },
+    ["settings.publish_diagnostic_on"] = { settings.publish_diagnostic_on, "string", true },
+    ["settings.tsserver_path"] = { settings.tsserver_path, "string", true },
+    ["settings.tsserver_plugins"] = { settings.tsserver_plugins, "table", true },
+    ["settings.tsserver_format_options"] = {
+      settings.tsserver_format_options,
+      { "table", "function" },
+      true,
+    },
+    ["settings.tsserver_file_preferences"] = {
+      settings.tsserver_file_preferences,
+      { "table", "function" },
+      true,
+    },
+    ["settings.tsserver_logs"] = { settings.tsserver_logs, "string", true },
+    ["settings.tsserver_max_memory"] = {
+      settings.tsserver_max_memory,
+      { "number", "string" },
+      true,
+    },
+    ["settings.tsserver_locale"] = {
+      settings.tsserver_locale,
+      "string",
+      true,
+    },
+    ["settings.complete_function_calls"] = { settings.complete_function_calls, "boolean", true },
+    ["settings.expose_as_code_action"] = {
+      settings.expose_as_code_action,
+      { "table", "string" },
+      true,
+    },
+    ["settings.include_completions_with_insert_text"] = {
+      settings.include_completions_with_insert_text,
+      "boolean",
+      true,
+    },
+    ["settings.code_lens"] = { settings.code_lens, "string", true },
+    ["settings.disable_member_code_lens"] = { settings.disable_member_code_lens, "boolean", true },
+    ["settings.jsx_close_tag"] = { settings.jsx_close_tag, "table", true },
+  }
+
+  if vim.fn.has "nvim-0.11" == 1 then
+    for name, validate_config in pairs(validation_config) do
+      vim.validate(name, validate_config[1], validate_config[2], validate_config[3])
+    end
+  else
+    vim.validate(validation_config)
+  end
 
   __store = vim.tbl_deep_extend("force", __store, settings)
 
