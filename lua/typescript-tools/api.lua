@@ -78,8 +78,10 @@ function M.remove_unused_imports(is_sync)
 end
 
 ---@param is_sync boolean
-function M.go_to_source_definition(is_sync)
-  local params = vim.lsp.util.make_position_params()
+---@param opts? vim.lsp.ListOpts
+function M.go_to_source_definition(is_sync, opts)
+  local win = vim.api.nvim_get_current_win()
+  local params = vim.lsp.util.make_position_params(win, "utf-8")
 
   params.context = { source_definition = true }
 
@@ -90,23 +92,14 @@ function M.go_to_source_definition(is_sync)
       return
     end
     local typescript_client_res = res[typescript_client.id]
-    local context = {
-      method = c.LspMethods.Definition,
-      client_id = typescript_client.id,
-      bufnr = 0,
-      params = params,
-    }
+
     if not typescript_client_res.err then
-      vim.lsp.handlers[c.LspMethods.Definition](
-        typescript_client_res.err,
-        typescript_client_res.result,
-        context
-      )
+      utils.on_definition_response(typescript_client_res.result, opts)
     end
   else
-    vim.lsp.buf_request(0, c.LspMethods.Definition, params, function(err, result, context)
+    vim.lsp.buf_request(0, c.LspMethods.Definition, params, function(err, result)
       if not err then
-        vim.lsp.handlers[c.LspMethods.Definition](err, result, context)
+        utils.on_definition_response(result, opts)
       end
     end)
   end
