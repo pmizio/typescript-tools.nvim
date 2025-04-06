@@ -10,7 +10,6 @@ local M = {}
 
 --- @param params table
 --- @param callback function
---- @param notify_reply_callback function
 function M.handle_command(params, callback)
   local command = params.command
   local command_handler = M[command]
