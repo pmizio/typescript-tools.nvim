@@ -30,6 +30,7 @@ function M.handler(request, response, params)
   -- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L844
   if not body[1] then
     response(nil)
+    return
   end
 
   response(vim.tbl_map(function(item)
