@@ -94,7 +94,7 @@ M.plugin_name = "typescript-tools"
 
 ---@param settings table
 function M.load_settings(settings)
-  vim.validate {
+  local table_to_validate = {
     settings = { settings, "table", true },
     ["settings.separate_diagnostic_server"] = {
       settings.separate_diagnostic_server,
@@ -140,6 +140,9 @@ function M.load_settings(settings)
     ["settings.disable_member_code_lens"] = { settings.disable_member_code_lens, "boolean", true },
     ["settings.jsx_close_tag"] = { settings.jsx_close_tag, "table", true },
   }
+  for name, validate_config in pairs(table_to_validate) do
+    vim.validate(name, validate_config[1], validate_config[2], validate_config[3])
+  end
 
   __store = vim.tbl_deep_extend("force", __store, settings)
 
