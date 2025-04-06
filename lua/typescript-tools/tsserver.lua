@@ -94,7 +94,19 @@ function Tsserver:handle_response(response)
 
   local handler = metadata.handler
 
-  coroutine.resume(handler, response.body or response, response.command or response.event)
+  -- NOTE: for some reason, progress tries to resume a dead coroutine
+  if coroutine.status(handler) ~= "dead" then
+    local _, err =
+      coroutine.resume(handler, response.body or response, response.command or response.event)
+
+    if err then
+      local _ = log.error()
+        and log.error("tsserver", "Unexpected error while handling response: ", metadata.method)
+      local _ = log.error() and log.error("tsserver", debug.traceback(handler, err))
+
+      return false, seq
+    end
+  end
 
   self.pending_requests[seq] = nil
   self.requests_metadata[seq] = nil
