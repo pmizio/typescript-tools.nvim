@@ -1,5 +1,6 @@
 local uv = vim.loop
 local plugin_config = require "typescript-tools.config"
+local c = require "typescript-tools.protocol.constants"
 
 local M = {}
 
