@@ -1,5 +1,6 @@
 local uv = vim.loop
 local plugin_config = require "typescript-tools.config"
+local c = require "typescript-tools.protocol.constants"
 
 local M = {}
 
@@ -126,6 +127,65 @@ function M.run_once(func)
       ran = true
       return func(...)
     end
+  end
+end
+
+---@param result? table
+---@param opts? vim.lsp.ListOpts
+function M.on_definition_response(result, opts)
+  opts = opts or {}
+  local locations = {}
+  if result then
+    locations = vim.islist(result) and result or { result }
+  end
+  local all_items = vim.lsp.util.locations_to_items(locations, "utf-8")
+  if vim.tbl_isempty(all_items) then
+    vim.notify("No locations found", vim.log.levels.INFO)
+    return
+  end
+
+  local title = "LSP locations"
+  if opts.on_list then
+    assert(vim.is_callable(opts.on_list), "on_list is not a function")
+    opts.on_list {
+      title = title,
+      items = all_items,
+      context = { bufnr = 0, method = c.LspMethods.Definition },
+    }
+    return
+  end
+
+  if #all_items == 1 then
+    local item = all_items[1]
+    local b = item.bufnr or vim.fn.bufadd(item.filename)
+
+    -- Save position in jumplist
+    vim.cmd "normal! m'"
+    -- Push a new item into tagstack
+    local tagname = vim.fn.expand "<cword>"
+    local from = vim.fn.getpos "."
+    local win = vim.api.nvim_get_current_win()
+
+    local tagstack = { { tagname = tagname, from = from } }
+    vim.fn.settagstack(vim.fn.win_getid(win), { items = tagstack }, "t")
+
+    vim.bo[b].buflisted = true
+    local w = opts.reuse_win and vim.fn.win_findbuf(b)[1] or win
+    vim.api.nvim_win_set_buf(w, b)
+    vim.api.nvim_win_set_cursor(w, { item.lnum, item.col - 1 })
+    vim._with({ win = w }, function()
+      -- Open folds under the cursor
+      vim.cmd "normal! zv"
+    end)
+    return
+  end
+
+  if opts.loclist then
+    vim.fn.setloclist(0, {}, " ", { title = title, items = all_items })
+    vim.cmd.lopen()
+  else
+    vim.fn.setqflist({}, " ", { title = title, items = all_items })
+    vim.cmd "botright copen"
   end
 end
 
