@@ -17,6 +17,11 @@ function M.handler(request, response, params)
 
   local body = coroutine.yield()
 
+  if body.success == false then
+    response(nil)
+    return
+  end
+
   local contents = {
     utils.tsserver_docs_to_plain_text(body.documentation),
     utils.tsserver_make_tags(body.tags),
