@@ -10,8 +10,7 @@ local M = {}
 
 --- @param params table
 --- @param callback function
---- @param notify_reply_callback function
-function M.handle_command(params, callback, notify_reply_callback)
+function M.handle_command(params, callback)
   local command = params.command
   local command_handler = M[command]
 
@@ -19,12 +18,11 @@ function M.handle_command(params, callback, notify_reply_callback)
     vim.schedule(function()
       command_handler(params)
 
-      notify_reply_callback(command)
       callback(nil, nil)
     end)
   end
 
-  return true, command
+  return true, nil
 end
 
 --- @param params table
