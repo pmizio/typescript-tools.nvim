@@ -40,8 +40,9 @@ function M.handler(request, response, params)
 
   -- tsserver protocol reference:
   -- https://github.com/microsoft/TypeScript/blob/8a1b85880f89c9cff606c5844e8883e5f483c7db/lib/protocol.d.ts#L2561
-  if #body.childItems == 0 then
+  if not body.childItems or #body.childItems == 0 then
     response(nil)
+    return
   end
 
   response(vim.tbl_map(map_document_symbol, remove_aliases(body.childItems)))
