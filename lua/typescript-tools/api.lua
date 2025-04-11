@@ -85,6 +85,8 @@ function M.go_to_source_definition(is_sync, opts)
 
   params.context = { source_definition = true }
 
+  local handler = vim.lsp.handlers[c.LspMethods.Definition] or utils.on_definition_response
+
   if is_sync then
     local res = vim.lsp.buf_request_sync(0, c.LspMethods.Definition, params, timeout)
     local typescript_client = get_typescript_client(0)
@@ -93,13 +95,20 @@ function M.go_to_source_definition(is_sync, opts)
     end
     local typescript_client_res = res[typescript_client.id]
 
+    local context = {
+      method = c.LspMethods.Definition,
+      client_id = typescript_client.id,
+      bufnr = 0,
+      params = params,
+    }
+
     if not typescript_client_res.err then
-      utils.on_definition_response(typescript_client_res.result, opts)
+      handler(typescript_client_res.err, typescript_client_res.result, context, opts)
     end
   else
-    vim.lsp.buf_request(0, c.LspMethods.Definition, params, function(err, result)
+    vim.lsp.buf_request(0, c.LspMethods.Definition, params, function(err, result, context)
       if not err then
-        utils.on_definition_response(result, opts)
+        handler(err, result, context, opts)
       end
     end)
   end

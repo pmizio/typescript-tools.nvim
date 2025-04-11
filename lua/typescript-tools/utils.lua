@@ -132,7 +132,7 @@ end
 
 ---@param result? table
 ---@param opts? vim.lsp.ListOpts
-function M.on_definition_response(result, opts)
+function M.on_definition_response(_, result, _, opts)
   opts = opts or {}
   local locations = {}
   if result then
