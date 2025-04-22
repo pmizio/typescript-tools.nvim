@@ -48,6 +48,14 @@ function M.handler(request, response, params)
 
   local body = coroutine.yield()
 
+  -- TODO: I'm getting an error response (success = false) for the `Move to
+  -- a new File` code action with the command `getEditsForRefactor`. Look into
+  -- if it's working as expected
+  if body.success == false then
+    response(nil)
+    return
+  end
+
   -- tsserver protocol reference:
   -- OrganizeImports:
   -- https://github.com/microsoft/TypeScript/blob/c18791ccf165672df3b55f5bdd4a8655f33be26c/lib/protocol.d.ts#L508
