@@ -7,7 +7,9 @@ local M = {}
 
 ---@param dispatchers Dispatchers
 function M.setup_autocommands(dispatchers)
-  diagnostics.setup_diagnostic_autocmds(dispatchers)
+  if config.diagnostics then
+    diagnostics.setup_diagnostic_autocmds(dispatchers)
+  end
 
   if config.code_lens ~= config.code_lens_mode.off then
     code_lens.setup_code_lens_autocmds()

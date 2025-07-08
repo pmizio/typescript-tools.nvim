@@ -14,6 +14,7 @@
 ---@field include_completions_with_insert_text boolean
 ---@field code_lens code_lens_mode
 ---@field jsx_close_tag { enable: boolean, filetypes: string[] }
+---@field diagnostics boolean
 ---@field disable_member_code_lens boolean
 local M = {}
 local __store = {}
@@ -138,6 +139,7 @@ function M.load_settings(settings)
     },
     ["settings.code_lens"] = { settings.code_lens, "string", true },
     ["settings.disable_member_code_lens"] = { settings.disable_member_code_lens, "boolean", true },
+    ["settings.diagnostics"] = { settings.diagnostics, "boolean", true },
     ["settings.jsx_close_tag"] = { settings.jsx_close_tag, "table", true },
   }
 
@@ -210,6 +212,10 @@ function M.load_settings(settings)
 
   if settings.jsx_close_tag and not settings.jsx_close_tag.filetypes then
     __store.jsx_close_tag.filetypes = default_jsx_filetypes
+  end
+
+  if type(settings.diagnostics) == "nil" then
+    __store.diagnostics = true
   end
 end
 
