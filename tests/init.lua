@@ -26,7 +26,6 @@ vim.cmd [[set runtimepath=$VIMRUNTIME]]
 vim.opt.runtimepath:append(get_root())
 vim.opt.packpath = { get_root ".tests/site" }
 load "nvim-lua/plenary.nvim"
-load "neovim/nvim-lspconfig"
 load "nvim-treesitter/nvim-treesitter"
 vim.env.XDG_CONFIG_HOME = get_root ".tests/config"
 vim.env.XDG_DATA_HOME = get_root ".tests/data"
