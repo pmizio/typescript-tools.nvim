@@ -78,7 +78,7 @@ function M.get_clients(filter)
 end
 
 ---@param bufnr integer
----@return lsp.Client|nil
+---@return vim.lsp.Client|nil
 function M.get_typescript_client(bufnr)
   local clients = M.get_clients {
     name = plugin_config.plugin_name,
