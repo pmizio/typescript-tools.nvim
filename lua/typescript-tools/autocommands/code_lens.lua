@@ -2,6 +2,7 @@ local api = vim.api
 
 local common = require "typescript-tools.autocommands.common"
 local utils = require "typescript-tools.utils"
+local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
@@ -11,7 +12,7 @@ function M.setup_code_lens_autocmds()
   common.create_lsp_attach_augcmd(function()
     pcall(vim.lsp.codelens.refresh)
 
-    api.nvim_create_autocmd({ "BufEnter", "InsertLeave", "CursorHold" }, {
+    api.nvim_create_autocmd(plugin_config.code_lens_config.events, {
       pattern = common.extensions_pattern,
       callback = function(e)
         if not utils.get_typescript_client(e.buf) then
