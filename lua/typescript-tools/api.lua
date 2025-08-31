@@ -149,7 +149,7 @@ function M.request_diagnostics(callback)
     return
   end
 
-  typescript_client.request(c.CustomMethods.Diagnostic, {
+  typescript_client:request(c.CustomMethods.Diagnostic, {
     textDocument = text_document,
   }, callback, bufnr)
 end
