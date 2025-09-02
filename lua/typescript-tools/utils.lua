@@ -72,6 +72,22 @@ function M.is_nightly()
   return type(v) ~= "boolean" and v ~= nil or v
 end
 
+---@return boolean, string
+function M.check_minimum_nvim_version()
+  local required_version = { 0, 11, 0 }
+  local current_version = vim.version()
+
+  local is_compatible = vim.version.ge(current_version, required_version)
+  local version_str =
+    string.format("%d.%d.%d", current_version.major, current_version.minor, current_version.patch)
+
+  if is_compatible then
+    return true, string.format("Neovim %s (>= 0.11 required)", version_str)
+  else
+    return false, string.format("Neovim %s found, but >= 0.11 is required", version_str)
+  end
+end
+
 function M.get_clients(filter)
   local get_clients = vim.lsp.get_clients or vim.lsp.get_active_clients
   return get_clients(filter)
@@ -187,6 +203,67 @@ function M.on_definition_response(_, result, _, opts)
     vim.fn.setqflist({}, " ", { title = title, items = all_items })
     vim.cmd "botright copen"
   end
+end
+
+function M.bufname_valid(bufname)
+  if
+    bufname:match "^/"
+    or bufname:match "^[a-zA-Z]:"
+    or bufname:match "^zipfile://"
+    or bufname:match "^tarfile:"
+  then
+    return true
+  end
+  return false
+end
+
+---@param startpath string
+---@param func function
+---@return string|nil
+function M.search_ancestors(startpath, func)
+  local guard = 100
+  for path in vim.fs.parents(startpath) do
+    -- Prevent infinite recursion if our algorithm breaks
+    guard = guard - 1
+    if guard == 0 then
+      return
+    end
+
+    if func(path) then
+      return path
+    end
+  end
+end
+
+---@param bufnr integer
+---@return string
+function M.get_root_dir(bufnr)
+  local fname = vim.api.nvim_buf_get_name(bufnr)
+  local function has_tsconfig(path)
+    return vim.fn.filereadable(vim.fn.join { path, "tsconfig.json" }) == 1
+  end
+
+  local function has_root_files(path)
+    local root_files = { "jsconfig.json", "package.json", ".git" }
+    for _, file in ipairs(root_files) do
+      if vim.fn.filereadable(vim.fn.join({ path, file }, "/")) == 1 then
+        return true
+      end
+    end
+    return false
+  end
+
+  local root_dir = M.search_ancestors(fname, has_tsconfig)
+    or M.search_ancestors(fname, has_root_files)
+    or vim.fn.getcwd()
+
+  -- INFO: this is needed to make sure we don't pick up root_dir inside node_modules
+  local node_modules_index = root_dir and root_dir:find("node_modules", 1, true)
+  if node_modules_index and node_modules_index > 0 then
+    root_dir = root_dir:sub(1, node_modules_index - 2)
+  end
+
+  return root_dir
 end
 
 return M

@@ -321,7 +321,7 @@ end
 
 ---@return boolean
 function Tsserver:is_closing()
-  return self.process:is_closing()
+  return self.process ~= nil and self.process:is_closing()
 end
 
 return Tsserver

@@ -2,8 +2,7 @@ local log = require "vim.lsp.log"
 local api = vim.api
 local Path = require "plenary.path"
 local Job = require "plenary.job"
-local configs = require "lspconfig.configs"
-local util = require "lspconfig.util"
+local util = require "typescript-tools.utils"
 
 local plugin_config = require "typescript-tools.config"
 
@@ -58,7 +57,6 @@ end
 function TsserverProvider.new(on_loaded)
   local self = setmetatable({}, { __index = TsserverProvider })
 
-  local config = configs[plugin_config.plugin_name]
   local bufnr = api.nvim_get_current_buf()
   local bufname = api.nvim_buf_get_name(bufnr)
 
@@ -66,7 +64,7 @@ function TsserverProvider.new(on_loaded)
 
   local sanitized_bufname = vim.fs.normalize(bufname)
 
-  self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
+  self.root_dir = Path:new(util.get_root_dir(bufnr))
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
   self.yarn_sdk_path = find_yarn_sdk(sanitized_bufname):joinpath ".yarn/sdks"
   self.global_install_path = Path:new(vim.fn.resolve(vim.fn.exepath "tsserver")):parent():parent()

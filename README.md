@@ -80,8 +80,7 @@ In summary, the architecture of this plugin can be visualized as shown in the di
 
 #### ⚡️ Requirements
 
-- NeoVim >= 0.8.0
-- [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
+- NeoVim >= 0.11.0
 - [plenary.nvim](https://github.com/nvim-lua/plenary.nvim)
 - TypeScript >= 4.0
 - Node supported suitable for TypeScript version you use
@@ -101,7 +100,7 @@ In summary, the architecture of this plugin can be visualized as shown in the di
 ```lua
 use {
   "pmizio/typescript-tools.nvim",
-  requires = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+  requires = { "nvim-lua/plenary.nvim" },
   config = function()
     require("typescript-tools").setup {}
   end,
@@ -109,10 +108,6 @@ use {
 ```
 
 ### ⚙️ Configuration
-
-The parameters passed into the `setup` function are also passed to the standard `nvim-lspconfig`
-server `setup`, allowing you to use the same settings here.
-But you can pass plugin-specific options through the `settings` parameter, which defaults to:
 
 ```lua
 require("typescript-tools").setup {
