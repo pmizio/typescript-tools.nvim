@@ -2,12 +2,61 @@ local log = require "vim.lsp.log"
 local api = vim.api
 local Path = require "plenary.path"
 local Job = require "plenary.job"
-local configs = require "lspconfig.configs"
-local util = require "lspconfig.util"
 
 local plugin_config = require "typescript-tools.config"
 
 local is_win = vim.loop.os_uname().version:find "Windows"
+
+-- Native utility functions to replace lspconfig.util
+local function root_pattern(...)
+  local patterns = vim.tbl_flatten { ... }
+  return function(startpath)
+    local found = vim.fs.find(patterns, {
+      path = startpath,
+      upward = true,
+    })[1]
+    return found and vim.fs.dirname(found) or nil
+  end
+end
+
+local function search_ancestors(startpath, func)
+  local path = vim.fs.normalize(startpath)
+  local root = vim.fs.root(path, function(name, path_)
+    return func(path_)
+  end)
+  return root
+end
+
+local function bufname_valid(bufname)
+  if bufname == "" or bufname == nil then
+    return false
+  end
+  
+  -- Check if it's a valid file path or URI
+  if vim.startswith(bufname, "file://") then
+    return true
+  end
+  
+  -- Check if it's a regular file path
+  local stat = vim.loop.fs_stat(bufname)
+  return stat ~= nil or vim.fn.filereadable(bufname) == 1
+end
+
+---@param fname string
+---@return string|nil
+local function get_root_dir(fname)
+  -- Use the same root detection logic as the main init.lua
+  local root_dir = root_pattern "tsconfig.json"(fname)
+    or root_pattern("package.json", "jsconfig.json", ".git")(fname)
+
+  -- Make sure we don't pick up root_dir inside node_modules
+  local node_modules_index = root_dir and root_dir:find("node_modules", 1, true)
+  if node_modules_index and node_modules_index > 0 then
+    root_dir = root_dir:sub(1, node_modules_index - 2)
+  end
+
+  return root_dir
+end
 
 ---@class TsserverProvider
 ---@field private instance TsserverProvider
@@ -32,7 +81,7 @@ end
 ---@param startpath string
 ---@return Path
 local function find_deep_node_modules_ancestor(startpath)
-  return Path:new(util.search_ancestors(startpath, function(path)
+  return Path:new(search_ancestors(startpath, function(path)
     local tsserver_path = Path:new(path, "node_modules", "typescript", "lib", "tsserver.js")
 
     if tsserver_exists(tsserver_path) then
@@ -44,7 +93,7 @@ end
 ---@param startpath string
 ---@return Path
 local function find_yarn_sdk(startpath)
-  return Path:new(util.search_ancestors(startpath, function(path)
+  return Path:new(search_ancestors(startpath, function(path)
     local tsserver_path = Path:new(path, ".yarn", "sdks", "typescript", "lib", "tsserver.js")
 
     if tsserver_exists(tsserver_path) then
@@ -58,15 +107,31 @@ end
 function TsserverProvider.new(on_loaded)
   local self = setmetatable({}, { __index = TsserverProvider })
 
-  local config = configs[plugin_config.plugin_name]
   local bufnr = api.nvim_get_current_buf()
   local bufname = api.nvim_buf_get_name(bufnr)
 
-  assert(util.bufname_valid(bufname), "Invalid buffer name!")
+  assert(bufname_valid(bufname), "Invalid buffer name!")
 
   local sanitized_bufname = vim.fs.normalize(bufname)
 
-  self.root_dir = Path:new(config.get_root_dir(sanitized_bufname, bufnr))
+  -- Use native root detection or fallback to lspconfig
+  local root_dir
+  if vim.lsp.config and vim.lsp.config[plugin_config.plugin_name] then
+    -- For native Neovim 0.11+ LSP config, use our own root detection
+    root_dir = get_root_dir(sanitized_bufname)
+  else
+    -- For lspconfig fallback, try to get from configs
+    local configs = require "lspconfig.configs"
+    local config = configs[plugin_config.plugin_name]
+    if config and config.get_root_dir then
+      root_dir = config.get_root_dir(sanitized_bufname, bufnr)
+    else
+      -- Fallback to our own implementation
+      root_dir = get_root_dir(sanitized_bufname)
+    end
+  end
+
+  self.root_dir = Path:new(root_dir)
   self.npm_local_path = find_deep_node_modules_ancestor(sanitized_bufname):joinpath "node_modules"
   self.yarn_sdk_path = find_yarn_sdk(sanitized_bufname):joinpath ".yarn/sdks"
   self.global_install_path = Path:new(vim.fn.resolve(vim.fn.exepath "tsserver")):parent():parent()
