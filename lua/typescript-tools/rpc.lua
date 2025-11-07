@@ -10,7 +10,7 @@ local utils = require "typescript-tools.utils"
 local M = {}
 
 ---@param dispatchers Dispatchers
----@return LspInterface
+---@return vim.lsp.rpc.PublicClient
 function M.start(dispatchers)
   local modified_dispatchers = vim.deepcopy(dispatchers)
   modified_dispatchers.on_exit = utils.run_once(dispatchers.on_exit) -- INFO: multiple calls to on_exit causes errors in nvim lsp
