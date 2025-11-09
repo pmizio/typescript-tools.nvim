@@ -51,7 +51,10 @@ function M.handler(request, response, params)
   local context = params.context or {}
   local trigger_character = context.triggerCharacter
   local requested_bufnr = vim.uri_to_bufnr(text_document.uri)
+  local filename = vim.uri_to_fname(text_document.uri)
   local filetype = vim.bo[requested_bufnr].filetype
+  local is_valid_context_for_function_snippet =
+    utils.is_valid_context_for_function_snippet(requested_bufnr, params.position, filename, request)
 
   -- tsserver protocol reference:
   -- https//github.com/microsoft/TypeScript/blob/8b482b513d87c6fcda8ece18b99f8a01cff5c605/lib/protocol.d.ts#L1631
@@ -110,7 +113,11 @@ function M.handler(request, response, params)
           end
         end
 
-        local should_create_function_snippet = utils.should_create_function_snippet(kind, filetype)
+        local should_create_function_snippet = utils.should_create_function_snippet(
+          kind,
+          insertText,
+          filetype
+        ) and is_valid_context_for_function_snippet
         local should_create_snippet = item.isSnippet or should_create_function_snippet
         local label = is_optional and (item.name .. "?") or item.name
         label = should_create_function_snippet and (label .. "(...)") or label

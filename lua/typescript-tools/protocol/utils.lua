@@ -236,6 +236,41 @@ function M.should_create_function_snippet(kind, insertText, filetype)
     and not string.find(insertText, "%$")
 end
 
+---@param bufnr number
+---@param position LspPosition
+---@return boolean
+local function is_completing_jsx(bufnr, position)
+  local line = vim.api.nvim_buf_get_lines(bufnr, position.line, position.line + 1, false)[1]
+  local line_before_position = line:sub(1, position.character)
+  return line_before_position:match "^.*<[%w%._$]*$"
+end
+
+---@param position LspPosition
+---@param file string
+---@param request TsserverRequest
+---@return boolean
+local function should_omit_function_snippet_in_context(position, file, request)
+  request {
+    command = c.CommandTypes.Quickinfo,
+    arguments = vim.tbl_extend("force", {
+      file = file,
+    }, M.convert_lsp_position_to_tsserver(position)),
+  }
+
+  local body = coroutine.yield()
+
+  return vim.tbl_contains({ "var", "let", "const", "alias" }, body.kind)
+end
+
+---@param bufnr number
+---@param position LspPosition
+---@param request TsserverRequest
+---@return boolean
+function M.is_valid_context_for_function_snippet(bufnr, position, file, request)
+  return not is_completing_jsx(bufnr, position)
+    and not should_omit_function_snippet_in_context(position, file, request)
+end
+
 ---@param content string
 ---@param kind "plaintext"|"markdown"|nil
 function M.make_markup_content(content, kind)
