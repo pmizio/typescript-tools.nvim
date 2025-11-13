@@ -4,6 +4,7 @@ local plugin_config = require "typescript-tools.config"
 
 local M = {}
 
+---@param config { settings?: table, config?: vim.lsp.Config }
 function M.setup(config)
   local version_ok, version_msg = util.check_minimum_nvim_version()
   if not version_ok then
@@ -15,7 +16,7 @@ function M.setup(config)
   plugin_config.load_settings(settings)
 
   if vim.lsp.config[plugin_config.plugin_name] == nil then
-    vim.lsp.config[plugin_config.plugin_name] = {
+    vim.lsp.config[plugin_config.plugin_name] = vim.tbl_deep_extend("keep", config.config or {}, {
       cmd = function(...)
         return rpc.start(...)
       end,
@@ -31,7 +32,7 @@ function M.setup(config)
         on_dir(util.get_root_dir(bufnr))
       end,
       single_file_support = true,
-    }
+    })
   end
 
   vim.lsp.enable(plugin_config.plugin_name)
