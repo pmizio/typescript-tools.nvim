@@ -35,10 +35,11 @@ function Tsserver.new(type, dispatchers)
   self.requests_to_cancel_on_change = {}
   self.dispatchers = dispatchers
 
+  local ft = vim.bo.filetype
   TsserverProvider.init(function()
     self.process = Process.new(type, function(response)
       self:handle_response(response)
-    end, dispatchers.on_exit)
+    end, dispatchers.on_exit, ft)
 
     ---@diagnostic disable-next-line
     self:send_queued_requests()
