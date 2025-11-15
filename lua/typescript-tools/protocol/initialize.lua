@@ -27,6 +27,7 @@ local configuration = {
       providePrefixAndSuffixTextForRename = true,
       allowRenameOfImportPath = true,
       includePackageJsonAutoImports = "auto",
+      maximumHoverLength = 1000000,
     },
     watchOptions = {},
   },
