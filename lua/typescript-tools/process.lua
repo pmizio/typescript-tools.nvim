@@ -2,6 +2,7 @@ local uv = vim.loop
 local log = require "vim.lsp.log"
 local Path = require "plenary.path"
 local plugin_config = require "typescript-tools.config"
+local list_contains = require("typescript-tools.utils").list_contains
 local TsserverProvider = require "typescript-tools.tsserver_provider"
 
 local HEADER = "Content-Length: "
@@ -22,11 +23,12 @@ local is_win = uv.os_uname().version:find "Windows"
 ---@class Process
 local Process = {}
 
----@param type ServerType
+---@param ttype ServerType
 ---@param on_response fun(response: table)
 ---@param on_exit fun(code: number, signal: number)
+---@param filetype string
 ---@return Process
-function Process.new(type, on_response, on_exit)
+function Process.new(ttype, on_response, on_exit, filetype)
   local self = setmetatable({}, { __index = Process })
 
   local tsserver_provider = TsserverProvider.get_instance()
@@ -54,11 +56,48 @@ function Process.new(type, on_response, on_exit)
 
   local plugins_path = tsserver_provider:get_plugins_path()
 
-  if plugins_path and #plugin_config.tsserver_plugins > 0 then
+  if plugin_config and #plugin_config.tsserver_plugins > 0 then
+    local plugin_names = {}
+    local probe_locations = {}
+    local has_object_plugins = false
+
+    local function load_plugins(plugin_name, plugin_path)
+      has_object_plugins = true
+      local full_path = Path:new(plugin_path, plugin_name):absolute()
+      table.insert(plugin_names, plugin_name)
+      table.insert(probe_locations, full_path)
+    end
+
+    for _, plugin in ipairs(plugin_config.tsserver_plugins) do
+      if type(plugin) == "table" then
+        if type(plugin.filetypes) == "string" then
+          if plugin.filetypes == filetype then
+            load_plugins(plugin.name, plugin.path)
+          end
+        elseif plugin.filetypes == nil then
+          load_plugins(plugin.name, plugin.path)
+        else
+          if list_contains(plugin.filetypes, filetype) then
+            load_plugins(plugin.name, plugin.path)
+          end
+        end
+      else
+        table.insert(plugin_names, plugin)
+      end
+    end
+
     table.insert(self.args, "--pluginProbeLocations")
-    table.insert(self.args, plugins_path:absolute())
-    table.insert(self.args, "--globalPlugins")
-    table.insert(self.args, table.concat(plugin_config.tsserver_plugins, ","))
+    if has_object_plugins then
+      table.insert(self.args, table.concat(probe_locations, ","))
+    else
+      if plugins_path then
+        table.insert(self.args, plugins_path:absolute())
+      end
+    end
+    if #plugin_names ~= 0 then
+      table.insert(self.args, "--globalPlugins")
+      table.insert(self.args, table.concat(plugin_names, ","))
+    end
   end
 
   if plugin_config.tsserver_logs ~= "off" then
@@ -66,11 +105,10 @@ function Process.new(type, on_response, on_exit)
     table.insert(self.args, "--logVerbosity")
     table.insert(self.args, plugin_config.tsserver_logs)
     table.insert(self.args, "--logFile")
-    table.insert(self.args, log_dir:joinpath("tsserver_" .. type .. ".log"):absolute())
+    table.insert(self.args, log_dir:joinpath("tsserver_" .. ttype .. ".log"):absolute())
   end
 
   self:start()
-
   return self
 end
 

@@ -272,6 +272,31 @@ require("typescript-tools").setup {
 
 </details>
 
+#### tsserver plugins specify location support
+
+If you want to specify a custom location of a tsserver plugin you can do it by providing a table
+with `name`, `path` and a optional `filetypes` fields instead of a string in the `tsserver_plugins
+
+```lua
+local mason_path = vim.fn.stdpath "data" .. "/mason/packages/"
+
+require("typescript-tools").setup {
+    settings = {
+        tsserver_plugins = {
+            {
+                name = "@vue/typescript-plugin",
+                path = mason_path .. "vue-language-server" .. "/node_modules/@vue/language-server",
+                filetypes = { "vue", "typescript" },
+            },
+            {
+                name = "@mdxjs/typescript-plugin",
+                path = mason_path .. "mdx-analyzer" .. "/node_modules/@mdx/language-server",
+            },
+        },
+    },
+}
+```
+
 ## Custom user commands
 
 This plugin provides several custom user commands (they are only applied to current buffer):
