@@ -2,6 +2,7 @@ local diagnostics = require "typescript-tools.autocommands.diagnostics"
 local code_lens = require "typescript-tools.autocommands.code_lens"
 local config = require "typescript-tools.config"
 local jsx_close_tag = require "typescript-tools.autocommands.jsx_close_tag"
+local user_commands = require "typescript-tools.autocommands.user_commands"
 
 local M = {}
 
@@ -16,6 +17,8 @@ function M.setup_autocommands(dispatchers)
   if config.jsx_close_tag.enable then
     jsx_close_tag.setup_jsx_close_tag_autocmds()
   end
+
+  user_commands.autosetup_user_commands()
 end
 
 return M
