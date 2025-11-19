@@ -15,6 +15,7 @@
 ---@field code_lens code_lens_mode
 ---@field jsx_close_tag { enable: boolean, filetypes: string[] }
 ---@field disable_member_code_lens boolean
+---@field code_lens_config { events: table, format: { references: fun(refs: table): string; implementations: fun(impls: table): string } }
 local M = {}
 local __store = {}
 
@@ -92,7 +93,7 @@ M.code_lens_mode = {
 
 M.plugin_name = "typescript-tools"
 
----@param settings table
+---@param settings Settings
 function M.load_settings(settings)
   local validation_config = {
     settings = { settings, "table", true },
@@ -139,6 +140,31 @@ function M.load_settings(settings)
     ["settings.code_lens"] = { settings.code_lens, "string", true },
     ["settings.disable_member_code_lens"] = { settings.disable_member_code_lens, "boolean", true },
     ["settings.jsx_close_tag"] = { settings.jsx_close_tag, "table", true },
+    ["settings.code_lens_config"] = { settings.code_lens_config, "table", true },
+    ["settings.code_lens_config.events"] = {
+      settings.code_lens_config and settings.code_lens_config.events,
+      "table",
+      true,
+    },
+    ["settings.code_lens_config.format"] = {
+      settings.code_lens_config and settings.code_lens_config.format,
+      "table",
+      true,
+    },
+    ["settings.code_lens_config.format.references"] = {
+      settings.code_lens_config
+        and settings.code_lens_config.format
+        and settings.code_lens_config.format.references,
+      "function",
+      true,
+    },
+    ["settings.code_lens_config.format.implementations"] = {
+      settings.code_lens_config
+        and settings.code_lens_config.format
+        and settings.code_lens_config.format.implementations,
+      "function",
+      true,
+    },
   }
 
   if vim.fn.has "nvim-0.11" == 1 then
@@ -149,68 +175,50 @@ function M.load_settings(settings)
     vim.validate(validation_config)
   end
 
-  __store = vim.tbl_deep_extend("force", __store, settings)
+  local defaults = {
+    separate_diagnostic_server = true,
+    publish_diagnostic_on = M.publish_diagnostic_mode.insert_leave,
+    tsserver_plugins = {},
+    tsserver_format_options = {},
+    tsserver_file_preferences = {},
+    tsserver_logs = M.tsserver_log_level.off,
+    tsserver_max_memory = "auto",
+    tsserver_locale = "en",
+    complete_function_calls = false,
+    expose_as_code_action = {},
+    include_completions_with_insert_text = {},
+    code_lens = M.code_lens_mode.off,
+    jsx_close_tag = {
+      enable = false,
+      filetypes = { "javascriptreact", "typescriptreact" },
+    },
+    code_lens_config = {
+      events = { "BufEnter", "InsertLeave", "CursorHold" },
+      format = {
+        references = function(refs)
+          return "references: " .. #refs
+        end,
+        implementations = function(impls)
+          return "implementations: " .. #impls
+        end,
+      },
+    },
+  }
+  __store = vim.tbl_deep_extend("force", __store, defaults, settings)
 
-  if type(settings.separate_diagnostic_server) == "nil" then
-    __store.separate_diagnostic_server = true
-  end
-
+  --#region Additionally handle enumerated values
   if not M.publish_diagnostic_mode[settings.publish_diagnostic_on] then
     __store.publish_diagnostic_on = M.publish_diagnostic_mode.insert_leave
-  end
-
-  if not settings.tsserver_plugins then
-    __store.tsserver_plugins = {}
-  end
-
-  if not settings.tsserver_format_options then
-    __store.tsserver_format_options = {}
-  end
-
-  if not settings.tsserver_file_preferences then
-    __store.tsserver_file_preferences = {}
   end
 
   if not M.tsserver_log_level[settings.tsserver_logs] then
     __store.tsserver_logs = M.tsserver_log_level.off
   end
 
-  if not settings.tsserver_max_memory then
-    __store.tsserver_max_memory = "auto"
-  end
-
-  if not settings.tsserver_locale then
-    __store.tsserver_locale = "en"
-  end
-
-  if not settings.complete_function_calls then
-    __store.complete_function_calls = false
-  end
-
-  if not settings.expose_as_code_action then
-    __store.expose_as_code_action = {}
-  end
-
-  if not settings.include_completions_with_insert_text then
-    __store.include_completions_with_insert_text = true
-  end
-
   if not M.code_lens_mode[settings.code_lens] then
     __store.code_lens = M.code_lens_mode.off
   end
-
-  local default_jsx_filetypes = { "javascriptreact", "typescriptreact" }
-
-  if not settings.jsx_close_tag then
-    __store.jsx_close_tag = {
-      enable = false,
-      filetypes = default_jsx_filetypes,
-    }
-  end
-
-  if settings.jsx_close_tag and not settings.jsx_close_tag.filetypes then
-    __store.jsx_close_tag.filetypes = default_jsx_filetypes
-  end
+  --#endregion
 end
 
 setmetatable(M, {
