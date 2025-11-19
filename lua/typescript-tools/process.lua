@@ -123,7 +123,7 @@ local function parse_response(initial_chunk, on_response)
 end
 
 function Process:start()
-  local command = is_win and "cmd.exe" or "node"
+  local command = is_win and "cmd.exe" or plugin_config.tsserver_node_executable
 
   if type(plugin_config.tsserver_max_memory) == "number" then
     table.insert(self.args, 1, "--max-old-space-size=" .. plugin_config.tsserver_max_memory)
@@ -131,7 +131,7 @@ function Process:start()
 
   if is_win then
     table.insert(self.args, 1, "/c")
-    table.insert(self.args, 2, "node")
+    table.insert(self.args, 2, plugin_config.tsserver_node_executable)
   end
 
   local args = {
