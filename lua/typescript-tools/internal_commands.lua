@@ -64,12 +64,21 @@ M[c.InternalCommands.InteractiveCodeAction] = function(params)
     ---@type string|boolean|nil
     local target_file
 
-    local telescope_err, file = a.wrap(integrations.telescope_picker, 2)()
+    local has_telescope = pcall(require, "telescope.actions")
+    local has_snacks = pcall(require, "snacks")
 
-    if telescope_err then
-      target_file = async.ui_input { prompt = "Move to file: " }
-    else
+    if has_telescope then
+      local _, file = a.wrap(integrations.telescope_picker, 2)()
       target_file = file
+    elseif has_snacks then
+      local _, file = a.wrap(integrations.snacks_picker, 2)()
+      target_file = file
+    else
+      vim.notify(
+        "Telescope or snacks.nvim picker needs to be installed to call this integration",
+        vim.log.levels.WARN
+      )
+      target_file = async.ui_input { prompt = "Move to file: " }
     end
 
     if target_file == nil or not vim.fn.filereadable(target_file) then
